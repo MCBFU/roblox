@@ -1,0 +1,235 @@
+-- 启动时自动运行经验脚本
+local experienceSuccess, experienceError = pcall(function()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBfun/roblox/refs/heads/main/Qaq"))()
+end)
+
+if experienceSuccess then
+    print("经验脚本已自动运行")
+else
+    warn("经验脚本运行失败: " .. tostring(experienceError))
+end
+
+-- 使用稳定可靠的UI库
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+-- 创建窗口
+local Window = Rayfield:CreateWindow({
+   Name = "脚本控制中心",
+   LoadingTitle = "正在加载...",
+   LoadingSubtitle = "经验脚本已自动运行",
+   ConfigurationSaving = {
+      Enabled = false,
+   },
+   Discord = {
+      Enabled = false,
+   },
+   KeySystem = false,
+})
+
+-- 创建状态跟踪
+local scriptStates = {
+    experience = true,  -- 经验脚本已自动运行
+    vote = false,
+    bhop = false
+}
+
+-- 创建主标签页
+local MainTab = Window:CreateTab("主页", nil)
+local MainSection = MainTab:CreateSection("系统状态")
+
+-- 显示经验脚本状态
+MainTab:CreateLabel("✅ 经验脚本: 已自动运行")
+MainTab:CreateLabel("刷票功能: 未启用")
+MainTab:CreateLabel("连跳功能: 未启用")
+
+MainTab:CreateParagraph({
+    Title = "使用说明",
+    Content = "经验脚本已在启动时自动运行。你可以在下方标签页启用其他功能。"
+})
+
+-- 创建票数功能标签页
+local VoteTab = Window:CreateTab("票数功能", nil)
+local VoteSection = VoteTab:CreateSection("自动刷票系统")
+
+local VoteButton = VoteTab:CreateButton({
+   Name = "启用刷票功能",
+   Callback = function()
+      if not scriptStates.vote then
+          local success, err = pcall(function()
+              loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBfun/roblox/refs/heads/main/ShuaPiao"))()
+          end)
+          
+          if success then
+              scriptStates.vote = true
+              Rayfield:Notify({
+                 Title = "系统提示",
+                 Content = "刷票功能已成功启用",
+                 Duration = 3,
+                 Image = 4483362458,
+              })
+              VoteButton:Set("禁用刷票功能")
+          else
+              Rayfield:Notify({
+                 Title = "错误",
+                 Content = "刷票功能加载失败",
+                 Duration = 5,
+                 Image = 4483362458,
+              })
+          end
+      else
+          -- 这里可以添加禁用刷票的逻辑
+          scriptStates.vote = false
+          Rayfield:Notify({
+             Title = "系统提示",
+             Content = "刷票功能已禁用",
+             Duration = 3,
+             Image = 4483362458,
+          })
+          VoteButton:Set("启用刷票功能")
+      end
+   end,
+})
+
+-- 创建连跳功能标签页
+local JumpTab = Window:CreateTab("连跳功能", nil)
+local JumpSection = JumpTab:CreateSection("自动连跳系统")
+
+local BhopToggle = JumpTab:CreateToggle({
+   Name = "启用连跳",
+   CurrentValue = false,
+   Flag = "BhopToggle",
+   Callback = function(Value)
+      if Value then
+          local success, err = pcall(function()
+              loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBfun/roblox/refs/heads/main/LianTiao"))()
+          end)
+          
+          if success then
+              scriptStates.bhop = true
+              Rayfield:Notify({
+                 Title = "系统提示",
+                 Content = "连跳功能已启用",
+                 Duration = 3,
+                 Image = 4483362458,
+              })
+          else
+              Rayfield:Notify({
+                 Title = "错误",
+                 Content = "连跳功能加载失败",
+                 Duration = 5,
+                 Image = 4483362458,
+              })
+              BhopToggle:Set(false)
+          end
+      else
+          scriptStates.bhop = false
+          Rayfield:Notify({
+             Title = "系统提示",
+             Content = "连跳功能已关闭",
+             Duration = 3,
+             Image = 4483362458,
+          })
+      end
+   end,
+})
+
+-- 经验脚本控制标签页
+local ExperienceTab = Window:CreateTab("经验脚本", nil)
+local ExperienceSection = ExperienceTab:CreateSection("经验脚本控制")
+
+ExperienceTab:CreateLabel("经验脚本已在启动时自动运行")
+ExperienceTab:CreateLabel("状态: ✅ 运行中")
+
+ExperienceTab:CreateButton({
+   Name = "重新运行经验脚本",
+   Callback = function()
+      local success, err = pcall(function()
+          loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBfun/roblox/refs/heads/main/Qaq"))()
+      end)
+      
+      if success then
+          Rayfield:Notify({
+             Title = "系统提示",
+             Content = "经验脚本重新运行成功",
+             Duration = 3,
+             Image = 4483362458,
+          })
+      else
+          Rayfield:Notify({
+             Title = "错误",
+             Content = "经验脚本重新运行失败",
+             Duration = 5,
+             Image = 4483362458,
+          })
+      end
+   end,
+})
+
+-- 创建设置标签页
+local SettingsTab = Window:CreateTab("设置", nil)
+local SettingsSection = SettingsTab:CreateSection("界面设置")
+
+SettingsTab:CreateButton({
+   Name = "隐藏界面",
+   Callback = function()
+      Rayfield:Notify({
+         Title = "提示",
+         Content = "按右Shift键可以重新显示界面",
+         Duration = 5,
+         Image = 4483362458,
+      })
+      Rayfield:Destroy()
+   end,
+})
+
+SettingsTab:CreateButton({
+   Name = "重新加载所有脚本",
+   Callback = function()
+      Rayfield:Notify({
+         Title = "系统",
+         Content = "正在重新加载所有脚本...",
+         Duration = 3,
+         Image = 4483362458,
+      })
+      
+      -- 重新运行经验脚本
+      pcall(function()
+          loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBfun/roblox/refs/heads/main/Qaq"))()
+      end)
+      
+      -- 如果其他脚本已启用，也重新加载
+      if scriptStates.vote then
+          pcall(function()
+              loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBfun/roblox/refs/heads/main/ShuaPiao"))()
+          end)
+      end
+      
+      if scriptStates.bhop then
+          pcall(function()
+              loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBfun/roblox/refs/heads/main/LianTiao"))()
+          end)
+      end
+      
+      wait(2)
+      Rayfield:Notify({
+         Title = "完成",
+         Content = "所有脚本已重新加载",
+         Duration = 3,
+         Image = 4483362458,
+      })
+   end,
+})
+
+-- 显示加载完成提示
+Rayfield:Notify({
+   Title = "加载完成",
+   Content = "经验脚本已自动运行！其他功能已就绪。",
+   Duration = 6,
+   Image = 4483362458,
+})
+
+print("=== 脚本控制中心 ===")
+print("✅ 经验脚本: 已自动运行")
+print("🔄 刷票功能: 待启用") 
+print("🔄 连跳功能: 待启用")
+print("===================")
