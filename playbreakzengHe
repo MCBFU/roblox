@@ -1,0 +1,124 @@
+-- 使用稳定可靠的UI库
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+-- 创建窗口
+local Window = Rayfield:CreateWindow({
+   Name = "脚本控制中心",
+   LoadingTitle = "正在加载...",
+   LoadingSubtitle = "脚本助手",
+   ConfigurationSaving = { Enabled = false },
+   Discord = { Enabled = false },
+   KeySystem = false,
+})
+
+-- 创建主标签页
+local MainTab = Window:CreateTab("主页")
+MainTab:CreateSection("欢迎使用")
+MainTab:CreateLabel("脚本控制中心 v1.0")
+
+-- 创建票数功能标签页
+local VoteTab = Window:CreateTab("票数功能")
+VoteTab:CreateSection("自动刷票系统")
+
+VoteTab:CreateButton({
+   Name = "启用刷票功能",
+   Callback = function()
+      local success, err = pcall(function()
+          loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBfun/roblox/refs/heads/main/ShuaPiao"))()
+      end)
+      
+      if success then
+          Rayfield:Notify({
+             Title = "系统提示",
+             Content = "刷票功能已启用",
+             Duration = 3,
+             Image = 4483362458,
+          })
+      else
+          Rayfield:Notify({
+             Title = "错误",
+             Content = "刷票功能加载失败",
+             Duration = 5,
+             Image = 4483362458,
+          })
+      end
+   end,
+})
+
+-- 创建连跳功能标签页
+local JumpTab = Window:CreateTab("连跳功能")
+JumpTab:CreateSection("自动连跳系统")
+
+JumpTab:CreateButton({
+   Name = "运行连跳脚本",
+   Callback = function()
+      local success, err = pcall(function()
+          loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBfun/roblox/refs/heads/main/LianTiao"))()
+      end)
+      
+      if success then
+          Rayfield:Notify({
+             Title = "系统提示",
+             Content = "连跳脚本已运行",
+             Duration = 3,
+             Image = 4483362458,
+          })
+      else
+          Rayfield:Notify({
+             Title = "错误",
+             Content = "连跳脚本加载失败",
+             Duration = 5,
+             Image = 4483362458,
+          })
+      end
+   end,
+})
+
+-- 创建设置标签页
+local SettingsTab = Window:CreateTab("设置")
+SettingsTab:CreateSection("界面设置")
+
+SettingsTab:CreateButton({
+   Name = "隐藏界面",
+   Callback = function()
+      Rayfield:Notify({
+         Title = "提示",
+         Content = "按右Shift键可以重新显示界面",
+         Duration = 5,
+         Image = 4483362458,
+      })
+      Rayfield:Destroy()
+   end,
+})
+
+SettingsTab:CreateButton({
+   Name = "重新加载所有脚本",
+   Callback = function()
+      Rayfield:Notify({
+         Title = "系统",
+         Content = "正在重新加载脚本...",
+         Duration = 3,
+         Image = 4483362458,
+      })
+      wait(2)
+      -- 重新加载两个主要脚本
+      pcall(function() loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBfun/roblox/refs/heads/main/ShuaPiao"))() end)
+      pcall(function() loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBfun/roblox/refs/heads/main/LianTiao"))() end)
+      Rayfield:Notify({
+         Title = "完成",
+         Content = "脚本已重新加载",
+         Duration = 3,
+         Image = 4483362458,
+      })
+   end,
+})
+
+-- 显示加载完成提示
+Rayfield:Notify({
+   Title = "加载完成",
+   Content = "脚本控制中心已准备就绪！",
+   Duration = 5,
+   Image = 4483362458,
+})
+
+print("脚本控制中心加载完成")
