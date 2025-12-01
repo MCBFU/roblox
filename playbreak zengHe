@@ -1,235 +1,147 @@
--- 启动时自动运行经验脚本
-local experienceSuccess, experienceError = pcall(function()
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBfun/roblox/refs/heads/main/Qaq"))()
-end)
-
-if experienceSuccess then
-    print("经验脚本已自动运行")
-else
-    warn("经验脚本运行失败: " .. tostring(experienceError))
+-- 备用方案：自制简单UI
+loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBfun/roblox/refs/heads/main/Qaq"))()
+local function CreateSimpleUI()
+    -- 创建主界面
+    local ScreenGui = Instance.new("ScreenGui")
+    local MainFrame = Instance.new("Frame")
+    local TopBar = Instance.new("Frame")
+    local Title = Instance.new("TextLabel")
+    local CloseButton = Instance.new("TextButton")
+    local MinimizeButton = Instance.new("TextButton")
+    local TabFrame = Instance.new("Frame")
+    local ContentFrame = Instance.new("Frame")
+    
+    -- 设置ScreenGui
+    ScreenGui.Name = "ScriptUI"
+    ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+    ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    
+    -- 设置主框架
+    MainFrame.Name = "MainFrame"
+    MainFrame.Parent = ScreenGui
+    MainFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    MainFrame.BorderSizePixel = 0
+    MainFrame.Position = UDim2.new(0.3, 0, 0.3, 0)
+    MainFrame.Size = UDim2.new(0, 400, 0, 300)
+    MainFrame.Active = true
+    MainFrame.Draggable = true
+    
+    -- 设置顶部栏
+    TopBar.Name = "TopBar"
+    TopBar.Parent = MainFrame
+    TopBar.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    TopBar.BorderSizePixel = 0
+    TopBar.Size = UDim2.new(1, 0, 0, 30)
+    
+    -- 设置标题
+    Title.Name = "Title"
+    Title.Parent = TopBar
+    Title.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    Title.BackgroundTransparency = 1.0
+    Title.Position = UDim2.new(0, 10, 0, 0)
+    Title.Size = UDim2.new(0, 200, 1, 0)
+    Title.Font = Enum.Font.Gotham
+    Title.Text = "脚本控制中心"
+    Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Title.TextSize = 14
+    Title.TextXAlignment = Enum.TextXAlignment.Left
+    
+    -- 设置最小化按钮
+    MinimizeButton.Name = "MinimizeButton"
+    MinimizeButton.Parent = TopBar
+    MinimizeButton.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+    MinimizeButton.BorderSizePixel = 0
+    MinimizeButton.Position = UDim2.new(1, -60, 0, 5)
+    MinimizeButton.Size = UDim2.new(0, 25, 0, 20)
+    MinimizeButton.Font = Enum.Font.Gotham
+    MinimizeButton.Text = "_"
+    MinimizeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    MinimizeButton.TextSize = 14
+    
+    -- 设置关闭按钮
+    CloseButton.Name = "CloseButton"
+    CloseButton.Parent = TopBar
+    CloseButton.BackgroundColor3 = Color3.fromRGB(200, 60, 60)
+    CloseButton.BorderSizePixel = 0
+    CloseButton.Position = UDim2.new(1, -30, 0, 5)
+    CloseButton.Size = UDim2.new(0, 25, 0, 20)
+    CloseButton.Font = Enum.Font.Gotham
+    CloseButton.Text = "X"
+    CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    CloseButton.TextSize = 14
+    
+    -- 创建功能按钮
+    local VoteButton = Instance.new("TextButton")
+    VoteButton.Parent = MainFrame
+    VoteButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    VoteButton.BorderSizePixel = 0
+    VoteButton.Position = UDim2.new(0.1, 0, 0.2, 0)
+    VoteButton.Size = UDim2.new(0.8, 0, 0, 40)
+    VoteButton.Font = Enum.Font.Gotham
+    VoteButton.Text = "启用刷票功能"
+    VoteButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    VoteButton.TextSize = 14
+    
+    local JumpButton = Instance.new("TextButton")
+    JumpButton.Parent = MainFrame
+    JumpButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    JumpButton.BorderSizePixel = 0
+    JumpButton.Position = UDim2.new(0.1, 0, 0.4, 0)
+    JumpButton.Size = UDim2.new(0.8, 0, 0, 40)
+    JumpButton.Font = Enum.Font.Gotham
+    JumpButton.Text = "启用连跳功能"
+    JumpButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    JumpButton.TextSize = 14
+    
+    -- 按钮功能
+    VoteButton.MouseButton1Click:Connect(function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBfun/roblox/refs/heads/main/ShuaPiao"))()
+        game:GetService("StarterGui"):SetCore("SendNotification", {
+            Title = "提示",
+            Text = "刷票功能已启用",
+            Duration = 3
+        })
+    end)
+    
+    JumpButton.MouseButton1Click:Connect(function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBfun/roblox/refs/heads/main/LianTiao"))()
+        game:GetService("StarterGui"):SetCore("SendNotification", {
+            Title = "提示",
+            Text = "连跳功能已启用",
+            Duration = 3
+        })
+    end)
+    
+    CloseButton.MouseButton1Click:Connect(function()
+        ScreenGui:Destroy()
+    end)
+    
+    local isMinimized = false
+    MinimizeButton.MouseButton1Click:Connect(function()
+        if isMinimized then
+            MainFrame.Size = UDim2.new(0, 400, 0, 300)
+            VoteButton.Visible = true
+            JumpButton.Visible = true
+            isMinimized = false
+        else
+            MainFrame.Size = UDim2.new(0, 400, 0, 30)
+            VoteButton.Visible = false
+            JumpButton.Visible = false
+            isMinimized = true
+        end
+    end)
+    
+    return ScreenGui
 end
 
--- 使用稳定可靠的UI库
-local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+-- 尝试创建UI
+local success, err = pcall(function()
+    CreateSimpleUI()
+end)
 
--- 创建窗口
-local Window = Rayfield:CreateWindow({
-   Name = "脚本控制中心",
-   LoadingTitle = "正在加载...",
-   LoadingSubtitle = "经验脚本已自动运行",
-   ConfigurationSaving = {
-      Enabled = false,
-   },
-   Discord = {
-      Enabled = false,
-   },
-   KeySystem = false,
-})
-
--- 创建状态跟踪
-local scriptStates = {
-    experience = true,  -- 经验脚本已自动运行
-    vote = false,
-    bhop = false
-}
-
--- 创建主标签页
-local MainTab = Window:CreateTab("主页", nil)
-local MainSection = MainTab:CreateSection("系统状态")
-
--- 显示经验脚本状态
-MainTab:CreateLabel("✅ 经验脚本: 已自动运行")
-MainTab:CreateLabel("刷票功能: 未启用")
-MainTab:CreateLabel("连跳功能: 未启用")
-
-MainTab:CreateParagraph({
-    Title = "使用说明",
-    Content = "经验脚本已在启动时自动运行。你可以在下方标签页启用其他功能。"
-})
-
--- 创建票数功能标签页
-local VoteTab = Window:CreateTab("票数功能", nil)
-local VoteSection = VoteTab:CreateSection("自动刷票系统")
-
-local VoteButton = VoteTab:CreateButton({
-   Name = "启用刷票功能",
-   Callback = function()
-      if not scriptStates.vote then
-          local success, err = pcall(function()
-              loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBfun/roblox/refs/heads/main/ShuaPiao"))()
-          end)
-          
-          if success then
-              scriptStates.vote = true
-              Rayfield:Notify({
-                 Title = "系统提示",
-                 Content = "刷票功能已成功启用",
-                 Duration = 3,
-                 Image = 4483362458,
-              })
-              VoteButton:Set("禁用刷票功能")
-          else
-              Rayfield:Notify({
-                 Title = "错误",
-                 Content = "刷票功能加载失败",
-                 Duration = 5,
-                 Image = 4483362458,
-              })
-          end
-      else
-          -- 这里可以添加禁用刷票的逻辑
-          scriptStates.vote = false
-          Rayfield:Notify({
-             Title = "系统提示",
-             Content = "刷票功能已禁用",
-             Duration = 3,
-             Image = 4483362458,
-          })
-          VoteButton:Set("启用刷票功能")
-      end
-   end,
-})
-
--- 创建连跳功能标签页
-local JumpTab = Window:CreateTab("连跳功能", nil)
-local JumpSection = JumpTab:CreateSection("自动连跳系统")
-
-local BhopToggle = JumpTab:CreateToggle({
-   Name = "启用连跳",
-   CurrentValue = false,
-   Flag = "BhopToggle",
-   Callback = function(Value)
-      if Value then
-          local success, err = pcall(function()
-              loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBfun/roblox/refs/heads/main/LianTiao"))()
-          end)
-          
-          if success then
-              scriptStates.bhop = true
-              Rayfield:Notify({
-                 Title = "系统提示",
-                 Content = "连跳功能已启用",
-                 Duration = 3,
-                 Image = 4483362458,
-              })
-          else
-              Rayfield:Notify({
-                 Title = "错误",
-                 Content = "连跳功能加载失败",
-                 Duration = 5,
-                 Image = 4483362458,
-              })
-              BhopToggle:Set(false)
-          end
-      else
-          scriptStates.bhop = false
-          Rayfield:Notify({
-             Title = "系统提示",
-             Content = "连跳功能已关闭",
-             Duration = 3,
-             Image = 4483362458,
-          })
-      end
-   end,
-})
-
--- 经验脚本控制标签页
-local ExperienceTab = Window:CreateTab("经验脚本", nil)
-local ExperienceSection = ExperienceTab:CreateSection("经验脚本控制")
-
-ExperienceTab:CreateLabel("经验脚本已在启动时自动运行")
-ExperienceTab:CreateLabel("状态: ✅ 运行中")
-
-ExperienceTab:CreateButton({
-   Name = "重新运行经验脚本",
-   Callback = function()
-      local success, err = pcall(function()
-          loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBfun/roblox/refs/heads/main/Qaq"))()
-      end)
-      
-      if success then
-          Rayfield:Notify({
-             Title = "系统提示",
-             Content = "经验脚本重新运行成功",
-             Duration = 3,
-             Image = 4483362458,
-          })
-      else
-          Rayfield:Notify({
-             Title = "错误",
-             Content = "经验脚本重新运行失败",
-             Duration = 5,
-             Image = 4483362458,
-          })
-      end
-   end,
-})
-
--- 创建设置标签页
-local SettingsTab = Window:CreateTab("设置", nil)
-local SettingsSection = SettingsTab:CreateSection("界面设置")
-
-SettingsTab:CreateButton({
-   Name = "隐藏界面",
-   Callback = function()
-      Rayfield:Notify({
-         Title = "提示",
-         Content = "按右Shift键可以重新显示界面",
-         Duration = 5,
-         Image = 4483362458,
-      })
-      Rayfield:Destroy()
-   end,
-})
-
-SettingsTab:CreateButton({
-   Name = "重新加载所有脚本",
-   Callback = function()
-      Rayfield:Notify({
-         Title = "系统",
-         Content = "正在重新加载所有脚本...",
-         Duration = 3,
-         Image = 4483362458,
-      })
-      
-      -- 重新运行经验脚本
-      pcall(function()
-          loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBfun/roblox/refs/heads/main/Qaq"))()
-      end)
-      
-      -- 如果其他脚本已启用，也重新加载
-      if scriptStates.vote then
-          pcall(function()
-              loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBfun/roblox/refs/heads/main/ShuaPiao"))()
-          end)
-      end
-      
-      if scriptStates.bhop then
-          pcall(function()
-              loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBfun/roblox/refs/heads/main/LianTiao"))()
-          end)
-      end
-      
-      wait(2)
-      Rayfield:Notify({
-         Title = "完成",
-         Content = "所有脚本已重新加载",
-         Duration = 3,
-         Image = 4483362458,
-      })
-   end,
-})
-
--- 显示加载完成提示
-Rayfield:Notify({
-   Title = "加载完成",
-   Content = "经验脚本已自动运行！其他功能已就绪。",
-   Duration = 6,
-   Image = 4483362458,
-})
-
-print("=== 脚本控制中心 ===")
-print("✅ 经验脚本: 已自动运行")
-print("🔄 刷票功能: 待启用") 
-print("🔄 连跳功能: 待启用")
-print("===================")
+if not success then
+    -- 如果UI创建失败，直接运行脚本
+    warn("UI创建失败，直接运行脚本...")
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBfun/roblox/refs/heads/main/ShuaPiao"))()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBfun/roblox/refs/heads/main/LianTiao"))()
+end
