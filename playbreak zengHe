@@ -119,7 +119,7 @@ SettingsTab:CreateButton({
 })
 
 SettingsTab:CreateButton({
-   Name = "重新加载所有脚本",
+   Name = "加载所有脚本",
    Callback = function()
       Rayfield:Notify({
          Title = "注意",
