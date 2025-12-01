@@ -17,8 +17,8 @@ MainTab:CreateSection("欢迎使用")
 MainTab:CreateLabel("playbreak脚本中心 v1.0")
 
 -- 创建票数功能标签页
-local VoteTab = Window:CreateTab("刷票")
-VoteTab:CreateSection("刷票系统")
+local VoteTab = Window:CreateTab("刷物")
+VoteTab:CreateSection("刷票+刷经验")
 
 VoteTab:CreateButton({
    Name = "启用刷票功能",
@@ -34,11 +34,18 @@ VoteTab:CreateButton({
              Duration = 3,
              Image = 4483362458,
           })
-      else
+VoteTab:CreateButton({
+   Name = "启用刷经验功能",
+   Callback = function()
+      local success, err = pcall(function()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBfun/roblox/refs/heads/main/Qaq"))()
+      end)
+      
+      if success then
           Rayfield:Notify({
-             Title = "错误",
-             Content = "刷票功能加载失败",
-             Duration = 5,
+             Title = "注意",
+             Content = "刷票功能已启用",
+             Duration = 3,
              Image = 4483362458,
           })
       end
@@ -63,13 +70,6 @@ JumpTab:CreateButton({
              Duration = 3,
              Image = 4483362458,
           })
-      else
-          Rayfield:Notify({
-             Title = "错误",
-             Content = "脚本加载失败",
-             Duration = 5,
-             Image = 4483362458,
-          })
       end
    end,
 })
@@ -89,13 +89,6 @@ JumpTab:CreateButton({
              Title = "注意",
              Content = "脚本已运行",
              Duration = 3,
-             Image = 4483362458,
-          })
-      else
-          Rayfield:Notify({
-             Title = "错误",
-             Content = "脚本加载失败",
-             Duration = 5,
              Image = 4483362458,
           })
       end
