@@ -3,9 +3,9 @@ local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 -- 创建窗口
 local Window = Rayfield:CreateWindow({
-   Name = "脚本控制中心",
+   Name = "playbreak脚本中心",
    LoadingTitle = "正在加载...",
-   LoadingSubtitle = "脚本助手",
+   LoadingSubtitle = "BY-渔炒鱼",
    ConfigurationSaving = { Enabled = false },
    Discord = { Enabled = false },
    KeySystem = false,
@@ -14,11 +14,11 @@ local Window = Rayfield:CreateWindow({
 -- 创建主标签页
 local MainTab = Window:CreateTab("主页")
 MainTab:CreateSection("欢迎使用")
-MainTab:CreateLabel("脚本控制中心 v1.0")
+MainTab:CreateLabel("playbreak脚本中心 v1.0")
 
 -- 创建票数功能标签页
-local VoteTab = Window:CreateTab("票数功能")
-VoteTab:CreateSection("自动刷票系统")
+local VoteTab = Window:CreateTab("刷票")
+VoteTab:CreateSection("刷票系统")
 
 VoteTab:CreateButton({
    Name = "启用刷票功能",
@@ -29,7 +29,7 @@ VoteTab:CreateButton({
       
       if success then
           Rayfield:Notify({
-             Title = "系统提示",
+             Title = "注意",
              Content = "刷票功能已启用",
              Duration = 3,
              Image = 4483362458,
@@ -58,22 +58,49 @@ JumpTab:CreateButton({
       
       if success then
           Rayfield:Notify({
-             Title = "系统提示",
-             Content = "连跳脚本已运行",
+             Title = "注意",
+             Content = "脚本已运行",
              Duration = 3,
              Image = 4483362458,
           })
       else
           Rayfield:Notify({
              Title = "错误",
-             Content = "连跳脚本加载失败",
+             Content = "脚本加载失败",
              Duration = 5,
              Image = 4483362458,
           })
       end
    end,
 })
+-- 创建动作功能标签页
+local JumpTab = Window:CreateTab("动作功能")
+JumpTab:CreateSection("r15动作脚本")
 
+JumpTab:CreateButton({
+   Name = "运行脚本",
+   Callback = function()
+      local success, err = pcall(function()
+          loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBfun/roblox/refs/heads/main/LianTiao"))()
+      end)
+      
+      if success then
+          Rayfield:Notify({
+             Title = "注意",
+             Content = "脚本已运行",
+             Duration = 3,
+             Image = 4483362458,
+          })
+      else
+          Rayfield:Notify({
+             Title = "错误",
+             Content = "脚本加载失败",
+             Duration = 5,
+             Image = 4483362458,
+          })
+      end
+   end,
+})
 -- 创建设置标签页
 local SettingsTab = Window:CreateTab("设置")
 SettingsTab:CreateSection("界面设置")
@@ -95,7 +122,7 @@ SettingsTab:CreateButton({
    Name = "重新加载所有脚本",
    Callback = function()
       Rayfield:Notify({
-         Title = "系统",
+         Title = "注意",
          Content = "正在重新加载脚本...",
          Duration = 3,
          Image = 4483362458,
