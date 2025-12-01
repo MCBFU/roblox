@@ -38,7 +38,7 @@ VoteTab:CreateButton({
    Name = "启用刷经验功能",
    Callback = function()
       local success, err = pcall(function()
-loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBfun/roblox/refs/heads/main/Qaq"))()
+         loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBfun/roblox/refs/heads/main/Qaq"))()
       end)
       
       if success then
