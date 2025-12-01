@@ -34,6 +34,17 @@ VoteTab:CreateButton({
              Duration = 3,
              Image = 4483362458,
           })
+      else
+          Rayfield:Notify({
+             Title = "错误",
+             Content = "刷票功能加载失败",
+             Duration = 5,
+             Image = 4483362458,
+          })
+      end
+   end,
+})
+
 VoteTab:CreateButton({
    Name = "启用刷经验功能",
    Callback = function()
@@ -44,8 +55,15 @@ VoteTab:CreateButton({
       if success then
           Rayfield:Notify({
              Title = "注意",
-             Content = "刷票功能已启用",
+             Content = "刷经验功能已启用",  -- 修正了这里的提示文本
              Duration = 3,
+             Image = 4483362458,
+          })
+      else
+          Rayfield:Notify({
+             Title = "错误",
+             Content = "刷经验功能加载失败",
+             Duration = 5,
              Image = 4483362458,
           })
       end
@@ -66,18 +84,26 @@ JumpTab:CreateButton({
       if success then
           Rayfield:Notify({
              Title = "注意",
-             Content = "脚本已运行",
+             Content = "连跳脚本已运行",
              Duration = 3,
+             Image = 4483362458,
+          })
+      else
+          Rayfield:Notify({
+             Title = "错误",
+             Content = "连跳脚本加载失败",
+             Duration = 5,
              Image = 4483362458,
           })
       end
    end,
 })
--- 创建动作功能标签页
-local JumpTab = Window:CreateTab("动作功能")
-JumpTab:CreateSection("r15动作脚本")
 
-JumpTab:CreateButton({
+-- 创建动作功能标签页
+local ActionTab = Window:CreateTab("动作功能")  -- 修正了变量名冲突
+ActionTab:CreateSection("r15动作脚本")
+
+ActionTab:CreateButton({
    Name = "r15动作脚本（并非原创）",
    Callback = function()
       local success, err = pcall(function()
@@ -87,13 +113,21 @@ JumpTab:CreateButton({
       if success then
           Rayfield:Notify({
              Title = "注意",
-             Content = "脚本已运行",
+             Content = "r15动作脚本已运行",
              Duration = 3,
+             Image = 4483362458,
+          })
+      else
+          Rayfield:Notify({
+             Title = "错误",
+             Content = "r15动作脚本加载失败",
+             Duration = 5,
              Image = 4483362458,
           })
       end
    end,
 })
+
 -- 创建设置标签页
 local SettingsTab = Window:CreateTab("设置")
 SettingsTab:CreateSection("界面设置")
@@ -116,17 +150,32 @@ SettingsTab:CreateButton({
    Callback = function()
       Rayfield:Notify({
          Title = "注意",
-         Content = "正在重新加载脚本...",
+         Content = "正在加载所有脚本...",
          Duration = 3,
          Image = 4483362458,
       })
       wait(2)
-      -- 重新加载两个主要脚本
-      pcall(function() loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBfun/roblox/refs/heads/main/ShuaPiao"))() end)
-      pcall(function() loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBfun/roblox/refs/heads/main/LianTiao"))() end)
+      
+      -- 加载所有脚本
+      pcall(function() 
+          loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBfun/roblox/refs/heads/main/ShuaPiao"))() 
+      end)
+      
+      pcall(function() 
+          loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBfun/roblox/refs/heads/main/Qaq"))() 
+      end)
+      
+      pcall(function() 
+          loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBfun/roblox/refs/heads/main/LianTiao"))() 
+      end)
+      
+      pcall(function() 
+          loadstring(game:HttpGet("https://raw.githubusercontent.com/Boxten-Keyes/music/refs/heads/main/music%23%5Bscripts%5D/music%23%5Bmiscellaneous%5D/music%23%5Bfe%20r15%20animation%20player%5D.lua"))() 
+      end)
+      
       Rayfield:Notify({
          Title = "完成",
-         Content = "脚本已重新加载",
+         Content = "所有脚本已加载",
          Duration = 3,
          Image = 4483362458,
       })
@@ -141,4 +190,4 @@ Rayfield:Notify({
    Image = 4483362458,
 })
 
-print("脚本控制中心加载完成")
+print("playbreak脚本中心加载完成")
