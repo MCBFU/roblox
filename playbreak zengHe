@@ -133,7 +133,7 @@ local SettingsTab = Window:CreateTab("设置")
 SettingsTab:CreateSection("界面设置")
 
 SettingsTab:CreateButton({
-   Name = "隐藏界面",
+   Name = "关闭界面",
    Callback = function()
       Rayfield:Notify({
          Title = "提示",
