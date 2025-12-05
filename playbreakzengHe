@@ -55,7 +55,7 @@ VoteTab:CreateButton({
       if success then
           Rayfield:Notify({
              Title = "注意",
-             Content = "刷经验功能已启用",  -- 修正了这里的提示文本
+             Content = "刷经验功能已启用",
              Duration = 3,
              Image = 4483362458,
           })
@@ -63,6 +63,231 @@ VoteTab:CreateButton({
           Rayfield:Notify({
              Title = "错误",
              Content = "刷经验功能加载失败",
+             Duration = 5,
+             Image = 4483362458,
+          })
+      end
+   end,
+})
+
+-- 创建第三人称功能标签页
+local CameraTab = Window:CreateTab("视角功能")
+CameraTab:CreateSection("第三人称设置")
+
+-- 第三人称状态管理
+local ThirdPersonManager = {
+    Enabled = false,
+    Connections = {},
+    OriginalSettings = {}
+}
+
+-- 保存原始设置
+local function saveOriginalSettings()
+    local Players = game:GetService("Players")
+    local player = Players.LocalPlayer
+    
+    ThirdPersonManager.OriginalSettings = {
+        CameraMinZoomDistance = player.CameraMinZoomDistance,
+        CameraMaxZoomDistance = player.CameraMaxZoomDistance,
+        CameraMode = player.CameraMode,
+        CameraType = workspace.CurrentCamera.CameraType
+    }
+end
+
+-- 启用强制第三人称
+local function enableThirdPerson()
+    if ThirdPersonManager.Enabled then return end
+    
+    saveOriginalSettings()
+    
+    local Players = game:GetService("Players")
+    local player = Players.LocalPlayer
+    
+    -- 设置相机参数
+    player.CameraMinZoomDistance = 5   -- 最小缩放距离
+    player.CameraMaxZoomDistance = 50  -- 最大缩放距离
+    player.CameraMode = Enum.CameraMode.Classic
+    
+    -- 强制设置为跟随模式
+    workspace.CurrentCamera.CameraType = Enum.CameraType.Follow
+    
+    -- 定期检查并强制保持第三人称
+    local heartbeatConnection = game:GetService("RunService").Heartbeat:Connect(function()
+        if workspace.CurrentCamera.CameraType ~= Enum.CameraType.Follow then
+            workspace.CurrentCamera.CameraType = Enum.CameraType.Follow
+        end
+    end)
+    
+    table.insert(ThirdPersonManager.Connections, heartbeatConnection)
+    ThirdPersonManager.Enabled = true
+    
+    Rayfield:Notify({
+        Title = "成功",
+        Content = "强制第三人称已启用！\n使用鼠标滚轮调整距离",
+        Duration = 5,
+        Image = 4483362458,
+    })
+end
+
+-- 启用增强版第三人称
+local function enableEnhancedThirdPerson()
+    if ThirdPersonManager.Enabled then
+        disableThirdPerson()
+    end
+    
+    saveOriginalSettings()
+    
+    local Players = game:GetService("Players")
+    local UserInputService = game:GetService("UserInputService")
+    local RunService = game:GetService("RunService")
+    
+    local player = Players.LocalPlayer
+    local camera = workspace.CurrentCamera
+    
+    -- 相机参数
+    local cameraDistance = 10
+    local minDistance = 4
+    local maxDistance = 20
+    
+    -- 设置相机为脚本控制
+    camera.CameraType = Enum.CameraType.Scriptable
+    
+    -- 鼠标滚轮缩放
+    local zoomConnection = UserInputService.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseWheel then
+            cameraDistance = math.clamp(cameraDistance - input.Position.Z * 0.5, minDistance, maxDistance)
+        end
+    end)
+    
+    -- 更新相机位置
+    local renderConnection = RunService.RenderStepped:Connect(function()
+        if not player.Character then return end
+        
+        local humanoidRootPart = player.Character:FindFirstChild("HumanoidRootPart")
+        local head = player.Character:FindFirstChild("Head")
+        
+        if humanoidRootPart and head then
+            -- 计算相机位置（在角色后方）
+            local offset = Vector3.new(0, 3, cameraDistance)
+            local cameraPosition = humanoidRootPart.Position + 
+                                 (humanoidRootPart.CFrame:VectorToWorldSpace(offset))
+            
+            -- 设置相机
+            camera.CFrame = CFrame.new(cameraPosition, head.Position)
+        end
+    end)
+    
+    -- 保存连接
+    table.insert(ThirdPersonManager.Connections, zoomConnection)
+    table.insert(ThirdPersonManager.Connections, renderConnection)
+    ThirdPersonManager.Enabled = true
+    
+    Rayfield:Notify({
+        Title = "成功",
+        Content = "增强版第三人称已启用！\n使用鼠标滚轮调整视角距离",
+        Duration = 5,
+        Image = 4483362458,
+    })
+end
+
+-- 禁用第三人称
+local function disableThirdPerson()
+    if not ThirdPersonManager.Enabled then return end
+    
+    -- 断开所有连接
+    for _, connection in ipairs(ThirdPersonManager.Connections) do
+        if connection then
+            connection:Disconnect()
+        end
+    end
+    
+    ThirdPersonManager.Connections = {}
+    
+    -- 恢复原始设置
+    local Players = game:GetService("Players")
+    local player = Players.LocalPlayer
+    
+    if ThirdPersonManager.OriginalSettings then
+        player.CameraMinZoomDistance = ThirdPersonManager.OriginalSettings.CameraMinZoomDistance or 0.5
+        player.CameraMaxZoomDistance = ThirdPersonManager.OriginalSettings.CameraMaxZoomDistance or 400
+        player.CameraMode = ThirdPersonManager.OriginalSettings.CameraMode or Enum.CameraMode.Classic
+        workspace.CurrentCamera.CameraType = ThirdPersonManager.OriginalSettings.CameraType or Enum.CameraType.Custom
+    end
+    
+    ThirdPersonManager.Enabled = false
+    
+    Rayfield:Notify({
+        Title = "提示",
+        Content = "第三人称已禁用",
+        Duration = 3,
+        Image = 4483362458,
+    })
+end
+
+-- 第三人称开关按钮
+CameraTab:CreateToggle({
+    Name = "第三人称开关",
+    CurrentValue = false,
+    Flag = "ThirdPersonToggle",
+    Callback = function(value)
+        if value then
+            enableThirdPerson()
+        else
+            disableThirdPerson()
+        end
+    end,
+})
+
+-- 启用强制第三人称按钮
+CameraTab:CreateButton({
+   Name = "启用强制第三人称",
+   Callback = function()
+      local success, err = pcall(function()
+          enableThirdPerson()
+      end)
+      
+      if not success then
+          Rayfield:Notify({
+             Title = "错误",
+             Content = "启用第三人称失败: " .. tostring(err),
+             Duration = 5,
+             Image = 4483362458,
+          })
+      end
+   end,
+})
+
+-- 启用增强版第三人称按钮
+CameraTab:CreateButton({
+   Name = "启用增强版第三人称",
+   Callback = function()
+      local success, err = pcall(function()
+          enableEnhancedThirdPerson()
+      end)
+      
+      if not success then
+          Rayfield:Notify({
+             Title = "错误",
+             Content = "启用增强版第三人称失败: " .. tostring(err),
+             Duration = 5,
+             Image = 4483362458,
+          })
+      end
+   end,
+})
+
+-- 禁用第三人称按钮
+CameraTab:CreateButton({
+   Name = "禁用第三人称",
+   Callback = function()
+      local success, err = pcall(function()
+          disableThirdPerson()
+      end)
+      
+      if not success then
+          Rayfield:Notify({
+             Title = "错误",
+             Content = "禁用第三人称失败: " .. tostring(err),
              Duration = 5,
              Image = 4483362458,
           })
@@ -100,14 +325,14 @@ JumpTab:CreateButton({
 })
 
 -- 创建动作功能标签页
-local ActionTab = Window:CreateTab("动作功能")  -- 修正了变量名冲突
+local ActionTab = Window:CreateTab("动作功能")
 ActionTab:CreateSection("r15动作脚本")
 
 ActionTab:CreateButton({
-   Name = "r15动作脚本（汉话）",
+   Name = "r15动作脚本（汉化）",
    Callback = function()
       local success, err = pcall(function()
-loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBfun/roblox/refs/heads/main/r15ChineseLanguage"))()
+          loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBfun/roblox/refs/heads/main/r15ChineseLanguage"))()
       end)
       
       if success then
