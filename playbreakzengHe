@@ -274,7 +274,7 @@ CameraTab:CreateButton({
 
 -- 启用增强版第三人称按钮
 CameraTab:CreateButton({
-   Name = "启用增强版第三人称",
+   Name = "启用奇怪的第三人称",
    Callback = function()
       local success, err = pcall(function()
           enableEnhancedThirdPerson()
