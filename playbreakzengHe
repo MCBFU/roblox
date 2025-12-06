@@ -97,14 +97,27 @@ local function saveOriginalSettings()
 end
 
 -- 启用强制第三人称
-local function enableThirdPerson()
-    if ThirdPersonManager.Enabled then return end
-    
-    saveOriginalSettings()
-    
-    local Players = game:GetService("Players")
-    local player = Players.LocalPlayer
-    
+-- 放在StarterPlayerScripts中（最简单有效）
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local camera = workspace.CurrentCamera
+
+-- 直接强制设置
+wait(1) -- 等待游戏完全加载
+
+-- 方法1：使用Follow模式
+camera.CameraType = Enum.CameraType.Follow
+
+-- 或者方法2：使用Fixed模式并设置位置
+-- camera.CameraType = Enum.CameraType.Fixed
+
+-- 确保不会自动切换
+while true do
+	wait(1)
+	if camera.CameraType ~= Enum.CameraType.Follow then
+		camera.CameraType = Enum.CameraType.Follow
+	end
+end
     -- 设置相机参数
     player.CameraMinZoomDistance = 5   -- 最小缩放距离
     player.CameraMaxZoomDistance = 50  -- 最大缩放距离
