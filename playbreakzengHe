@@ -14,7 +14,8 @@ local Window = Rayfield:CreateWindow({
 -- 创建主标签页
 local MainTab = Window:CreateTab("主页")
 MainTab:CreateSection("简介")
-MainTab:CreateLabel("playbreak脚本中心 此脚本为缝合,少数功能为源代码 多数功能为自创")
+MainTab:CreateLabel("playbreak脚本中心")
+MainTab:CreateLabel("此脚本为缝合,少数功能为源代码 多数功能为自创")
 MainTab:CreateLabel("如有封号，后果自负")
 
 -- 创建票数功能标签页
