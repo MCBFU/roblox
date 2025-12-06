@@ -4,7 +4,7 @@ local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 -- 创建窗口
 local Window = Rayfield:CreateWindow({
    Name = "playbreak脚本中心",
-   LoadingTitle = "正在加载...",
+   LoadingTitle = "playbreak脚本中心",
    LoadingSubtitle = "BY-渔炒鱼",
    ConfigurationSaving = { Enabled = false },
    Discord = { Enabled = false },
@@ -14,7 +14,7 @@ local Window = Rayfield:CreateWindow({
 -- 创建主标签页
 local MainTab = Window:CreateTab("主页")
 MainTab:CreateSection("欢迎使用")
-MainTab:CreateLabel("playbreak脚本中心 v1.0")
+MainTab:CreateLabel("playbreak脚本中心 此脚本为缝合,少数功能为源代码\n多数功能为自创")
 
 -- 创建票数功能标签页
 local VoteTab = Window:CreateTab("刷物")
