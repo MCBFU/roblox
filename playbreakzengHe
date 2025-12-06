@@ -1,6 +1,9 @@
 -- 使用稳定可靠的UI库
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
+-- 配置：是否显示右下角弹窗通知
+local SHOW_NOTIFICATIONS = true -- 设置为false可以完全关闭所有弹窗
+
 -- 创建窗口
 local Window = Rayfield:CreateWindow({
    Name = "playbreak脚本中心",
@@ -29,14 +32,14 @@ VoteTab:CreateButton({
           loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBfun/roblox/refs/heads/main/ShuaPiao"))()
       end)
       
-      if success then
+      if success and SHOW_NOTIFICATIONS then
           Rayfield:Notify({
              Title = "注意",
              Content = "刷票功能已启用",
              Duration = 3,
              Image = 4483362458,
           })
-      else
+      elseif not success and SHOW_NOTIFICATIONS then
           Rayfield:Notify({
              Title = "错误",
              Content = "刷票功能加载失败",
@@ -54,14 +57,14 @@ VoteTab:CreateButton({
          loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBfun/roblox/refs/heads/main/Qaq"))()
       end)
       
-      if success then
+      if success and SHOW_NOTIFICATIONS then
           Rayfield:Notify({
              Title = "注意",
              Content = "刷经验功能已启用",
              Duration = 3,
              Image = 4483362458,
           })
-      else
+      elseif not success and SHOW_NOTIFICATIONS then
           Rayfield:Notify({
              Title = "错误",
              Content = "刷经验功能加载失败",
@@ -97,51 +100,41 @@ local function saveOriginalSettings()
 end
 
 -- 启用强制第三人称
--- 放在StarterPlayerScripts中（最简单有效）
-local Players = game:GetService("Players")
-local player = Players.LocalPlayer
-local camera = workspace.CurrentCamera
-
--- 直接强制设置
-wait(1) -- 等待游戏完全加载
-
--- 方法1：使用Follow模式
-camera.CameraType = Enum.CameraType.Follow
-
--- 或者方法2：使用Fixed模式并设置位置
--- camera.CameraType = Enum.CameraType.Fixed
-
--- 确保不会自动切换
-while true do
-	wait(1)
-	if camera.CameraType ~= Enum.CameraType.Follow then
-		camera.CameraType = Enum.CameraType.Follow
-	end
-end
+local function enableThirdPerson()
+    if ThirdPersonManager.Enabled then return end
+    
+    saveOriginalSettings()
+    
+    local Players = game:GetService("Players")
+    local player = Players.LocalPlayer
+    local camera = workspace.CurrentCamera
+    
     -- 设置相机参数
     player.CameraMinZoomDistance = 5   -- 最小缩放距离
     player.CameraMaxZoomDistance = 50  -- 最大缩放距离
     player.CameraMode = Enum.CameraMode.Classic
     
     -- 强制设置为跟随模式
-    workspace.CurrentCamera.CameraType = Enum.CameraType.Follow
+    camera.CameraType = Enum.CameraType.Follow
     
     -- 定期检查并强制保持第三人称
     local heartbeatConnection = game:GetService("RunService").Heartbeat:Connect(function()
-        if workspace.CurrentCamera.CameraType ~= Enum.CameraType.Follow then
-            workspace.CurrentCamera.CameraType = Enum.CameraType.Follow
+        if camera.CameraType ~= Enum.CameraType.Follow then
+            camera.CameraType = Enum.CameraType.Follow
         end
     end)
     
     table.insert(ThirdPersonManager.Connections, heartbeatConnection)
     ThirdPersonManager.Enabled = true
     
-    Rayfield:Notify({
-        Title = "成功",
-        Content = "强制第三人称已启用！\n使用鼠标滚轮调整距离",
-        Duration = 5,
-        Image = 4483362458,
-    })
+    if SHOW_NOTIFICATIONS then
+        Rayfield:Notify({
+            Title = "成功",
+            Content = "强制第三人称已启用！\n使用鼠标滚轮调整距离",
+            Duration = 5,
+            Image = 4483362458,
+        })
+    end
 end
 
 -- 启用增强版第三人称
@@ -197,12 +190,14 @@ local function enableEnhancedThirdPerson()
     table.insert(ThirdPersonManager.Connections, renderConnection)
     ThirdPersonManager.Enabled = true
     
-    Rayfield:Notify({
-        Title = "成功",
-        Content = "增强版第三人称已启用！\n使用鼠标滚轮调整视角距离",
-        Duration = 5,
-        Image = 4483362458,
-    })
+    if SHOW_NOTIFICATIONS then
+        Rayfield:Notify({
+            Title = "成功",
+            Content = "奇怪的第三人称已启用！\n使用鼠标滚轮调整视角距离",
+            Duration = 5,
+            Image = 4483362458,
+        })
+    end
 end
 
 -- 禁用第三人称
@@ -221,22 +216,25 @@ local function disableThirdPerson()
     -- 恢复原始设置
     local Players = game:GetService("Players")
     local player = Players.LocalPlayer
+    local camera = workspace.CurrentCamera
     
     if ThirdPersonManager.OriginalSettings then
         player.CameraMinZoomDistance = ThirdPersonManager.OriginalSettings.CameraMinZoomDistance or 0.5
         player.CameraMaxZoomDistance = ThirdPersonManager.OriginalSettings.CameraMaxZoomDistance or 400
         player.CameraMode = ThirdPersonManager.OriginalSettings.CameraMode or Enum.CameraMode.Classic
-        workspace.CurrentCamera.CameraType = ThirdPersonManager.OriginalSettings.CameraType or Enum.CameraType.Custom
+        camera.CameraType = ThirdPersonManager.OriginalSettings.CameraType or Enum.CameraType.Custom
     end
     
     ThirdPersonManager.Enabled = false
     
-    Rayfield:Notify({
-        Title = "提示",
-        Content = "第三人称已禁用",
-        Duration = 3,
-        Image = 4483362458,
-    })
+    if SHOW_NOTIFICATIONS then
+        Rayfield:Notify({
+            Title = "提示",
+            Content = "第三人称已禁用",
+            Duration = 3,
+            Image = 4483362458,
+        })
+    end
 end
 
 -- 第三人称开关按钮
@@ -261,7 +259,7 @@ CameraTab:CreateButton({
           enableThirdPerson()
       end)
       
-      if not success then
+      if not success and SHOW_NOTIFICATIONS then
           Rayfield:Notify({
              Title = "错误",
              Content = "启用第三人称失败: " .. tostring(err),
@@ -280,10 +278,10 @@ CameraTab:CreateButton({
           enableEnhancedThirdPerson()
       end)
       
-      if not success then
+      if not success and SHOW_NOTIFICATIONS then
           Rayfield:Notify({
              Title = "错误",
-             Content = "启用增强版第三人称失败: " .. tostring(err),
+             Content = "启用奇怪的第三人称失败: " .. tostring(err),
              Duration = 5,
              Image = 4483362458,
           })
@@ -299,7 +297,7 @@ CameraTab:CreateButton({
           disableThirdPerson()
       end)
       
-      if not success then
+      if not success and SHOW_NOTIFICATIONS then
           Rayfield:Notify({
              Title = "错误",
              Content = "禁用第三人称失败: " .. tostring(err),
@@ -321,14 +319,14 @@ JumpTab:CreateButton({
           loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBfun/roblox/refs/heads/main/LianTiao"))()
       end)
       
-      if success then
+      if success and SHOW_NOTIFICATIONS then
           Rayfield:Notify({
              Title = "注意",
              Content = "连跳脚本已运行",
              Duration = 3,
              Image = 4483362458,
           })
-      else
+      elseif not success and SHOW_NOTIFICATIONS then
           Rayfield:Notify({
              Title = "错误",
              Content = "连跳脚本加载失败",
@@ -350,14 +348,14 @@ ActionTab:CreateButton({
           loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBfun/roblox/refs/heads/main/r15ChineseLanguage"))()
       end)
       
-      if success then
+      if success and SHOW_NOTIFICATIONS then
           Rayfield:Notify({
              Title = "注意",
              Content = "r15动作脚本已运行",
              Duration = 3,
              Image = 4483362458,
           })
-      else
+      elseif not success and SHOW_NOTIFICATIONS then
           Rayfield:Notify({
              Title = "错误",
              Content = "r15动作脚本加载失败",
@@ -372,15 +370,38 @@ ActionTab:CreateButton({
 local SettingsTab = Window:CreateTab("设置")
 SettingsTab:CreateSection("界面设置")
 
+SettingsTab:CreateToggle({
+   Name = "显示弹窗通知",
+   CurrentValue = SHOW_NOTIFICATIONS,
+   Flag = "ShowNotifications",
+   Callback = function(value)
+      SHOW_NOTIFICATIONS = value
+      if value then
+          -- 如果需要，可以在这里显示一个确认通知（但这次会被捕获）
+          local oldValue = SHOW_NOTIFICATIONS
+          SHOW_NOTIFICATIONS = false
+          Rayfield:Notify({
+             Title = "设置已保存",
+             Content = "弹窗通知已" .. (value and "开启" or "关闭"),
+             Duration = 2,
+             Image = 4483362458,
+          })
+          SHOW_NOTIFICATIONS = oldValue
+      end
+   end,
+})
+
 SettingsTab:CreateButton({
    Name = "关闭界面",
    Callback = function()
-      Rayfield:Notify({
-         Title = "提示",
-         Content = "按右Shift键可以重新显示界面",
-         Duration = 5,
-         Image = 4483362458,
-      })
+      if SHOW_NOTIFICATIONS then
+          Rayfield:Notify({
+             Title = "提示",
+             Content = "按右Shift键可以重新显示界面",
+             Duration = 5,
+             Image = 4483362458,
+          })
+      end
       Rayfield:Destroy()
    end,
 })
@@ -388,12 +409,14 @@ SettingsTab:CreateButton({
 SettingsTab:CreateButton({
    Name = "加载所有脚本",
    Callback = function()
-      Rayfield:Notify({
-         Title = "注意",
-         Content = "正在加载所有脚本...",
-         Duration = 3,
-         Image = 4483362458,
-      })
+      if SHOW_NOTIFICATIONS then
+          Rayfield:Notify({
+             Title = "注意",
+             Content = "正在加载所有脚本...",
+             Duration = 3,
+             Image = 4483362458,
+          })
+      end
       wait(2)
       
       -- 加载所有脚本
@@ -413,11 +436,25 @@ SettingsTab:CreateButton({
           loadstring(game:HttpGet("https://raw.githubusercontent.com/Boxten-Keyes/music/refs/heads/main/music%23%5Bscripts%5D/music%23%5Bmiscellaneous%5D/music%23%5Bfe%20r15%20animation%20player%5D.lua"))() 
       end)
       
-      Rayfield:Notify({
-         Title = "完成",
-         Content = "所有脚本已加载",
-         Duration = 3,
-         Image = 4483362458,
-      })
+      if SHOW_NOTIFICATIONS then
+          Rayfield:Notify({
+             Title = "完成",
+             Content = "所有脚本已加载",
+             Duration = 3,
+             Image = 4483362458,
+          })
+      end
    end,
 })
+
+-- 显示初始加载完成提示（如果需要）
+if SHOW_NOTIFICATIONS then
+    Rayfield:Notify({
+       Title = "加载完成",
+       Content = "脚本控制中心已准备就绪！",
+       Duration = 5,
+       Image = 4483362458,
+    })
+end
+
+print("playbreak脚本中心加载完成")
