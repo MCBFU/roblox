@@ -408,13 +408,3 @@ SettingsTab:CreateButton({
       })
    end,
 })
-
--- 显示加载完成提示
-Rayfield:Notify({
-   Title = "加载完成",
-   Content = "脚本控制中心已准备就绪！",
-   Duration = 5,
-   Image = 4483362458,
-})
-
-print("playbreak脚本中心加载完成")
