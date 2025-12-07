@@ -1,9 +1,10 @@
 -- 极简音频播放
 local sound = Instance.new("Sound")
-sound.SoundId = "rbxassetid://7908417389"
+sound.SoundId = "rbxassetid://5216738441"
 sound.Volume = 1.0
 sound.Parent = workspace
 sound:Play()
+
 -- 使用稳定可靠的UI库
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
