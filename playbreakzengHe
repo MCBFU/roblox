@@ -339,7 +339,7 @@ SettingsTab:CreateButton({
 local AboutSection = SettingsTab:CreateSection("关于")
 SettingsTab:CreateLabel("开发者：渔炒鱼")
 SettingsTab:CreateLabel("版本：4.0.0")
-SettingsTab:CreateLabel("所有功能标签使用统一图标")
+SettingsTab:CreateLabel("此脚本完全免费")
 
 -- 等待所有元素加载
 wait(0.1)
