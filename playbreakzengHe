@@ -4,7 +4,7 @@ sound.SoundId = "rbxassetid://5216738441"
 sound.Volume = 1.0
 sound.Parent = workspace
 sound:Play()
-
+wait(3.45)
 -- 使用稳定可靠的UI库
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
