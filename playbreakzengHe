@@ -1,6 +1,6 @@
 -- 极简音频播放
 local sound = Instance.new("Sound")
-sound.SoundId = "rbxassetid://7632147717"
+sound.SoundId = "rbxassetid://5559988698"
 sound.Volume = 1.0
 sound.Parent = workspace
 sound:Play()
