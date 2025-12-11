@@ -92,7 +92,7 @@ local ThirdPersonManager = {
 local function saveOriginalSettings()
     local Players = game:GetService("Players")
     local player = Players.LocalPlayer
-    
+
     ThirdPersonManager.OriginalSettings = {
         CameraMinZoomDistance = player.CameraMinZoomDistance,
         CameraMaxZoomDistance = player.CameraMaxZoomDistance,
@@ -104,28 +104,28 @@ end
 -- 启用强制第三人称
 local function enableThirdPerson()
     if ThirdPersonManager.Enabled then return end
-    
+
     saveOriginalSettings()
-    
+
     local Players = game:GetService("Players")
     local player = Players.LocalPlayer
     local camera = workspace.CurrentCamera
-    
+
     -- 设置相机参数
     player.CameraMinZoomDistance = 5   -- 最小缩放距离
     player.CameraMaxZoomDistance = 50  -- 最大缩放距离
     player.CameraMode = Enum.CameraMode.Classic
-    
+
     -- 强制设置为跟随模式
     camera.CameraType = Enum.CameraType.Follow
-    
+
     -- 定期检查并强制保持第三人称
     local heartbeatConnection = game:GetService("RunService").Heartbeat:Connect(function()
         if camera.CameraType ~= Enum.CameraType.Follow then
             camera.CameraType = Enum.CameraType.Follow
         end
     end)
-    
+
     table.insert(ThirdPersonManager.Connections, heartbeatConnection)
     ThirdPersonManager.Enabled = true
 end
@@ -135,49 +135,49 @@ local function enableEnhancedThirdPerson()
     if ThirdPersonManager.Enabled then
         disableThirdPerson()
     end
-    
+
     saveOriginalSettings()
-    
+
     local Players = game:GetService("Players")
     local UserInputService = game:GetService("UserInputService")
     local RunService = game:GetService("RunService")
-    
+
     local player = Players.LocalPlayer
     local camera = workspace.CurrentCamera
-    
+
     -- 相机参数
     local cameraDistance = 10
     local minDistance = 4
     local maxDistance = 20
-    
+
     -- 设置相机为脚本控制
     camera.CameraType = Enum.CameraType.Scriptable
-    
+
     -- 鼠标滚轮缩放
     local zoomConnection = UserInputService.InputChanged:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseWheel then
             cameraDistance = math.clamp(cameraDistance - input.Position.Z * 0.5, minDistance, maxDistance)
         end
     end)
-    
+
     -- 更新相机位置
     local renderConnection = RunService.RenderStepped:Connect(function()
         if not player.Character then return end
-        
+
         local humanoidRootPart = player.Character:FindFirstChild("HumanoidRootPart")
         local head = player.Character:FindFirstChild("Head")
-        
+
         if humanoidRootPart and head then
             -- 计算相机位置（在角色后方）
             local offset = Vector3.new(0, 3, cameraDistance)
             local cameraPosition = humanoidRootPart.Position + 
                                  (humanoidRootPart.CFrame:VectorToWorldSpace(offset))
-            
+
             -- 设置相机
             camera.CFrame = CFrame.new(cameraPosition, head.Position)
         end
     end)
-    
+
     -- 保存连接
     table.insert(ThirdPersonManager.Connections, zoomConnection)
     table.insert(ThirdPersonManager.Connections, renderConnection)
@@ -187,28 +187,28 @@ end
 -- 禁用第三人称
 local function disableThirdPerson()
     if not ThirdPersonManager.Enabled then return end
-    
+
     -- 断开所有连接
     for _, connection in ipairs(ThirdPersonManager.Connections) do
         if connection then
             connection:Disconnect()
         end
     end
-    
+
     ThirdPersonManager.Connections = {}
-    
+
     -- 恢复原始设置
     local Players = game:GetService("Players")
     local player = Players.LocalPlayer
     local camera = workspace.CurrentCamera
-    
+
     if ThirdPersonManager.OriginalSettings then
         player.CameraMinZoomDistance = ThirdPersonManager.OriginalSettings.CameraMinZoomDistance or 0.5
         player.CameraMaxZoomDistance = ThirdPersonManager.OriginalSettings.CameraMaxZoomDistance or 400
         player.CameraMode = ThirdPersonManager.OriginalSettings.CameraMode or Enum.CameraMode.Classic
         camera.CameraType = ThirdPersonManager.OriginalSettings.CameraType or Enum.CameraType.Custom
     end
-    
+
     ThirdPersonManager.Enabled = false
 end
 
@@ -262,6 +262,124 @@ CameraTab:CreateLabel("强制第三人称：锁定跟随模式")
 CameraTab:CreateLabel("奇怪第三人称：自定义视角系统")
 CameraTab:CreateLabel("使用鼠标滚轮调整距离")
 
+-- ==================== 新增：汉化功能 ====================
+local LocalizationManager = {
+    Enabled = false,
+    OriginalLanguage = "English",
+    CurrentLanguage = "简体中文",
+    Status = "待启用"
+}
+
+-- 启用KENNY自动汉化
+local function enableKennyChineseLocalization()
+    if LocalizationManager.Enabled then
+        Rayfield:Notify({
+            Title = "汉化系统",
+            Content = "汉化功能已在运行中",
+            Duration = 3,
+            Image = 98446998103932
+        })
+        return
+    end
+
+    Rayfield:Notify({
+        Title = "汉化系统",
+        Content = "正在加载KENNY自动汉化...",
+        Duration = 3,
+        Image = 98446998103932
+    })
+
+    local success, result = pcall(function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/ke9460394-dot/ugik/refs/heads/main/KENNY自动汉化.txt"))()
+    end)
+
+    if success then
+        LocalizationManager.Enabled = true
+        LocalizationManager.Status = "已启用"
+        
+        Rayfield:Notify({
+            Title = "汉化系统",
+            Content = "KENNY自动汉化已成功加载！",
+            Duration = 5,
+            Image = 98446998103932
+        })
+        
+        -- 更新界面文本为中文（示例）
+        print("KENNY汉化已启用 - 游戏界面将自动汉化")
+    else
+        LocalizationManager.Status = "加载失败"
+        
+        Rayfield:Notify({
+            Title = "汉化系统",
+            Content = "汉化功能加载失败: " .. tostring(result),
+            Duration = 5,
+            Image = 98446998103932
+        })
+    end
+end
+
+-- 创建汉化功能标签页
+local LocalizationTab = Window:CreateTab("汉化功能", 98446998103932)
+local LocalizationSection = LocalizationTab:CreateSection("KENNY自动汉化系统")
+
+-- 汉化状态显示
+LocalizationTab:CreateLabel("当前状态: " .. LocalizationManager.Status)
+LocalizationTab:CreateLabel("目标语言: " .. LocalizationManager.CurrentLanguage)
+
+-- 主汉化按钮
+LocalizationTab:CreateButton({
+    Name = "启用KENNY自动汉化",
+    Callback = function()
+        enableKennyChineseLocalization()
+    end,
+})
+
+-- 汉化信息显示
+local LocalizationInfoSection = LocalizationTab:CreateSection("汉化功能说明")
+LocalizationTab:CreateLabel("KENNY自动汉化特点：")
+LocalizationTab:CreateLabel("- 自动翻译游戏界面")
+LocalizationTab:CreateLabel("- 支持多种游戏类型")
+LocalizationTab:CreateLabel("- 实时翻译系统")
+LocalizationTab:CreateLabel("- 智能缓存机制")
+
+-- 汉化测试功能
+LocalizationTab:CreateButton({
+    Name = "测试汉化效果",
+    Callback = function()
+        Rayfield:Notify({
+            Title = "汉化测试",
+            Content = "这是一个汉化功能测试消息",
+            Duration = 3,
+            Image = 98446998103932
+        })
+        
+        if LocalizationManager.Enabled then
+            print("汉化系统正在运行，游戏文本将被自动翻译")
+        else
+            print("请先启用汉化功能")
+        end
+    end,
+})
+
+-- 重新加载汉化
+LocalizationTab:CreateButton({
+    Name = "重新加载汉化",
+    Callback = function()
+        LocalizationManager.Enabled = false
+        LocalizationManager.Status = "重新加载中..."
+        
+        Rayfield:Notify({
+            Title = "汉化系统",
+            Content = "正在重新加载汉化功能...",
+            Duration = 3,
+            Image = 98446998103932
+        })
+        
+        wait(1)
+        enableKennyChineseLocalization()
+    end,
+})
+
 -- 创建连跳功能标签页
 local JumpTab = Window:CreateTab("连跳功能", 98446998103932)
 local JumpSection = JumpTab:CreateSection("自动连跳系统")
@@ -303,6 +421,37 @@ ActionTab:CreateLabel("部分功能已汉化")
 local SettingsTab = Window:CreateTab("设置", 98446998103932)
 local SettingsSection = SettingsTab:CreateSection("界面设置")
 
+-- 在设置标签页中也添加汉化相关功能
+local LocalizationSettingsSection = SettingsTab:CreateSection("汉化设置")
+SettingsTab:CreateLabel("汉化状态: " .. LocalizationManager.Status)
+
+SettingsTab:CreateButton({
+    Name = "快速启用汉化",
+    Callback = function()
+        enableKennyChineseLocalization()
+    end,
+})
+
+SettingsTab:CreateToggle({
+    Name = "汉化系统开关",
+    CurrentValue = LocalizationManager.Enabled,
+    Flag = "LocalizationToggle",
+    Callback = function(value)
+        if value then
+            enableKennyChineseLocalization()
+        else
+            LocalizationManager.Enabled = false
+            LocalizationManager.Status = "已关闭"
+            Rayfield:Notify({
+                Title = "汉化系统",
+                Content = "汉化功能已关闭（需重启游戏恢复原语言）",
+                Duration = 3,
+                Image = 98446998103932
+            })
+        end
+    end,
+})
+
 SettingsTab:CreateButton({
     Name = "关闭界面",
     Callback = function()
@@ -325,31 +474,58 @@ SettingsTab:CreateButton({
     Name = "加载所有脚本",
     Callback = function()
         -- 加载所有脚本
+        Rayfield:Notify({
+            Title = "批量加载",
+            Content = "开始加载所有脚本功能...",
+            Duration = 3,
+            Image = 98446998103932
+        })
+        
         pcall(function() 
             loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBfun/roblox/refs/heads/main/ShuaPiao"))() 
         end)
-        
+
         pcall(function() 
             loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBfun/roblox/refs/heads/main/Qaq"))() 
         end)
-        
+
         pcall(function() 
             loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBfun/roblox/refs/heads/main/LianTiao"))() 
         end)
-        
+
         pcall(function() 
             loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBfun/roblox/refs/heads/main/r15ChineseLanguage"))() 
         end)
+        
+        -- 最后加载汉化功能
+        wait(0.5)
+        enableKennyChineseLocalization()
+        
+        Rayfield:Notify({
+            Title = "批量加载",
+            Content = "所有脚本功能已加载完成！",
+            Duration = 5,
+            Image = 98446998103932
+        })
     end,
 })
 
 local AboutSection = SettingsTab:CreateSection("关于")
 SettingsTab:CreateLabel("开发者：渔炒鱼")
-SettingsTab:CreateLabel("版本：4.0.0")
+SettingsTab:CreateLabel("版本：4.1.0")  -- 更新版本号
+SettingsTab:CreateLabel("新增：KENNY自动汉化功能")
 SettingsTab:CreateLabel("此脚本完全免费")
 
 -- 等待所有元素加载
 wait(0.1)
+
+-- 自动显示欢迎消息
+Rayfield:Notify({
+    Title = "playbreak脚本中心",
+    Content = "欢迎使用！新增KENNY自动汉化功能",
+    Duration = 5,
+    Image = 98446998103932
+})
 
 print("=========================================")
 print("playbreak脚本中心 - 加载完成")
@@ -358,7 +534,11 @@ print("功能模块：")
 print("  1. 主页 - 系统信息")
 print("  2. 刷物 - 刷票+刷经验（仅兼容此游戏）")
 print("  3. 视角功能 - 第三人称系统")
-print("  4. 连跳功能 - 自动连跳")
-print("  5. 动作功能 - R15动作（汉化多种功能）")
-print("  6. 设置 - 界面控制")
+print("  4. 汉化功能 - KENNY自动汉化系统（新增）")
+print("  5. 连跳功能 - 自动连跳")
+print("  6. 动作功能 - R15动作（汉化多种功能）")
+print("  7. 设置 - 界面控制")
+print("=========================================")
+print("KENNY汉化链接: https://github.com/ke9460394-dot/ugik")
+print("汉化功能状态: " .. LocalizationManager.Status)
 print("=========================================")
