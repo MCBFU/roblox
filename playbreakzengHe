@@ -4,7 +4,6 @@ sound.SoundId = "rbxassetid://9042971851"
 sound.Volume = 1.0
 sound.Parent = workspace
 sound:Play()
-wait(2.5)
 -- 使用稳定可靠的UI库
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
@@ -336,11 +335,11 @@ LocalizationTab:CreateButton({
 
 -- 汉化信息显示
 local LocalizationInfoSection = LocalizationTab:CreateSection("汉化功能说明")
-LocalizationTab:CreateLabel("KENNY自动汉化特点：")
-LocalizationTab:CreateLabel("- 自动翻译游戏界面")
-LocalizationTab:CreateLabel("- 支持多种游戏类型")
-LocalizationTab:CreateLabel("- 实时翻译系统")
-LocalizationTab:CreateLabel("- 智能缓存机制")
+LocalizationTab:CreateLabel("此脚本为缝合")
+LocalizationTab:CreateLabel("- 可能会掉帧")
+LocalizationTab:CreateLabel("- 并非原创")
+LocalizationTab:CreateLabel("- 未经授权")
+LocalizationTab:CreateLabel("- 侵权立马删")
 
 -- 汉化测试功能
 LocalizationTab:CreateButton({
