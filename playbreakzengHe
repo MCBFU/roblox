@@ -420,37 +420,6 @@ ActionTab:CreateLabel("部分功能已汉化")
 local SettingsTab = Window:CreateTab("设置", 98446998103932)
 local SettingsSection = SettingsTab:CreateSection("界面设置")
 
--- 在设置标签页中也添加汉化相关功能
-local LocalizationSettingsSection = SettingsTab:CreateSection("汉化设置")
-SettingsTab:CreateLabel("汉化状态: " .. LocalizationManager.Status)
-
-SettingsTab:CreateButton({
-    Name = "快速启用汉化",
-    Callback = function()
-        enableKennyChineseLocalization()
-    end,
-})
-
-SettingsTab:CreateToggle({
-    Name = "汉化系统开关",
-    CurrentValue = LocalizationManager.Enabled,
-    Flag = "LocalizationToggle",
-    Callback = function(value)
-        if value then
-            enableKennyChineseLocalization()
-        else
-            LocalizationManager.Enabled = false
-            LocalizationManager.Status = "已关闭"
-            Rayfield:Notify({
-                Title = "汉化系统",
-                Content = "汉化功能已关闭（需重启游戏恢复原语言）",
-                Duration = 3,
-                Image = 98446998103932
-            })
-        end
-    end,
-})
-
 SettingsTab:CreateButton({
     Name = "关闭界面",
     Callback = function()
@@ -511,8 +480,7 @@ SettingsTab:CreateButton({
 
 local AboutSection = SettingsTab:CreateSection("关于")
 SettingsTab:CreateLabel("开发者：渔炒鱼")
-SettingsTab:CreateLabel("版本：4.1.0")  -- 更新版本号
-SettingsTab:CreateLabel("新增：KENNY自动汉化功能")
+SettingsTab:CreateLabel("版本：4.1.0")
 SettingsTab:CreateLabel("此脚本完全免费")
 
 -- 等待所有元素加载
@@ -521,7 +489,7 @@ wait(0.1)
 -- 自动显示欢迎消息
 Rayfield:Notify({
     Title = "playbreak脚本中心",
-    Content = "欢迎使用！新增KENNY自动汉化功能",
+    Content = "你的使用是我的荣幸",
     Duration = 5,
     Image = 98446998103932
 })
