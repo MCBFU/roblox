@@ -292,7 +292,7 @@ minimizeBtn.MouseButton1Click:Connect(function()
         title.Text = "🎯"
         
         -- 更新状态文本
-        statusLabel.Text = "MCB\n点击展开"
+        statusLabel.Text = "MCBFUN\n点击展开"
 
     else
         -- 恢复显示
@@ -300,7 +300,7 @@ minimizeBtn.MouseButton1Click:Connect(function()
         expertButton.Visible = true
         statusLabel.Visible = false
         minimizeBtn.Text = "_"
-        title.Text = "MCB"
+        title.Text = "MCBFUN"
 
         -- 恢复大小，保持当前位置
         local currentPos = mainFrame.Position
