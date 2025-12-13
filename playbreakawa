@@ -1,0 +1,400 @@
+-- MCB 双功能加载器（可重复加载）
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+
+local player = Players.LocalPlayer
+
+-- 创建UI
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "MCBLoader"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = player:WaitForChild("PlayerGui")
+
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "MainFrame"
+mainFrame.Size = UDim2.new(0, 120, 0, 180)
+mainFrame.Position = UDim2.new(0.02, 0, 0.3, 0)
+mainFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 55)
+mainFrame.BackgroundTransparency = 0.2
+mainFrame.BorderSizePixel = 1
+mainFrame.BorderColor3 = Color3.fromRGB(80, 80, 100)
+mainFrame.Active = true
+mainFrame.Draggable = true
+mainFrame.ClipsDescendants = true
+mainFrame.Parent = screenGui
+
+-- 圆角效果
+local uiCorner = Instance.new("UICorner")
+uiCorner.CornerRadius = UDim.new(0, 6)
+uiCorner.Parent = mainFrame
+
+-- 标题栏
+local titleBar = Instance.new("Frame")
+titleBar.Name = "TitleBar"
+titleBar.Size = UDim2.new(1, 0, 0, 25)
+titleBar.BackgroundColor3 = Color3.fromRGB(30, 30, 45)
+titleBar.BorderSizePixel = 0
+titleBar.Parent = mainFrame
+
+-- 标题栏圆角
+local titleCorner = Instance.new("UICorner")
+titleCorner.CornerRadius = UDim.new(0, 6)
+titleCorner.Parent = titleBar
+
+local title = Instance.new("TextLabel")
+title.Text = "MCB"
+title.Size = UDim2.new(1, -80, 1, 0)
+title.Position = UDim2.new(0, 5, 0, 0)
+title.BackgroundTransparency = 1
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.TextXAlignment = Enum.TextXAlignment.Left
+title.Font = Enum.Font.SourceSansSemibold
+title.TextSize = 14
+title.Parent = titleBar
+
+-- 控制按钮容器
+local controlButtons = Instance.new("Frame")
+controlButtons.Name = "ControlButtons"
+controlButtons.Size = UDim2.new(0, 75, 1, 0)
+controlButtons.Position = UDim2.new(1, -75, 0, 0)
+controlButtons.BackgroundTransparency = 1
+controlButtons.Parent = titleBar
+
+-- 缩小按钮
+local minimizeBtn = Instance.new("TextButton")
+minimizeBtn.Name = "MinimizeButton"
+minimizeBtn.Size = UDim2.new(0, 25, 0, 25)
+minimizeBtn.Position = UDim2.new(0, 25, 0, 0)
+minimizeBtn.Text = "_"
+minimizeBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
+minimizeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+minimizeBtn.Font = Enum.Font.SourceSansBold
+minimizeBtn.TextSize = 16
+minimizeBtn.AutoButtonColor = false
+minimizeBtn.Parent = controlButtons
+
+-- 关闭按钮
+local closeBtn = Instance.new("TextButton")
+closeBtn.Size = UDim2.new(0, 25, 0, 25)
+closeBtn.Position = UDim2.new(0, 50, 0, 0)
+closeBtn.Text = "×"
+closeBtn.BackgroundColor3 = Color3.fromRGB(180, 60, 60)
+closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeBtn.Font = Enum.Font.SourceSansBold
+closeBtn.TextSize = 16
+closeBtn.AutoButtonColor = false
+closeBtn.Parent = controlButtons
+
+-- ==================== 怪物按钮 ====================
+local monsterButton = Instance.new("TextButton")
+monsterButton.Name = "MonsterButton"
+monsterButton.Size = UDim2.new(1, -10, 0, 60)
+monsterButton.Position = UDim2.new(0, 5, 0, 30)
+monsterButton.Text = "怪物专用\n[点击加载]"
+monsterButton.BackgroundColor3 = Color3.fromRGB(180, 60, 60)
+monsterButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+monsterButton.Font = Enum.Font.SourceSansSemibold
+monsterButton.TextSize = 14
+monsterButton.TextWrapped = true
+monsterButton.AutoButtonColor = false
+monsterButton.Parent = mainFrame
+
+local monsterCorner = Instance.new("UICorner")
+monsterCorner.CornerRadius = UDim.new(0, 5)
+monsterCorner.Parent = monsterButton
+
+-- ==================== 专家按钮 ====================
+local expertButton = Instance.new("TextButton")
+expertButton.Name = "ExpertButton"
+expertButton.Size = UDim2.new(1, -10, 0, 60)
+expertButton.Position = UDim2.new(0, 5, 0, 95)
+expertButton.Text = "专家专用\n[点击加载]"
+expertButton.BackgroundColor3 = Color3.fromRGB(60, 140, 200)
+expertButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+expertButton.Font = Enum.Font.SourceSansSemibold
+expertButton.TextSize = 14
+expertButton.TextWrapped = true
+expertButton.AutoButtonColor = false
+expertButton.Parent = mainFrame
+
+local expertCorner = Instance.new("UICorner")
+expertCorner.CornerRadius = UDim.new(0, 5)
+expertCorner.Parent = expertButton
+
+-- 状态显示（缩小后）
+local statusLabel = Instance.new("TextLabel")
+statusLabel.Name = "StatusLabel"
+statusLabel.Size = UDim2.new(1, -10, 1, -10)
+statusLabel.Position = UDim2.new(0, 5, 0, 5)
+statusLabel.BackgroundTransparency = 1
+statusLabel.Text = "MCB\n点击展开"
+statusLabel.TextColor3 = Color3.fromRGB(200, 200, 220)
+statusLabel.TextSize = 12
+statusLabel.TextWrapped = true
+statusLabel.Visible = false
+statusLabel.Parent = mainFrame
+
+-- 变量
+local isMinimized = false
+local originalSize = mainFrame.Size
+local originalPosition = mainFrame.Position
+local minimizedSize = UDim2.new(0, 80, 0, 40)
+
+-- 按钮悬停效果函数
+local function setupButtonHover(button)
+    local originalColor = button.BackgroundColor3
+
+    button.MouseEnter:Connect(function()
+        local tween = TweenService:Create(button, TweenInfo.new(0.2), {
+            BackgroundColor3 = Color3.fromRGB(
+                math.min(255, originalColor.R * 255 + 30),
+                math.min(255, originalColor.G * 255 + 30),
+                math.min(255, originalColor.B * 255 + 30)
+            )
+        })
+        tween:Play()
+    end)
+
+    button.MouseLeave:Connect(function()
+        local tween = TweenService:Create(button, TweenInfo.new(0.2), {
+            BackgroundColor3 = originalColor
+        })
+        tween:Play()
+    end)
+end
+
+-- 应用悬停效果
+setupButtonHover(monsterButton)
+setupButtonHover(expertButton)
+setupButtonHover(minimizeBtn)
+setupButtonHover(closeBtn)
+
+-- ==================== 按钮功能 ====================
+-- 加载怪物脚本（可重复加载）
+local function loadMonsterScript()
+    local originalText = monsterButton.Text
+    
+    monsterButton.Text = "怪物专用\n[加载中...]"
+    monsterButton.BackgroundColor3 = Color3.fromRGB(255, 165, 0)
+    
+    -- 加载怪物脚本
+    local success, errorMsg = pcall(function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBfun/roblox/refs/heads/main/KILLaura%20"))()
+    end)
+    
+    if success then
+        monsterButton.Text = "怪物专用\n[已加载 ✓]"
+        monsterButton.BackgroundColor3 = Color3.fromRGB(60, 180, 60)
+        
+        if isMinimized then
+            statusLabel.Text = "MCB\n怪物已加载"
+        end
+        
+        game:GetService("StarterGui"):SetCore("SendNotification", {
+            Title = "MCB",
+            Text = "怪物脚本加载成功！",
+            Icon = "rbxassetid://14550088217",
+            Duration = 2,
+            Position = UDim2.new(0, 20, 1, -50)
+        })
+        
+        -- 2秒后恢复可点击状态
+        task.wait(2)
+        monsterButton.Text = "怪物专用\n[再次加载]"
+        monsterButton.BackgroundColor3 = Color3.fromRGB(180, 60, 60)
+    else
+        monsterButton.Text = "怪物专用\n[加载失败]"
+        monsterButton.BackgroundColor3 = Color3.fromRGB(120, 120, 120)
+        
+        warn("[MCB] 怪物脚本加载失败: " .. tostring(errorMsg))
+        
+        -- 2秒后恢复可点击状态
+        task.wait(2)
+        monsterButton.Text = "怪物专用\n[点击重试]"
+        monsterButton.BackgroundColor3 = Color3.fromRGB(180, 60, 60)
+    end
+end
+
+-- 加载专家脚本（可重复加载）
+local function loadExpertScript()
+    local originalText = expertButton.Text
+    
+    expertButton.Text = "专家专用\n[加载中...]"
+    expertButton.BackgroundColor3 = Color3.fromRGB(255, 165, 0)
+    
+    -- 加载专家脚本
+    local success, errorMsg = pcall(function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBfun/roblox/refs/heads/main/Expert"))()
+    end)
+    
+    if success then
+        expertButton.Text = "专家专用\n[已加载 ✓]"
+        expertButton.BackgroundColor3 = Color3.fromRGB(60, 180, 60)
+        
+        if isMinimized then
+            statusLabel.Text = "MCB\n专家已加载"
+        end
+        
+        game:GetService("StarterGui"):SetCore("SendNotification", {
+            Title = "MCB",
+            Text = "专家脚本加载成功！",
+            Icon = "rbxassetid://14550088217",
+            Duration = 2,
+            Position = UDim2.new(0, 20, 1, -50)
+        })
+        
+        -- 2秒后恢复可点击状态
+        task.wait(2)
+        expertButton.Text = "专家专用\n[再次加载]"
+        expertButton.BackgroundColor3 = Color3.fromRGB(60, 140, 200)
+    else
+        expertButton.Text = "专家专用\n[加载失败]"
+        expertButton.BackgroundColor3 = Color3.fromRGB(120, 120, 120)
+        
+        warn("[MCB] 专家脚本加载失败: " .. tostring(errorMsg))
+        
+        -- 2秒后恢复可点击状态
+        task.wait(2)
+        expertButton.Text = "专家专用\n[点击重试]"
+        expertButton.BackgroundColor3 = Color3.fromRGB(60, 140, 200)
+    end
+end
+
+-- 按钮点击事件
+monsterButton.MouseButton1Click:Connect(function()
+    loadMonsterScript()
+end)
+
+expertButton.MouseButton1Click:Connect(function()
+    loadExpertScript()
+end)
+
+-- 缩小功能
+minimizeBtn.MouseButton1Click:Connect(function()
+    isMinimized = not isMinimized
+
+    if isMinimized then
+        -- 缩小动画，保持当前位置
+        local currentPos = mainFrame.Position
+        local tween = TweenService:Create(mainFrame, TweenInfo.new(0.3), {
+            Size = minimizedSize,
+            Position = currentPos
+        })
+        tween:Play()
+
+        tween.Completed:Wait()  -- 等待动画完成
+
+        monsterButton.Visible = false
+        expertButton.Visible = false
+        statusLabel.Visible = true
+        minimizeBtn.Text = "+"
+        title.Text = "🎯"
+        
+        -- 更新状态文本
+        statusLabel.Text = "MCB\n点击展开"
+
+    else
+        -- 恢复显示
+        monsterButton.Visible = true
+        expertButton.Visible = true
+        statusLabel.Visible = false
+        minimizeBtn.Text = "_"
+        title.Text = "MCB"
+
+        -- 恢复大小，保持当前位置
+        local currentPos = mainFrame.Position
+        local tween = TweenService:Create(mainFrame, TweenInfo.new(0.3), {
+            Size = originalSize,
+            Position = currentPos
+        })
+        tween:Play()
+    end
+end)
+
+-- 关闭功能
+closeBtn.MouseButton1Click:Connect(function()
+    -- 淡出动画
+    local tween = TweenService:Create(mainFrame, TweenInfo.new(0.3), {
+        BackgroundTransparency = 0.8,
+        Position = mainFrame.Position + UDim2.new(0, 0, 0, -20)
+    })
+    tween:Play()
+
+    tween.Completed:Wait()  -- 等待动画完成
+    screenGui:Destroy()
+end)
+
+-- 快捷键
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+
+    -- K键：加载怪物脚本
+    if input.KeyCode == Enum.KeyCode.K then
+        loadMonsterScript()
+    end
+
+    -- E键：加载专家脚本
+    if input.KeyCode == Enum.KeyCode.E then
+        loadExpertScript()
+    end
+
+    -- M键：缩小/放大
+    if input.KeyCode == Enum.KeyCode.M then
+        isMinimized = not isMinimized
+
+        if isMinimized then
+            local currentPos = mainFrame.Position
+            local tween = TweenService:Create(mainFrame, TweenInfo.new(0.3), {
+                Size = minimizedSize,
+                Position = currentPos
+            })
+            tween:Play()
+
+            tween.Completed:Wait()
+
+            monsterButton.Visible = false
+            expertButton.Visible = false
+            statusLabel.Visible = true
+            minimizeBtn.Text = "+"
+            title.Text = "🎯"
+            
+            statusLabel.Text = "MCB\n点击展开"
+
+        else
+            monsterButton.Visible = true
+            expertButton.Visible = true
+            statusLabel.Visible = false
+            minimizeBtn.Text = "_"
+            title.Text = "MCB"
+
+            local currentPos = mainFrame.Position
+            local tween = TweenService:Create(mainFrame, TweenInfo.new(0.3), {
+                Size = originalSize,
+                Position = currentPos
+            })
+            tween:Play()
+        end
+    end
+end)
+
+-- 初始淡入动画
+local originalPosition = UDim2.new(0.02, 0, 0.3, 0)
+mainFrame.BackgroundTransparency = 1
+mainFrame.Position = originalPosition + UDim2.new(0, 0, 0, -30)
+
+task.wait(0.1)
+
+local fadeInTween = TweenService:Create(mainFrame, TweenInfo.new(0.5), {
+    BackgroundTransparency = 0.2,
+    Position = originalPosition
+})
+fadeInTween:Play()
+
+game:GetService("StarterGui"):SetCore("SendNotification", {
+    Title = "MCB",
+    Text = "awa",
+    Icon = "rbxassetid://14550088217",
+    Duration = 4,
+    Position = UDim2.new(0, 20, 1, -50)
+})
