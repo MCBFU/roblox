@@ -295,10 +295,10 @@ local AuthSystem = {}
 -- 有效密钥列表
 AuthSystem.ValidKeys = {
     "渔炒鱼",
-    "YUMIAOYU-2024",
-    "TEST-KEY-123",
-    "VIP-ACCESS",
-    "MASTER-KEY",
+    " ",
+    "SB",
+    "傻逼",
+    "MCBFUN",
 }
 
 -- 验证函数
