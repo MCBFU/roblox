@@ -1,5 +1,5 @@
 -- ================================
--- 紧凑版高级验证系统 v3.4 - 小型自定义图片版（黑名单踢人版）
+-- 紧凑版高级验证系统 v3.4 - *
 -- 作者：渔妙鱼 | B站：作者B站？
 -- 功能：黑名单玩家启动脚本直接踢出，白名单密钥验证保留
 -- ================================
@@ -305,7 +305,7 @@ Footer.Parent = MainContainer
 local VersionText = Instance.new("TextLabel")
 VersionText.Size = UDim2.new(1, 0, 1, 0)
 VersionText.BackgroundTransparency = 1
-VersionText.Text = "alpha3.4 | 密钥验证系统（黑名单踢人版）"
+VersionText.Text = "alpha3.4 | 密钥验证系统"
 VersionText.TextColor3 = Color3.fromRGB(120, 140, 160)
 VersionText.TextSize = 10  -- 更小的字体
 VersionText.Font = Enum.Font.Gotham
