@@ -91,7 +91,7 @@ local monsterButton = Instance.new("TextButton")
 monsterButton.Name = "MonsterButton"
 monsterButton.Size = UDim2.new(1, -10, 0, 60)
 monsterButton.Position = UDim2.new(0, 5, 0, 30)
-monsterButton.Text = "怪物专用\n[点击加载]"
+monsterButton.Text = "怪物专用"
 monsterButton.BackgroundColor3 = Color3.fromRGB(180, 60, 60)
 monsterButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 monsterButton.Font = Enum.Font.SourceSansSemibold
@@ -109,7 +109,7 @@ local expertButton = Instance.new("TextButton")
 expertButton.Name = "ExpertButton"
 expertButton.Size = UDim2.new(1, -10, 0, 60)
 expertButton.Position = UDim2.new(0, 5, 0, 95)
-expertButton.Text = "专家专用\n[点击加载]"
+expertButton.Text = "专家专用"
 expertButton.BackgroundColor3 = Color3.fromRGB(60, 140, 200)
 expertButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 expertButton.Font = Enum.Font.SourceSansSemibold
@@ -128,7 +128,7 @@ statusLabel.Name = "StatusLabel"
 statusLabel.Size = UDim2.new(1, -10, 1, -10)
 statusLabel.Position = UDim2.new(0, 5, 0, 5)
 statusLabel.BackgroundTransparency = 1
-statusLabel.Text = "MCB\n点击展开"
+statusLabel.Text = " "
 statusLabel.TextColor3 = Color3.fromRGB(200, 200, 220)
 statusLabel.TextSize = 12
 statusLabel.TextWrapped = true
@@ -175,7 +175,7 @@ setupButtonHover(closeBtn)
 local function loadMonsterScript()
     local originalText = monsterButton.Text
     
-    monsterButton.Text = "怪物专用\n[加载中...]"
+    monsterButton.Text = "怪物专用..."
     monsterButton.BackgroundColor3 = Color3.fromRGB(255, 165, 0)
     
     -- 加载怪物脚本
@@ -184,34 +184,26 @@ local function loadMonsterScript()
     end)
     
     if success then
-        monsterButton.Text = "怪物专用\n[已加载 ✓]"
+        monsterButton.Text = "怪物专用"
         monsterButton.BackgroundColor3 = Color3.fromRGB(60, 180, 60)
         
         if isMinimized then
-            statusLabel.Text = "MCB\n怪物已加载"
+            statusLabel.Text = "MCB"
         end
-        
-        game:GetService("StarterGui"):SetCore("SendNotification", {
-            Title = "MCB",
-            Text = "怪物脚本加载成功！",
-            Icon = "rbxassetid://14550088217",
-            Duration = 2,
-            Position = UDim2.new(0, 20, 1, -50)
-        })
         
         -- 2秒后恢复可点击状态
         task.wait(2)
-        monsterButton.Text = "怪物专用\n[再次加载]"
+        monsterButton.Text = "怪物专用"
         monsterButton.BackgroundColor3 = Color3.fromRGB(180, 60, 60)
     else
-        monsterButton.Text = "怪物专用\n[加载失败]"
+        monsterButton.Text = "X"
         monsterButton.BackgroundColor3 = Color3.fromRGB(120, 120, 120)
         
         warn("[MCB] 怪物脚本加载失败: " .. tostring(errorMsg))
         
         -- 2秒后恢复可点击状态
         task.wait(2)
-        monsterButton.Text = "怪物专用\n[点击重试]"
+        monsterButton.Text = "怪物专用"
         monsterButton.BackgroundColor3 = Color3.fromRGB(180, 60, 60)
     end
 end
@@ -220,7 +212,7 @@ end
 local function loadExpertScript()
     local originalText = expertButton.Text
     
-    expertButton.Text = "专家专用\n[加载中...]"
+    expertButton.Text = "专家专用..."
     expertButton.BackgroundColor3 = Color3.fromRGB(255, 165, 0)
     
     -- 加载专家脚本
@@ -229,34 +221,26 @@ local function loadExpertScript()
     end)
     
     if success then
-        expertButton.Text = "专家专用\n[已加载 ✓]"
+        expertButton.Text = "专家专用"
         expertButton.BackgroundColor3 = Color3.fromRGB(60, 180, 60)
         
         if isMinimized then
-            statusLabel.Text = "MCB\n专家已加载"
+            statusLabel.Text = "MCB"
         end
-        
-        game:GetService("StarterGui"):SetCore("SendNotification", {
-            Title = "MCB",
-            Text = "专家脚本加载成功！",
-            Icon = "rbxassetid://14550088217",
-            Duration = 2,
-            Position = UDim2.new(0, 20, 1, -50)
-        })
         
         -- 2秒后恢复可点击状态
         task.wait(2)
-        expertButton.Text = "专家专用\n[再次加载]"
+        expertButton.Text = "专家专用"
         expertButton.BackgroundColor3 = Color3.fromRGB(60, 140, 200)
     else
-        expertButton.Text = "专家专用\n[加载失败]"
+        expertButton.Text = "X"
         expertButton.BackgroundColor3 = Color3.fromRGB(120, 120, 120)
         
         warn("[MCB] 专家脚本加载失败: " .. tostring(errorMsg))
         
         -- 2秒后恢复可点击状态
         task.wait(2)
-        expertButton.Text = "专家专用\n[点击重试]"
+        expertButton.Text = "专家专用"
         expertButton.BackgroundColor3 = Color3.fromRGB(60, 140, 200)
     end
 end
@@ -292,7 +276,7 @@ minimizeBtn.MouseButton1Click:Connect(function()
         title.Text = "🎯"
         
         -- 更新状态文本
-        statusLabel.Text = "MCBFUN\n点击展开"
+        statusLabel.Text = "😓"
 
     else
         -- 恢复显示
@@ -357,7 +341,7 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
             expertButton.Visible = false
             statusLabel.Visible = true
             minimizeBtn.Text = "+"
-            title.Text = "🎯"
+            title.Text = "✝️"
             
             statusLabel.Text = "MCB\n点击展开"
 
@@ -390,11 +374,3 @@ local fadeInTween = TweenService:Create(mainFrame, TweenInfo.new(0.5), {
     Position = originalPosition
 })
 fadeInTween:Play()
-
-game:GetService("StarterGui"):SetCore("SendNotification", {
-    Title = "MCB",
-    Text = "awa",
-    Icon = "rbxassetid://14550088217",
-    Duration = 4,
-    Position = UDim2.new(0, 20, 1, -50)
-})
