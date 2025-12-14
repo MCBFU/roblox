@@ -1,6 +1,7 @@
 -- ================================
--- 紧凑版高级验证系统 v3.4 - 小型自定义图片版
+-- 紧凑版高级验证系统 v3.4 - 小型自定义图片版（黑名单踢人版）
 -- 作者：渔妙鱼 | B站：作者B站？
+-- 功能：黑名单玩家启动脚本直接踢出，白名单密钥验证保留
 -- ================================
 
 local Players = game:GetService("Players")
@@ -12,6 +13,59 @@ local Lighting = game:GetService("Lighting")
 repeat RunService.Heartbeat:Wait() until Players.LocalPlayer
 local Player = Players.LocalPlayer
 local Gui = Player:WaitForChild("PlayerGui")
+
+-- ================================
+-- 核心黑名单配置（支持 玩家名/用户ID）
+-- ================================
+local BlacklistSystem = {
+    -- 黑名单玩家名称（区分大小写，如需忽略可转小写匹配）
+    Names = {
+        "😁",
+        "😁",
+        "😁"
+    },
+    -- 黑名单用户ID（数字ID，优先级高于名称）
+    UserIds = {
+        12345678,
+        87654321
+    },
+    -- 踢人提示语
+    KickMessage = "你已被列入黑名单，禁止使用本脚本"
+}
+
+-- ================================
+-- 黑名单检测 & 踢人逻辑（脚本启动时立即执行）
+-- ================================
+local function checkBlacklist()
+    -- 1. 优先检测用户ID（更精准，不会重名）
+    for _, bannedId in ipairs(BlacklistSystem.UserIds) do
+        if Player.UserId == bannedId then
+            return true
+        end
+    end
+
+    -- 2. 检测玩家名称（可根据需求修改为忽略大小写）
+    -- 忽略大小写写法：string.lower(Player.Name) == string.lower(bannedName)
+    for _, bannedName in ipairs(BlacklistSystem.Names) do
+        if Player.Name == bannedName then
+            return true
+        end
+    end
+
+    return false
+end
+
+-- 执行黑名单检测，命中则直接踢人
+if checkBlacklist() then
+    wait(0.5) -- 短暂延迟避免检测过快
+    Player:Kick(BlacklistSystem.KickMessage)
+    -- 终止脚本后续执行
+    return
+end
+
+-- ================================
+-- 以下为原有验证系统逻辑（黑名单未命中才会执行）
+-- ================================
 
 -- 创建景深模糊效果
 local DepthOfField = Instance.new("DepthOfFieldEffect")
@@ -251,7 +305,7 @@ Footer.Parent = MainContainer
 local VersionText = Instance.new("TextLabel")
 VersionText.Size = UDim2.new(1, 0, 1, 0)
 VersionText.BackgroundTransparency = 1
-VersionText.Text = "alpha3.4 | 密钥验证系统"
+VersionText.Text = "alpha3.4 | 密钥验证系统（黑名单踢人版）"
 VersionText.TextColor3 = Color3.fromRGB(120, 140, 160)
 VersionText.TextSize = 10  -- 更小的字体
 VersionText.Font = Enum.Font.Gotham
@@ -575,6 +629,7 @@ coroutine.wrap(function()
         print("✅ 小型UI显示正常")
         print("✅ 图片尺寸已缩小")
         print("✅ 窗口已整体上移")
+        print("✅ 黑名单踢人系统已加载")
     else
         print("❌ UI未显示")
     end
