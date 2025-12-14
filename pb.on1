@@ -8,7 +8,6 @@ sound.Parent = SoundService
 
 -- 播放音频
 sound:Play()
-Wait(2)
 -- MCB 双功能加载器（可重复加载）
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
