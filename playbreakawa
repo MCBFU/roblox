@@ -8,7 +8,7 @@ sound.Parent = SoundService
 
 -- 播放音频
 sound:Play()
-write(1)
+Wait(2)
 -- MCB 双功能加载器（可重复加载）
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
@@ -185,23 +185,23 @@ setupButtonHover(closeBtn)
 -- 加载怪物脚本（可重复加载）
 local function loadMonsterScript()
     local originalText = monsterButton.Text
-    
+
     monsterButton.Text = "怪物专用..."
     monsterButton.BackgroundColor3 = Color3.fromRGB(255, 165, 0)
-    
+
     -- 加载怪物脚本
     local success, errorMsg = pcall(function()
         loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBfun/roblox/refs/heads/main/KILLaura%20"))()
     end)
-    
+
     if success then
         monsterButton.Text = "怪物专用"
         monsterButton.BackgroundColor3 = Color3.fromRGB(60, 180, 60)
-        
+
         if isMinimized then
             statusLabel.Text = "MCB"
         end
-        
+
         -- 2秒后恢复可点击状态
         task.wait(2)
         monsterButton.Text = "怪物专用"
@@ -209,9 +209,9 @@ local function loadMonsterScript()
     else
         monsterButton.Text = "X"
         monsterButton.BackgroundColor3 = Color3.fromRGB(120, 120, 120)
-        
+
         warn("[MCB] 怪物脚本加载失败: " .. tostring(errorMsg))
-        
+
         -- 2秒后恢复可点击状态
         task.wait(2)
         monsterButton.Text = "怪物专用"
@@ -222,23 +222,23 @@ end
 -- 加载专家脚本（可重复加载）
 local function loadExpertScript()
     local originalText = expertButton.Text
-    
+
     expertButton.Text = "专家专用..."
     expertButton.BackgroundColor3 = Color3.fromRGB(255, 165, 0)
-    
+
     -- 加载专家脚本
     local success, errorMsg = pcall(function()
         loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBfun/roblox/refs/heads/main/Expert"))()
     end)
-    
+
     if success then
         expertButton.Text = "专家专用"
         expertButton.BackgroundColor3 = Color3.fromRGB(60, 180, 60)
-        
+
         if isMinimized then
             statusLabel.Text = "MCB"
         end
-        
+
         -- 2秒后恢复可点击状态
         task.wait(2)
         expertButton.Text = "专家专用"
@@ -246,9 +246,9 @@ local function loadExpertScript()
     else
         expertButton.Text = "X"
         expertButton.BackgroundColor3 = Color3.fromRGB(120, 120, 120)
-        
+
         warn("[MCB] 专家脚本加载失败: " .. tostring(errorMsg))
-        
+
         -- 2秒后恢复可点击状态
         task.wait(2)
         expertButton.Text = "专家专用"
@@ -285,7 +285,7 @@ minimizeBtn.MouseButton1Click:Connect(function()
         statusLabel.Visible = true
         minimizeBtn.Text = "+"
         title.Text = "🎯"
-        
+
         -- 更新状态文本
         statusLabel.Text = "😓"
 
@@ -353,7 +353,7 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
             statusLabel.Visible = true
             minimizeBtn.Text = "+"
             title.Text = "✝️"
-            
+
             statusLabel.Text = "MCB\n点击展开"
 
         else
