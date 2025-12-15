@@ -489,7 +489,7 @@ wait(0.1)
 -- 自动显示欢迎消息
 Rayfield:Notify({
     Title = "playbreak脚本中心",
-    Content = "你的使用是我的荣幸",
+    Content = "欢迎你",
     Duration = 5,
     Image = 98446998103932
 })
