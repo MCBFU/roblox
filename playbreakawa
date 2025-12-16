@@ -1,7 +1,7 @@
 -- ================================
 -- 紧凑版高级验证系统 v3.4 - *
 -- 作者：渔妙鱼 | B站：作者B站？
--- 功能：黑名单玩家启动脚本直接踢出，白名单密钥验证保留
+-- 功能：白名单直接启动，黑名单显示屏蔽界面，无名单提示申请权限
 -- ================================
 
 local Players = game:GetService("Players")
@@ -15,369 +15,156 @@ local Player = Players.LocalPlayer
 local Gui = Player:WaitForChild("PlayerGui")
 
 -- ================================
--- 核心黑名单配置（支持 玩家名/用户ID）
+-- 核心黑白名单配置（支持 玩家名/用户ID）
 -- ================================
-local BlacklistSystem = {
-    -- 黑名单玩家名称（区分大小写，如需忽略可转小写匹配）
-    Names = {
-        "😁",
-        "😁",
-        "😁"
+local VerifySystem = {
+    -- 白名单配置
+    Whitelist = {
+        Names = {
+            -- 填写白名单玩家名称（区分大小写）
+            "MCBFUNAE",
+            "白名单玩家1"
+        },
+        UserIds = {
+            -- 填写白名单用户ID（数字ID优先级更高）
+            12345678
+        }
     },
-    -- 黑名单用户ID（数字ID，优先级高于名称）
-    UserIds = {
-        12345678,
-        87654321
+    -- 黑名单配置（改为显示屏蔽界面）
+    Blacklist = {
+        Names = {
+            "awa",
+            "😁"
+        },
+        UserIds = {
+            12345678,
+            87654321
+        },
+        BlockMessage = "你已被此脚本彻底屏蔽"
     },
-    -- 踢人提示语
-    KickMessage = "你已被列入黑名单，禁止使用本脚本"
+    -- 无名单提示语
+    NoListMessage = "抱歉，您还没有向作者申请权限，为创造良好的游戏环境，请向作者私信添加白名单（未被拉黑）",
+    -- 黑名单界面图片ID
+    BlockImageId = "rbxassetid://98410293253259"
 }
 
 -- ================================
--- 黑名单检测 & 踢人逻辑（脚本启动时立即执行）
+-- 黑白名单检测逻辑
 -- ================================
-local function checkBlacklist()
-    -- 1. 优先检测用户ID（更精准，不会重名）
-    for _, bannedId in ipairs(BlacklistSystem.UserIds) do
+local function isInWhitelist()
+    -- 优先检测用户ID
+    for _, whitelistId in ipairs(VerifySystem.Whitelist.UserIds) do
+        if Player.UserId == whitelistId then
+            return true
+        end
+    end
+    -- 检测玩家名称
+    for _, whitelistName in ipairs(VerifySystem.Whitelist.Names) do
+        if Player.Name == whitelistName then
+            return true
+        end
+    end
+    return false
+end
+
+local function isInBlacklist()
+    -- 优先检测用户ID
+    for _, bannedId in ipairs(VerifySystem.Blacklist.UserIds) do
         if Player.UserId == bannedId then
             return true
         end
     end
-
-    -- 2. 检测玩家名称（可根据需求修改为忽略大小写）
-    -- 忽略大小写写法：string.lower(Player.Name) == string.lower(bannedName)
-    for _, bannedName in ipairs(BlacklistSystem.Names) do
+    -- 检测玩家名称
+    for _, bannedName in ipairs(VerifySystem.Blacklist.Names) do
         if Player.Name == bannedName then
             return true
         end
     end
-
     return false
 end
 
--- 执行黑名单检测，命中则直接踢人
-if checkBlacklist() then
-    wait(0.5) -- 短暂延迟避免检测过快
-    Player:Kick(BlacklistSystem.KickMessage)
-    -- 终止脚本后续执行
-    return
+-- ================================
+-- 黑名单屏蔽界面创建
+-- ================================
+local function createBlockScreen()
+    local ScreenGui = Instance.new("ScreenGui")
+    ScreenGui.Name = "BlockScreen"
+    ScreenGui.ResetOnSpawn = false
+    ScreenGui.IgnoreGuiInset = true
+    ScreenGui.Parent = Gui
+
+    -- 全屏遮罩
+    local FullMask = Instance.new("Frame")
+    FullMask.Size = UDim2.new(1, 0, 1, 0)
+    FullMask.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    FullMask.BackgroundTransparency = 0.3
+    FullMask.ZIndex = 100
+    FullMask.Parent = ScreenGui
+
+    -- 中心容器
+    local CenterContainer = Instance.new("Frame")
+    CenterContainer.Size = UDim2.new(0, 350, 0, 450)
+    CenterContainer.Position = UDim2.new(0.5, -175, 0.5, -225)
+    CenterContainer.BackgroundColor3 = Color3.fromRGB(30, 10, 10)
+    CenterContainer.BorderSizePixel = 0
+    CenterContainer.ZIndex = 101
+    CenterContainer.Parent = FullMask
+    Instance.new("UICorner", CenterContainer).CornerRadius = UDim.new(0, 16)
+
+    -- 大错号
+    local ErrorIcon = Instance.new("TextLabel")
+    ErrorIcon.Size = UDim2.new(0, 80, 0, 80)
+    ErrorIcon.Position = UDim2.new(0.5, -40, 0.1, 0)
+    ErrorIcon.BackgroundTransparency = 1
+    ErrorIcon.Text = "❌"
+    ErrorIcon.TextColor3 = Color3.fromRGB(255, 50, 50)
+    ErrorIcon.TextSize = 80
+    ErrorIcon.Font = Enum.Font.GothamBold
+    ErrorIcon.ZIndex = 102
+    ErrorIcon.Parent = CenterContainer
+
+    -- 菜鸟图片
+    local BlockImage = Instance.new("ImageLabel")
+    BlockImage.Size = UDim2.new(0, 180, 0, 180)
+    BlockImage.Position = UDim2.new(0.5, -90, 0.3, 0)
+    BlockImage.BackgroundTransparency = 1
+    BlockImage.Image = VerifySystem.BlockImageId
+    BlockImage.ScaleType = Enum.ScaleType.Fit
+    BlockImage.ZIndex = 102
+    BlockImage.Parent = CenterContainer
+    Instance.new("UICorner", BlockImage).CornerRadius = UDim.new(0, 12)
+
+    -- 屏蔽提示文本
+    local BlockText = Instance.new("TextLabel")
+    BlockText.Size = UDim2.new(0.8, 0, 0, 60)
+    BlockText.Position = UDim2.new(0.1, 0, 0.75, 0)
+    BlockText.BackgroundTransparency = 1
+    BlockText.Text = VerifySystem.Blacklist.BlockMessage
+    BlockText.TextColor3 = Color3.fromRGB(255, 100, 100)
+    BlockText.TextSize = 22
+    BlockText.Font = Enum.Font.GothamBold
+    BlockText.TextWrapped = true
+    BlockText.TextXAlignment = Enum.TextXAlignment.Center
+    BlockText.ZIndex = 102
+    BlockText.Parent = CenterContainer
+
+    -- 入场动画
+    CenterContainer.Position = UDim2.new(0.5, -175, 0.5, -225)
+    CenterContainer.BackgroundTransparency = 0.2
+    local tween = TweenService:Create(CenterContainer, TweenInfo.new(0.6, Enum.EasingStyle.Back), {
+        BackgroundTransparency = 0,
+        Position = UDim2.new(0.5, -175, 0.5, -225)
+    })
+    tween:Play()
+
+    -- 锁定界面，无法关闭
+    FullMask.InputBegan:Connect(function() end)
 end
 
 -- ================================
--- 以下为原有验证系统逻辑（黑名单未命中才会执行）
+-- 脚本执行函数（白名单专用）
 -- ================================
-
--- 创建景深模糊效果
-local DepthOfField = Instance.new("DepthOfFieldEffect")
-DepthOfField.FarIntensity = 0
-DepthOfField.NearIntensity = 0
-DepthOfField.InFocusRadius = 0
-DepthOfField.Parent = Lighting
-
--- ================================
--- 小型紧凑UI创建
--- ================================
-local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "SmallAuthSystem"
-ScreenGui.ResetOnSpawn = false
-ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-ScreenGui.IgnoreGuiInset = false
-
--- 小型主容器（更小更居中，整体上移）
-local MainContainer = Instance.new("Frame")
-MainContainer.Size = UDim2.new(0, 260, 0, 320)  -- 尺寸不变
-MainContainer.Position = UDim2.new(0.5, -130, 0.35, -160)  -- 关键修改：y轴从0.5改为0.35，整体上移
-MainContainer.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
-MainContainer.BackgroundTransparency = 0.1
-MainContainer.BorderSizePixel = 0
-MainContainer.ClipsDescendants = true
-MainContainer.Parent = ScreenGui
-
--- 添加圆角
-local MainCorner = Instance.new("UICorner")
-MainCorner.CornerRadius = UDim.new(0, 12)
-MainCorner.Parent = MainContainer
-
--- 添加玻璃态效果
-local GlassEffect = Instance.new("Frame")
-GlassEffect.Size = UDim2.new(1, 0, 1, 0)
-GlassEffect.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-GlassEffect.BackgroundTransparency = 0.96
-GlassEffect.BorderSizePixel = 0
-GlassEffect.ZIndex = 0
-GlassEffect.Parent = MainContainer
-
--- 简洁顶部条
-local TopBar = Instance.new("Frame")
-TopBar.Size = UDim2.new(1, 0, 0, 2)  -- 更细
-TopBar.Position = UDim2.new(0, 0, 0, 0)
-TopBar.BackgroundColor3 = Color3.fromRGB(0, 150, 220)
-TopBar.BorderSizePixel = 0
-TopBar.Parent = MainContainer
-
--- 标题区域（更紧凑）
-local Header = Instance.new("Frame")
-Header.Size = UDim2.new(1, 0, 0, 80)  -- 更矮
-Header.Position = UDim2.new(0, 0, 0, 5)
-Header.BackgroundTransparency = 1
-Header.Parent = MainContainer
-
--- 小型自定义图片徽标
-local CustomLogo = Instance.new("Frame")
-CustomLogo.Size = UDim2.new(0, 50, 0, 50)  -- 更小的图片尺寸
-CustomLogo.Position = UDim2.new(0.5, -25, 0, 0)
-CustomLogo.BackgroundTransparency = 1
-CustomLogo.Parent = Header
-
--- 小型图片容器
-local LogoImage = Instance.new("ImageLabel")
-LogoImage.Size = UDim2.new(1, 0, 1, 0)
-LogoImage.BackgroundTransparency = 1
-LogoImage.Image = "rbxassetid://98446998103932"  -- 你的自定义图片ID
-LogoImage.ScaleType = Enum.ScaleType.Fit
-LogoImage.ImageColor3 = Color3.fromRGB(255, 255, 255)
-LogoImage.Parent = CustomLogo
-
--- 添加圆角
-local ImageCorner = Instance.new("UICorner")
-ImageCorner.CornerRadius = UDim.new(0, 8)
-ImageCorner.Parent = LogoImage
-
--- 添加发光边框
-local ImageStroke = Instance.new("UIStroke")
-ImageStroke.Color = Color3.fromRGB(0, 180, 255)
-ImageStroke.Thickness = 1.5  -- 更细的边框
-ImageStroke.Transparency = 0.5
-ImageStroke.Parent = LogoImage
-
--- 标题（字体稍小）
-local Title = Instance.new("TextLabel")
-Title.Size = UDim2.new(1, 0, 0, 22)
-Title.Position = UDim2.new(0, 0, 0.7, 0)
-Title.BackgroundTransparency = 1
-Title.Text = "MCBFUN卡密验证系统"
-Title.TextColor3 = Color3.fromRGB(240, 240, 255)
-Title.TextSize = 18  -- 更小的字体
-Title.Font = Enum.Font.GothamBold
-Title.TextStrokeColor3 = Color3.fromRGB(0, 50, 100)
-Title.TextStrokeTransparency = 0.8
-Title.Parent = Header
-
-local Author = Instance.new("TextLabel")
-Author.Size = UDim2.new(1, 0, 0, 16)
-Author.Position = UDim2.new(0, 0, 0.95, 0)
-Author.BackgroundTransparency = 1
-Author.Text = "想要获取专属密钥？私信作者！"
-Author.TextColor3 = Color3.fromRGB(170, 180, 200)
-Author.TextSize = 10  -- 更小的字体
-Author.Font = Enum.Font.Gotham
-Author.Parent = Header
-
--- 输入区域（更紧凑）
-local InputSection = Instance.new("Frame")
-InputSection.Size = UDim2.new(0.85, 0, 0, 48)  -- 更矮
-InputSection.Position = UDim2.new(0.075, 0, 0.32, 0)
-InputSection.BackgroundTransparency = 1
-InputSection.Parent = MainContainer
-
-local InputBox = Instance.new("Frame")
-InputBox.Size = UDim2.new(1, 0, 1, 0)
-InputBox.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
-InputBox.BackgroundTransparency = 0.1
-InputBox.Parent = InputSection
-
-local InputBoxCorner = Instance.new("UICorner")
-InputBoxCorner.CornerRadius = UDim.new(0, 6)
-InputBoxCorner.Parent = InputBox
-
-local InputBoxStroke = Instance.new("UIStroke")
-InputBoxStroke.Color = Color3.fromRGB(50, 60, 80)
-InputBoxStroke.Thickness = 1
-InputBoxStroke.Parent = InputBox
-
-local KeyInput = Instance.new("TextBox")
-KeyInput.Size = UDim2.new(0.9, 0, 0.8, 0)
-KeyInput.Position = UDim2.new(0.05, 0, 0.1, 0)
-KeyInput.BackgroundTransparency = 1
-KeyInput.PlaceholderText = "输入验证密钥..."
-KeyInput.PlaceholderColor3 = Color3.fromRGB(120, 130, 150)
-KeyInput.Text = ""
-KeyInput.TextColor3 = Color3.fromRGB(240, 240, 255)
-KeyInput.TextSize = 14  -- 更小的字体
-KeyInput.Font = Enum.Font.GothamMedium
-KeyInput.ClearTextOnFocus = false
-KeyInput.Parent = InputBox
-
-local InputLine = Instance.new("Frame")
-InputLine.Size = UDim2.new(0, 0, 0, 2)
-InputLine.Position = UDim2.new(0, 0, 1, -2)
-InputLine.BackgroundColor3 = Color3.fromRGB(0, 150, 220)
-InputLine.BorderSizePixel = 0
-InputLine.Parent = InputBox
-
--- 验证按钮（更小）
-local VerifyButton = Instance.new("TextButton")
-VerifyButton.Size = UDim2.new(0.7, 0, 0, 40)  -- 更矮
-VerifyButton.Position = UDim2.new(0.15, 0, 0.52, 0)
-VerifyButton.BackgroundColor3 = Color3.fromRGB(0, 130, 210)
-VerifyButton.AutoButtonColor = false
-VerifyButton.Text = ""
-VerifyButton.Parent = MainContainer
-
-local ButtonCorner = Instance.new("UICorner")
-ButtonCorner.CornerRadius = UDim.new(0, 8)
-ButtonCorner.Parent = VerifyButton
-
-local ButtonGradient = Instance.new("UIGradient")
-ButtonGradient.Color = ColorSequence.new({
-    ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 130, 210)),
-    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(0, 150, 230)),
-    ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 130, 210))
-})
-ButtonGradient.Rotation = 90
-ButtonGradient.Parent = VerifyButton
-
-local ButtonLabel = Instance.new("TextLabel")
-ButtonLabel.Size = UDim2.new(1, 0, 1, 0)
-ButtonLabel.BackgroundTransparency = 1
-ButtonLabel.Text = "验证并启动"
-ButtonLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-ButtonLabel.TextSize = 15  -- 更小的字体
-ButtonLabel.Font = Enum.Font.GothamBold
-ButtonLabel.Parent = VerifyButton
-
-local ButtonIcon = Instance.new("TextLabel")
-ButtonIcon.Size = UDim2.new(0, 18, 0, 18)  -- 更小
-ButtonIcon.Position = UDim2.new(1, -22, 0.5, -9)  -- 调整位置
-ButtonIcon.BackgroundTransparency = 1
-ButtonIcon.Text = "→"
-ButtonIcon.TextColor3 = Color3.fromRGB(255, 255, 255)
-ButtonIcon.TextSize = 14  -- 更小的字体
-ButtonIcon.Font = Enum.Font.GothamBold
-ButtonIcon.Parent = VerifyButton
-
--- 状态显示（更紧凑）
-local StatusArea = Instance.new("Frame")
-StatusArea.Size = UDim2.new(0.85, 0, 0, 45)  -- 更矮
-StatusArea.Position = UDim2.new(0.075, 0, 0.68, 0)
-StatusArea.BackgroundTransparency = 1
-StatusArea.Parent = MainContainer
-
-local StatusBox = Instance.new("Frame")
-StatusBox.Size = UDim2.new(1, 0, 1, 0)
-StatusBox.BackgroundColor3 = Color3.fromRGB(25, 30, 40)
-StatusBox.BackgroundTransparency = 0.8
-StatusBox.Parent = StatusArea
-
-local StatusBoxCorner = Instance.new("UICorner")
-StatusBoxCorner.CornerRadius = UDim.new(0, 6)
-StatusBoxCorner.Parent = StatusBox
-
-local StatusIndicator = Instance.new("Frame")
-StatusIndicator.Size = UDim2.new(0, 8, 0, 8)  -- 更小
-StatusIndicator.Position = UDim2.new(0.05, 0, 0.5, -4)
-StatusIndicator.BackgroundColor3 = Color3.fromRGB(120, 130, 150)
-StatusIndicator.Parent = StatusBox
-
-local StatusIndicatorCorner = Instance.new("UICorner")
-StatusIndicatorCorner.CornerRadius = UDim.new(1, 0)
-StatusIndicatorCorner.Parent = StatusIndicator
-
-local StatusText = Instance.new("TextLabel")
-StatusText.Size = UDim2.new(0.85, 0, 1, 0)
-StatusText.Position = UDim2.new(0.15, 0, 0, 0)
-StatusText.BackgroundTransparency = 1
-StatusText.Text = "等待验证..."
-StatusText.TextColor3 = Color3.fromRGB(170, 180, 200)
-StatusText.TextSize = 12  -- 更小的字体
-StatusText.Font = Enum.Font.GothamMedium
-StatusText.TextXAlignment = Enum.TextXAlignment.Left
-StatusText.Parent = StatusBox
-
--- 底部信息（更小）
-local Footer = Instance.new("Frame")
-Footer.Size = UDim2.new(1, 0, 0, 28)  -- 更矮
-Footer.Position = UDim2.new(0, 0, 1, -28)
-Footer.BackgroundColor3 = Color3.fromRGB(15, 20, 30)
-Footer.BackgroundTransparency = 0.3
-Footer.Parent = MainContainer
-
-local VersionText = Instance.new("TextLabel")
-VersionText.Size = UDim2.new(1, 0, 1, 0)
-VersionText.BackgroundTransparency = 1
-VersionText.Text = "alpha3.4 | 密钥验证系统"
-VersionText.TextColor3 = Color3.fromRGB(120, 140, 160)
-VersionText.TextSize = 10  -- 更小的字体
-VersionText.Font = Enum.Font.Gotham
-VersionText.Parent = Footer
-
--- 关闭按钮（更小）
-local CloseButton = Instance.new("TextButton")
-CloseButton.Size = UDim2.new(0, 22, 0, 22)  -- 更小
-CloseButton.Position = UDim2.new(1, -26, 0, 6)
-CloseButton.BackgroundColor3 = Color3.fromRGB(40, 45, 55)
-CloseButton.AutoButtonColor = false
-CloseButton.Text = "×"
-CloseButton.TextColor3 = Color3.fromRGB(200, 210, 220)
-CloseButton.TextSize = 16  -- 更小的字体
-CloseButton.Font = Enum.Font.GothamBold
-CloseButton.BorderSizePixel = 0
-CloseButton.Parent = MainContainer
-
-local CloseCorner = Instance.new("UICorner")
-CloseCorner.CornerRadius = UDim.new(0.5, 0)
-CloseCorner.Parent = CloseButton
-
--- 添加小型外发光
-local OuterGlow = Instance.new("ImageLabel")
-OuterGlow.Size = UDim2.new(1, 16, 1, 16)  -- 更小的发光
-OuterGlow.Position = UDim2.new(0, -8, 0, -8)
-OuterGlow.BackgroundTransparency = 1
-OuterGlow.Image = "rbxassetid://5554237733"
-OuterGlow.ImageColor3 = Color3.fromRGB(0, 100, 200)
-OuterGlow.ImageTransparency = 0.85
-OuterGlow.ScaleType = Enum.ScaleType.Slice
-OuterGlow.SliceCenter = Rect.new(23, 23, 277, 277)
-OuterGlow.Parent = MainContainer
-OuterGlow.ZIndex = -1
-
--- ================================
--- 修复的验证系统
--- ================================
-local AuthSystem = {}
-
--- 有效密钥列表
-AuthSystem.ValidKeys = {
-    "渔炒鱼",
-    "😀",
-    "😀",
-    "😀",
-    "😀",
-}
-
--- 验证函数
-function AuthSystem:validateKey(input)
-    if not input or type(input) ~= "string" then
-        return false, "请输入有效密钥"
-    end
-
-    local cleaned = input:gsub("%s+", "")
-
-    if cleaned == "" then
-        return false, "密钥不能为空"
-    end
-
-    for _, validKey in ipairs(self.ValidKeys) do
-        if cleaned == validKey then
-            return true, "验证成功！"
-        end
-    end
-
-    return false, "密钥无效"
-end
-
--- 执行脚本
-function AuthSystem:executeScript()
+local function executeScript()
     local url = "https://github.com/MCBFU/roblox/raw/refs/heads/main/pb.on1"
 
     local success, err = pcall(function()
@@ -393,103 +180,214 @@ function AuthSystem:executeScript()
 end
 
 -- ================================
--- 景深模糊效果控制
+-- 执行检测（脚本启动时立即执行）
+-- ================================
+if isInBlacklist() then
+    wait(0.5)
+    createBlockScreen()
+    -- 终止脚本后续执行
+    return
+end
+
+local isWhitelist = isInWhitelist()
+
+-- ================================
+-- 白名单验证通过后的UI和逻辑
+-- ================================
+local DepthOfField = Instance.new("DepthOfFieldEffect")
+DepthOfField.FarIntensity = 0
+DepthOfField.NearIntensity = 0
+DepthOfField.InFocusRadius = 0
+DepthOfField.Parent = Lighting
+
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "SmallAuthSystem"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+ScreenGui.IgnoreGuiInset = false
+ScreenGui.Parent = Gui
+
+-- 主容器
+local MainContainer = Instance.new("Frame")
+MainContainer.Size = UDim2.new(0, 260, 0, 320)
+MainContainer.Position = UDim2.new(0.5, -130, 0.35, -160)
+MainContainer.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
+MainContainer.BackgroundTransparency = 0.1
+MainContainer.BorderSizePixel = 0
+MainContainer.ClipsDescendants = true
+MainContainer.Parent = ScreenGui
+Instance.new("UICorner", MainContainer).CornerRadius = UDim.new(0, 12)
+
+-- 玻璃态效果
+local GlassEffect = Instance.new("Frame")
+GlassEffect.Size = UDim2.new(1, 0, 1, 0)
+GlassEffect.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+GlassEffect.BackgroundTransparency = 0.96
+GlassEffect.BorderSizePixel = 0
+GlassEffect.ZIndex = 0
+GlassEffect.Parent = MainContainer
+
+-- 顶部条
+local TopBar = Instance.new("Frame")
+TopBar.Size = UDim2.new(1, 0, 0, 2)
+TopBar.BackgroundColor3 = Color3.fromRGB(0, 150, 220)
+TopBar.BorderSizePixel = 0
+TopBar.Parent = MainContainer
+
+-- 标题区域
+local Header = Instance.new("Frame")
+Header.Size = UDim2.new(1, 0, 0, 80)
+Header.Position = UDim2.new(0, 0, 0, 5)
+Header.BackgroundTransparency = 1
+Header.Parent = MainContainer
+
+-- 徽标
+local CustomLogo = Instance.new("Frame")
+CustomLogo.Size = UDim2.new(0, 50, 0, 50)
+CustomLogo.Position = UDim2.new(0.5, -25, 0, 0)
+CustomLogo.BackgroundTransparency = 1
+CustomLogo.Parent = Header
+
+local LogoImage = Instance.new("ImageLabel")
+LogoImage.Size = UDim2.new(1, 0, 1, 0)
+LogoImage.BackgroundTransparency = 1
+LogoImage.Image = "rbxassetid://98446998103932"
+LogoImage.ScaleType = Enum.ScaleType.Fit
+LogoImage.Parent = CustomLogo
+Instance.new("UICorner", LogoImage).CornerRadius = UDim.new(0, 8)
+Instance.new("UIStroke", LogoImage).Color = Color3.fromRGB(0, 180, 255)
+
+-- 标题文本
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, 0, 0, 22)
+Title.Position = UDim2.new(0, 0, 0.7, 0)
+Title.BackgroundTransparency = 1
+Title.Text = "MCBFUN验证系统"
+Title.TextColor3 = Color3.fromRGB(240, 240, 255)
+Title.TextSize = 18
+Title.Font = Enum.Font.GothamBold
+Title.Parent = Header
+
+local Author = Instance.new("TextLabel")
+Author.Size = UDim2.new(1, 0, 0, 16)
+Author.Position = UDim2.new(0, 0, 0.95, 0)
+Author.BackgroundTransparency = 1
+Author.Text = "白名单验证 | 自动启动脚本"
+Author.TextColor3 = Color3.fromRGB(170, 180, 200)
+Author.TextSize = 10
+Author.Font = Enum.Font.Gotham
+Author.Parent = Header
+
+-- 状态显示区域
+local StatusSection = Instance.new("Frame")
+StatusSection.Size = UDim2.new(0.85, 0, 0, 120)
+StatusSection.Position = UDim2.new(0.075, 0, 0.32, 0)
+StatusSection.BackgroundTransparency = 1
+StatusSection.Parent = MainContainer
+
+local StatusBox = Instance.new("Frame")
+StatusBox.Size = UDim2.new(1, 0, 1, 0)
+StatusBox.BackgroundColor3 = Color3.fromRGB(25, 30, 40)
+StatusBox.BackgroundTransparency = 0.8
+StatusBox.Parent = StatusSection
+Instance.new("UICorner", StatusBox).CornerRadius = UDim.new(0, 12)
+
+local StatusIcon = Instance.new("TextLabel")
+StatusIcon.Size = UDim2.new(0, 40, 0, 40)
+StatusIcon.Position = UDim2.new(0.5, -20, 0.1, 0)
+StatusIcon.BackgroundTransparency = 1
+StatusIcon.Text = isWhitelist and "✅" or "❌"
+StatusIcon.TextColor3 = isWhitelist and Color3.fromRGB(100, 255, 100) or Color3.fromRGB(255, 100, 100)
+StatusIcon.TextSize = 32
+StatusIcon.Font = Enum.Font.GothamBold
+StatusIcon.Parent = StatusBox
+
+local StatusText = Instance.new("TextLabel")
+StatusText.Size = UDim2.new(0.9, 0, 0, 60)
+StatusText.Position = UDim2.new(0.05, 0, 0.5, 0)
+StatusText.BackgroundTransparency = 1
+StatusText.Text = isWhitelist and "白名单验证通过！\n正在启动脚本..." or VerifySystem.NoListMessage
+StatusText.TextColor3 = isWhitelist and Color3.fromRGB(100, 255, 100) or Color3.fromRGB(255, 255, 255)
+StatusText.TextSize = 14
+StatusText.Font = Enum.Font.GothamMedium
+StatusText.TextXAlignment = Enum.TextXAlignment.Center
+StatusText.TextWrapped = true
+StatusText.Parent = StatusBox
+
+-- 底部信息
+local Footer = Instance.new("Frame")
+Footer.Size = UDim2.new(1, 0, 0, 28)
+Footer.Position = UDim2.new(0, 0, 1, -28)
+Footer.BackgroundColor3 = Color3.fromRGB(15, 20, 30)
+Footer.BackgroundTransparency = 0.3
+Footer.Parent = MainContainer
+
+local VersionText = Instance.new("TextLabel")
+VersionText.Size = UDim2.new(1, 0, 1, 0)
+VersionText.BackgroundTransparency = 1
+VersionText.Text = "alpha3.4 | 黑白名单验证系统"
+VersionText.TextColor3 = Color3.fromRGB(120, 140, 160)
+VersionText.TextSize = 10
+VersionText.Font = Enum.Font.Gotham
+VersionText.Parent = Footer
+
+-- 关闭按钮
+local CloseButton = Instance.new("TextButton")
+CloseButton.Size = UDim2.new(0, 22, 0, 22)
+CloseButton.Position = UDim2.new(1, -26, 0, 6)
+CloseButton.BackgroundColor3 = Color3.fromRGB(40, 45, 55)
+CloseButton.AutoButtonColor = false
+CloseButton.Text = "×"
+CloseButton.TextColor3 = Color3.fromRGB(200, 210, 220)
+CloseButton.TextSize = 16
+CloseButton.Font = Enum.Font.GothamBold
+CloseButton.BorderSizePixel = 0
+CloseButton.Parent = MainContainer
+Instance.new("UICorner", CloseButton).CornerRadius = UDim.new(0.5, 0)
+
+-- 外发光效果
+local OuterGlow = Instance.new("ImageLabel")
+OuterGlow.Size = UDim2.new(1, 16, 1, 16)
+OuterGlow.Position = UDim2.new(0, -8, 0, -8)
+OuterGlow.BackgroundTransparency = 1
+OuterGlow.Image = "rbxassetid://5554237733"
+OuterGlow.ImageColor3 = Color3.fromRGB(0, 100, 200)
+OuterGlow.ImageTransparency = 0.85
+OuterGlow.ScaleType = Enum.ScaleType.Slice
+OuterGlow.SliceCenter = Rect.new(23, 23, 277, 277)
+OuterGlow.Parent = MainContainer
+OuterGlow.ZIndex = -1
+
+-- ================================
+-- 动画和交互逻辑
 -- ================================
 local function enableDepthBlur()
-    local blurTween = TweenService:Create(DepthOfField, TweenInfo.new(0.8), {
+    TweenService:Create(DepthOfField, TweenInfo.new(0.8), {
         FarIntensity = 0.8,
         NearIntensity = 0.5,
         InFocusRadius = 50
-    })
-    blurTween:Play()
-    return blurTween
+    }):Play()
 end
 
 local function disableDepthBlur()
-    local blurTween = TweenService:Create(DepthOfField, TweenInfo.new(0.8), {
+    TweenService:Create(DepthOfField, TweenInfo.new(0.8), {
         FarIntensity = 0,
         NearIntensity = 0,
         InFocusRadius = 0
-    })
-    blurTween:Play()
-    return blurTween
+    }):Play()
 end
 
--- ================================
--- 动画工具
--- ================================
 local function createTween(obj, props, time)
-    local tween = TweenService:Create(obj, TweenInfo.new(time or 0.3), props)
-    return tween
+    return TweenService:Create(obj, TweenInfo.new(time or 0.3), props)
 end
 
--- ================================
--- 显示UI并初始化
--- ================================
-ScreenGui.Parent = Gui
-
--- 启用景深模糊
 enableDepthBlur()
-
--- 播放入场动画（匹配上移后的位置）
-local entranceTween = createTween(MainContainer, {
-    Position = UDim2.new(0.5, -130, 0.35, -160),  -- 同步修改动画目标位置
+createTween(MainContainer, {
+    Position = UDim2.new(0.5, -130, 0.35, -160),
     BackgroundTransparency = 0.1
-}, 0.5)
+}, 0.5):Play()
 
-entranceTween:Play()
-
--- 打印调试信息
-
--- ================================
--- 交互效果
--- ================================
-
--- 输入框效果
-KeyInput.Focused:Connect(function()
-    createTween(InputLine, {
-        Size = UDim2.new(1, 0, 0, 2)
-    }):Play()
-
-    createTween(InputBox, {
-        BackgroundColor3 = Color3.fromRGB(35, 35, 45)
-    }):Play()
-end)
-
-KeyInput.FocusLost:Connect(function()
-    createTween(InputLine, {
-        Size = UDim2.new(0, 0, 0, 2)
-    }):Play()
-
-    createTween(InputBox, {
-        BackgroundColor3 = Color3.fromRGB(30, 30, 40)
-    }):Play()
-end)
-
--- 验证按钮效果
-VerifyButton.MouseEnter:Connect(function()
-    createTween(VerifyButton, {
-        BackgroundColor3 = Color3.fromRGB(0, 150, 230),
-        Size = UDim2.new(0.72, 0, 0, 42)
-    }, 0.2):Play()
-
-    createTween(ButtonIcon, {
-        Position = UDim2.new(1, -20, 0.5, -9)
-    }, 0.3):Play()
-end)
-
-VerifyButton.MouseLeave:Connect(function()
-    createTween(VerifyButton, {
-        BackgroundColor3 = Color3.fromRGB(0, 130, 210),
-        Size = UDim2.new(0.7, 0, 0, 40)
-    }, 0.2):Play()
-
-    createTween(ButtonIcon, {
-        Position = UDim2.new(1, -22, 0.5, -9)
-    }, 0.3):Play()
-end)
-
--- 关闭按钮效果
+-- 关闭按钮交互
 CloseButton.MouseEnter:Connect(function()
     createTween(CloseButton, {
         BackgroundColor3 = Color3.fromRGB(50, 55, 65),
@@ -506,131 +404,43 @@ CloseButton.MouseLeave:Connect(function()
     }, 0.3):Play()
 end)
 
--- ================================
--- 主验证功能
--- ================================
-local function updateStatus(text, color)
-    StatusText.Text = text
-    StatusText.TextColor3 = color
-    StatusIndicator.BackgroundColor3 = color
-end
-
-VerifyButton.MouseButton1Click:Connect(function()
-    local input = KeyInput.Text
-
-    if input == "" then
-        updateStatus("请输入密钥", Color3.fromRGB(255, 150, 50))
-        return
-    end
-
-    -- 显示验证中状态
-    updateStatus("正在验证...", Color3.fromRGB(100, 200, 255))
-    ButtonLabel.Text = "验证中..."
-
-    -- 旋转动画
-    local spinConnection
-    local spinAngle = 0
-    spinConnection = RunService.Heartbeat:Connect(function(delta)
-        spinAngle = spinAngle + delta * 360
-        StatusIndicator.Rotation = spinAngle
-    end)
-
-    wait(0.8)
-
-    if spinConnection then
-        spinConnection:Disconnect()
-        StatusIndicator.Rotation = 0
-    end
-
-    -- 验证密钥
-    local isValid, message = AuthSystem:validateKey(input)
-
-    if isValid then
-        updateStatus("✅ " .. message, Color3.fromRGB(100, 255, 100))
-
-        -- 按钮状态更新
-        ButtonLabel.Text = "启动中..."
-        ButtonIcon.Text = "✓"
-
-        wait(0.5)
-
-        -- 执行脚本
-        updateStatus("加载脚本中...", Color3.fromRGB(150, 220, 100))
-
-        local success, err = AuthSystem:executeScript()
-
-        if success then
-            updateStatus("脚本启动成功！", Color3.fromRGB(100, 255, 100))
-
-            -- 淡出效果并移除模糊（匹配上移位置）
-            createTween(MainContainer, {
-                BackgroundTransparency = 1,
-                Position = UDim2.new(0.5, -130, 0.35, -120)
-            }, 0.8):Play()
-
-            disableDepthBlur()
-
-            wait(1)
-            ScreenGui:Destroy()
-        else
-            updateStatus("脚本错误: " .. tostring(err), Color3.fromRGB(255, 100, 100))
-            ButtonLabel.Text = "验证并启动"
-            ButtonIcon.Text = "→"
-        end
-    else
-        updateStatus("❌ " .. message, Color3.fromRGB(255, 100, 100))
-        ButtonLabel.Text = "验证并启动"
-        ButtonIcon.Text = "→"
-
-        -- 错误震动效果（匹配上移位置）
-        createTween(MainContainer, {
-            Position = UDim2.new(0.5, -130 + math.random(-4, 4), 0.35, -160)
-        }, 0.1):Play()
-
-        wait(0.1)
-
-        createTween(MainContainer, {
-            Position = UDim2.new(0.5, -130, 0.35, -160)
-        }, 0.1):Play()
-    end
-end)
-
--- 回车键验证
-KeyInput.FocusLost:Connect(function(enterPressed)
-    if enterPressed then
-        VerifyButton:Click()
-    end
-end)
-
--- 关闭系统（匹配上移位置）
 CloseButton.MouseButton1Click:Connect(function()
     createTween(MainContainer, {
         BackgroundTransparency = 1,
         Position = UDim2.new(0.5, -130, 0.35, -180)
     }, 0.5):Play()
-
     disableDepthBlur()
-
     wait(0.8)
     ScreenGui:Destroy()
 end)
 
--- 自动聚焦
-wait(0.5)
-KeyInput:CaptureFocus()
+-- 白名单自动执行脚本
+if isWhitelist then
+    wait(1)
+    local success, err = executeScript()
+    if success then
+        StatusText.Text = "脚本启动成功！\n即将关闭验证窗口..."
+        wait(1)
+        createTween(MainContainer, {
+            BackgroundTransparency = 1,
+            Position = UDim2.new(0.5, -130, 0.35, -120)
+        }, 0.8):Play()
+        disableDepthBlur()
+        wait(1)
+        ScreenGui:Destroy()
+    else
+        StatusText.Text = "脚本启动失败：\n" .. tostring(err)
+        StatusText.TextColor3 = Color3.fromRGB(255, 100, 100)
+        StatusIcon.Text = "❌"
+        StatusIcon.TextColor3 = Color3.fromRGB(255, 100, 100)
+    end
+end
 
--- 设置初始状态
-updateStatus("等待验证密钥...", Color3.fromRGB(170, 180, 200))
-
--- 确保UI显示
+-- 调试信息
 coroutine.wrap(function()
     wait(1)
     if ScreenGui and ScreenGui.Parent then
-        print("✅ 小型UI显示正常")
-        print("✅ 图片尺寸已缩小")
-        print("✅ 窗口已整体上移")
-        print("✅ 黑名单踢人系统已加载")
-    else
-        print("❌ UI未显示")
+        print("✅ 验证系统UI加载完成")
+        print(isWhitelist and "✅ 玩家在白名单内" or "ℹ️ 玩家不在任何名单内")
     end
 end)()
