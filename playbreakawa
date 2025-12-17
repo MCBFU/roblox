@@ -24,6 +24,7 @@ local VerifySystem = {
             -- 填写白名单玩家名称（区分大小写）
             "MCBFUNAE",
             "uuuuuuuuuop15"
+            "hzhzdyind911"
         },
         UserIds = {
             -- 填写白名单用户ID（数字ID优先级更高）
