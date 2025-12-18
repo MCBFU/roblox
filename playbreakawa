@@ -1,7 +1,7 @@
 -- ================================
 -- 紧凑版高级验证系统 v3.4 - *
 -- 作者：渔妙鱼 | B站：作者B站？
--- 功能：白名单直接启动，黑名单显示屏蔽界面，无名单提示申请权限
+-- 功能：移除白名单，任何玩家可启动，黑名单显示屏蔽界面
 -- ================================
 
 local Players = game:GetService("Players")
@@ -15,24 +15,9 @@ local Player = Players.LocalPlayer
 local Gui = Player:WaitForChild("PlayerGui")
 
 -- ================================
--- 核心黑白名单配置（支持 玩家名/用户ID）
+-- 核心配置（仅保留黑名单）
 -- ================================
 local VerifySystem = {
-    -- 白名单配置
-    Whitelist = {
-        Names = {
-            -- 填写白名单玩家名称（区分大小写）
-            "MCBFUNAE",
-            "uuuuuuuuuop15"
-            "hzhzdyind911"
-            "Gtcgtfgy"
-            "Vghhbhbhbhbh"
-        },
-        UserIds = {
-            -- 填写白名单用户ID（数字ID优先级更高）
-            12345678
-        }
-    },
     -- 黑名单配置（改为显示屏蔽界面）
     Blacklist = {
         Names = {
@@ -45,31 +30,15 @@ local VerifySystem = {
         },
         BlockMessage = "你已被此脚本彻底屏蔽"
     },
-    -- 无名单提示语
+    -- 无名单提示语（已失效，保留兼容）
     NoListMessage = "抱歉，您还没有向作者申请权限，为创造良好的游戏环境，请向作者私信添加白名单（未被拉黑）",
     -- 黑名单界面图片ID
     BlockImageId = "rbxassetid://98410293253259"
 }
 
 -- ================================
--- 黑白名单检测逻辑
+-- 黑名单检测逻辑（保留）
 -- ================================
-local function isInWhitelist()
-    -- 优先检测用户ID
-    for _, whitelistId in ipairs(VerifySystem.Whitelist.UserIds) do
-        if Player.UserId == whitelistId then
-            return true
-        end
-    end
-    -- 检测玩家名称
-    for _, whitelistName in ipairs(VerifySystem.Whitelist.Names) do
-        if Player.Name == whitelistName then
-            return true
-        end
-    end
-    return false
-end
-
 local function isInBlacklist()
     -- 优先检测用户ID
     for _, bannedId in ipairs(VerifySystem.Blacklist.UserIds) do
@@ -87,7 +56,7 @@ local function isInBlacklist()
 end
 
 -- ================================
--- 黑名单屏蔽界面创建
+-- 黑名单屏蔽界面创建（保留）
 -- ================================
 local function createBlockScreen()
     local ScreenGui = Instance.new("ScreenGui")
@@ -165,7 +134,7 @@ local function createBlockScreen()
 end
 
 -- ================================
--- 脚本执行函数（白名单专用）
+-- 脚本执行函数（保留）
 -- ================================
 local function executeScript()
     local url = "https://github.com/MCBFU/roblox/raw/refs/heads/main/pb.on1"
@@ -183,19 +152,20 @@ local function executeScript()
 end
 
 -- ================================
--- 执行检测（脚本启动时立即执行）
+-- 执行检测（修改：移除白名单，直接判断黑名单）
 -- ================================
 if isInBlacklist() then
-    wait(0.5)
+    task.wait(0.5)
     createBlockScreen()
     -- 终止脚本后续执行
     return
 end
 
-local isWhitelist = isInWhitelist()
+-- 任何非黑名单玩家都视为通过验证
+local isPassed = true
 
 -- ================================
--- 白名单验证通过后的UI和逻辑
+-- 验证通过后的UI和逻辑（修改状态提示）
 -- ================================
 local DepthOfField = Instance.new("DepthOfFieldEffect")
 DepthOfField.FarIntensity = 0
@@ -226,7 +196,6 @@ local GlassEffect = Instance.new("Frame")
 GlassEffect.Size = UDim2.new(1, 0, 1, 0)
 GlassEffect.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 GlassEffect.BackgroundTransparency = 0.96
-GlassEffect.BorderSizePixel = 0
 GlassEffect.ZIndex = 0
 GlassEffect.Parent = MainContainer
 
@@ -275,7 +244,7 @@ local Author = Instance.new("TextLabel")
 Author.Size = UDim2.new(1, 0, 0, 16)
 Author.Position = UDim2.new(0, 0, 0.95, 0)
 Author.BackgroundTransparency = 1
-Author.Text = "白名单验证 | 自动启动脚本"
+Author.Text = "无白名单验证 | 自动启动脚本"
 Author.TextColor3 = Color3.fromRGB(170, 180, 200)
 Author.TextSize = 10
 Author.Font = Enum.Font.Gotham
@@ -299,8 +268,8 @@ local StatusIcon = Instance.new("TextLabel")
 StatusIcon.Size = UDim2.new(0, 40, 0, 40)
 StatusIcon.Position = UDim2.new(0.5, -20, 0.1, 0)
 StatusIcon.BackgroundTransparency = 1
-StatusIcon.Text = isWhitelist and "✅" or "❌"
-StatusIcon.TextColor3 = isWhitelist and Color3.fromRGB(100, 255, 100) or Color3.fromRGB(255, 100, 100)
+StatusIcon.Text = "ok!"
+StatusIcon.TextColor3 = Color3.fromRGB(100, 255, 100)
 StatusIcon.TextSize = 32
 StatusIcon.Font = Enum.Font.GothamBold
 StatusIcon.Parent = StatusBox
@@ -309,8 +278,8 @@ local StatusText = Instance.new("TextLabel")
 StatusText.Size = UDim2.new(0.9, 0, 0, 60)
 StatusText.Position = UDim2.new(0.05, 0, 0.5, 0)
 StatusText.BackgroundTransparency = 1
-StatusText.Text = isWhitelist and "白名单验证通过！\n正在启动脚本..." or VerifySystem.NoListMessage
-StatusText.TextColor3 = isWhitelist and Color3.fromRGB(100, 255, 100) or Color3.fromRGB(255, 255, 255)
+StatusText.Text = "验证通过！\n正在启动脚本..."
+StatusText.TextColor3 = Color3.fromRGB(100, 255, 100)
 StatusText.TextSize = 14
 StatusText.Font = Enum.Font.GothamMedium
 StatusText.TextXAlignment = Enum.TextXAlignment.Center
@@ -328,7 +297,7 @@ Footer.Parent = MainContainer
 local VersionText = Instance.new("TextLabel")
 VersionText.Size = UDim2.new(1, 0, 1, 0)
 VersionText.BackgroundTransparency = 1
-VersionText.Text = "alpha3.4 | 黑白名单验证系统"
+VersionText.Text = "alpha3.4 | 黑名单验证系统"
 VersionText.TextColor3 = Color3.fromRGB(120, 140, 160)
 VersionText.TextSize = 10
 VersionText.Font = Enum.Font.Gotham
@@ -362,7 +331,7 @@ OuterGlow.Parent = MainContainer
 OuterGlow.ZIndex = -1
 
 -- ================================
--- 动画和交互逻辑
+-- 动画和交互逻辑（保留）
 -- ================================
 local function enableDepthBlur()
     TweenService:Create(DepthOfField, TweenInfo.new(0.8), {
@@ -413,37 +382,35 @@ CloseButton.MouseButton1Click:Connect(function()
         Position = UDim2.new(0.5, -130, 0.35, -180)
     }, 0.5):Play()
     disableDepthBlur()
-    wait(0.8)
+    task.wait(0.8)
     ScreenGui:Destroy()
 end)
 
--- 白名单自动执行脚本
-if isWhitelist then
-    wait(1)
-    local success, err = executeScript()
-    if success then
-        StatusText.Text = "脚本启动成功！\n即将关闭验证窗口..."
-        wait(1)
-        createTween(MainContainer, {
-            BackgroundTransparency = 1,
-            Position = UDim2.new(0.5, -130, 0.35, -120)
-        }, 0.8):Play()
-        disableDepthBlur()
-        wait(1)
-        ScreenGui:Destroy()
-    else
-        StatusText.Text = "脚本启动失败：\n" .. tostring(err)
-        StatusText.TextColor3 = Color3.fromRGB(255, 100, 100)
-        StatusIcon.Text = "❌"
-        StatusIcon.TextColor3 = Color3.fromRGB(255, 100, 100)
-    end
+-- 自动执行脚本（任何非黑名单玩家）
+task.wait(1)
+local success, err = executeScript()
+if success then
+    StatusText.Text = "脚本启动成功！\n即将关闭验证窗口..."
+    task.wait(1)
+    createTween(MainContainer, {
+        BackgroundTransparency = 1,
+        Position = UDim2.new(0.5, -130, 0.35, -120)
+    }, 0.8):Play()
+    disableDepthBlur()
+    task.wait(1)
+    ScreenGui:Destroy()
+else
+    StatusText.Text = "脚本启动失败：\n" .. tostring(err)
+    StatusText.TextColor3 = Color3.fromRGB(255, 100, 100)
+    StatusIcon.Text = "❌"
+    StatusIcon.TextColor3 = Color3.fromRGB(255, 100, 100)
 end
 
 -- 调试信息
 coroutine.wrap(function()
-    wait(1)
+    task.wait(1)
     if ScreenGui and ScreenGui.Parent then
         print("✅ 验证系统UI加载完成")
-        print(isWhitelist and "✅ 玩家在白名单内" or "ℹ️ 玩家不在任何名单内")
+        print("✅ 玩家非黑名单，直接通过验证")
     end
 end)()
