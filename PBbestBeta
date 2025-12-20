@@ -418,6 +418,24 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
     end
 end)
 
+-- ========== 新增：自杀选项 ==========
+VisualsWin:CreateModule("自杀", function()
+    local character = player.Character
+    if not character then 
+        Library:Notify("❌ 角色未加载", false)
+        return 
+    end
+
+    local humanoid = character:FindFirstChild("Humanoid")
+    if not humanoid then 
+        Library:Notify("❌ 未找到人形对象", false)
+        return 
+    end
+
+    -- 直接设置血量为0
+    humanoid.Health = 0
+    Library:Notify("✅ 血量已归零", true)
+end)
 -- ========== 12. 初始化 ==========
 -- 播放Expert加载音效
 task.wait(0.5)
