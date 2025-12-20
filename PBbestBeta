@@ -1,10 +1,10 @@
--- 强制优先加载YC GUI（必写在最顶部）
+-- 强制优先加载playbreak（必写在最顶部）
 local success, Library = pcall(function()
     return loadstring(game:HttpGet("https://gitee.com/cmbhbh/ycgui/raw/master/YCmain.lua"))()
 end)
 
 if not success then
-    warn("YC GUI加载失败！请更换有效链接，推荐备用链接：https://raw.githubusercontent.com/zzerexx/scripts/main/yc.lua")
+    warn("playbreak加载失败！请更换有效链接，推荐备用链接：https://raw.githubusercontent.com/zzerexx/scripts/main/yc.lua")
     return
 end
 
@@ -441,8 +441,41 @@ end)
 task.wait(0.5)
 playExpertSound()
 
--- 设置YC GUI
+-- 设置playbreak
 Library:SetupSettings()
 
 -- 显示加载完成通知
 Library:Notify("✅ Monster & Expert全功能合集加载完成！", true)
+-- 完整搜索所有GUI
+local translation = {
+    ["By BeiHai"] = "BY | 渔炒鱼",
+    ["YC GUI"] = "playbreak",
+}
+
+-- 检查三个地方
+local places = {
+    game.Players.LocalPlayer:WaitForChild("PlayerGui"),
+    game:GetService("CoreGui"),
+    game:GetService("StarterGui")
+}
+
+for _, gui in pairs(places) do
+    for _, obj in pairs(gui:GetDescendants()) do
+        if obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox") then
+            local text = obj.Text
+            if text then
+                for eng, chi in pairs(translation) do
+                    if text == eng then
+                        obj.Text = chi
+                        break
+                    elseif text:find(eng, 1, true) then
+                        obj.Text = text:gsub(eng, chi)
+                        break
+                    end
+                end
+            end
+        end
+    end
+end
+
+print("修复完成")
