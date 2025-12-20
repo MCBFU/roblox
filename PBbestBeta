@@ -36,7 +36,7 @@ local Settings = {
     auraDistance = 300,      -- 攻击距离
     attackInterval = 0.1,    -- 攻击间隔
     teleportHeight = 0,      -- 传送高度补偿
-    pipeSpeed = 0.1          -- 管道传送速度
+    pipeSpeed = 0.1          -- 每次传送间隔
 }
 
 -- 致命管道坐标
@@ -356,14 +356,14 @@ player.CharacterAdded:Connect(function(character)
 end)
 
 -- ========== 9. 创建Monster窗口功能模块 ==========
--- 只保留攻击距离滑块和管道传送速度滑块
-local Aura = CombatWin:CreateModule("杀戮光环开关", toggleAura)
+-- 只保留攻击距离滑块和每次传送间隔滑块
+local Aura = CombatWin:CreateModule("杀戮光环", toggleAura)
 Aura:CreateSlider("攻击距离", 1, 500, 300, function(val)
     Settings.auraDistance = val
 end)
 
 local Pipe = CombatWin:CreateModule("致命管道", performAutoPipeTeleport)
-Pipe:CreateSlider("管道传送速度", 0.01, 1.0, 0.1, function(val)
+Pipe:CreateSlider("每次传送间隔", 0.01, 1.0, 0.1, function(val)
     Settings.pipeSpeed = val
 end)
 
@@ -400,7 +400,7 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
         if input.KeyCode == Enum.KeyCode.RightControl then
             isAuraActive = not isAuraActive
             toggleAura(isAuraActive)
-        
+
         -- Expert功能快捷键
         elseif input.KeyCode == Enum.KeyCode.B then
             performExpertTeleport(expertLocations.backroom, "等候厅")
