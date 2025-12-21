@@ -1,0 +1,533 @@
+print("对了，这是一个小动画😶")
+print("话说，你怎么来看控制台了？🤔")
+print("好吧，恭喜你发现了我这段话🤗")
+print("但是，为什么我前面两个字要加逗号？🧐")
+print("渔炒鱼")
+-- ============================================
+-- 运动中交互式图片动画 v4.0
+-- 全程可交互 + 可关闭
+-- ============================================
+
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+local SoundService = game:GetService("SoundService")
+local UserInputService = game:GetService("UserInputService")
+local Lighting = game:GetService("Lighting")
+
+local Player = Players.LocalPlayer
+local PlayerGui = Player:WaitForChild("PlayerGui")
+local Camera = workspace.CurrentCamera
+
+-- ========== 全局控制变量 ==========
+local IsAnimationPlaying = true
+local CanInteract = false  -- 交互开关
+
+-- ========== 创建展示界面 ==========
+local ShowcaseScreen = Instance.new("ScreenGui")
+ShowcaseScreen.Name = "MovingInteractiveImage"
+ShowcaseScreen.ResetOnSpawn = false
+ShowcaseScreen.ZIndexBehavior = Enum.ZIndexBehavior.Global
+ShowcaseScreen.IgnoreGuiInset = true
+ShowcaseScreen.Parent = PlayerGui
+
+-- 关闭按钮（始终可见）
+local CloseButton = Instance.new("TextButton")
+CloseButton.Name = "CloseButton"
+CloseButton.Text = "✕"
+CloseButton.TextColor3 = Color3.new(1, 1, 1)
+CloseButton.TextSize = 20
+CloseButton.Font = Enum.Font.SourceSansBold
+CloseButton.BackgroundColor3 = Color3.new(0.9, 0.2, 0.2)
+CloseButton.BackgroundTransparency = 0.3
+CloseButton.Size = UDim2.new(0, 40, 0, 40)
+CloseButton.Position = UDim2.new(1, -50, 0, 10)
+CloseButton.ZIndex = 100
+CloseButton.Parent = ShowcaseScreen
+
+-- 圆角
+local closeCorner = Instance.new("UICorner")
+closeCorner.CornerRadius = UDim.new(0, 8)
+closeCorner.Parent = CloseButton
+
+-- 按钮悬停效果
+CloseButton.MouseEnter:Connect(function()
+    TweenService:Create(CloseButton, TweenInfo.new(0.2), {
+        BackgroundTransparency = 0,
+        Size = UDim2.new(0, 45, 0, 45)
+    }):Play()
+end)
+
+CloseButton.MouseLeave:Connect(function()
+    TweenService:Create(CloseButton, TweenInfo.new(0.2), {
+        BackgroundTransparency = 0.3,
+        Size = UDim2.new(0, 40, 0, 40)
+    }):Play()
+end)
+
+-- 关闭功能
+CloseButton.MouseButton1Click:Connect(function()
+    IsAnimationPlaying = false
+    CanInteract = false
+    
+    -- 播放关闭音效
+    local closeSound = Instance.new("Sound")
+    closeSound.SoundId = "rbxassetid://138080526"
+    closeSound.Volume = 0.3
+    closeSound.Parent = SoundService
+    closeSound:Play()
+    closeSound.Ended:Connect(function() closeSound:Destroy() end)
+    
+    -- 快速关闭动画
+    TweenService:Create(CloseButton, TweenInfo.new(0.1), {
+        BackgroundColor3 = Color3.new(0.7, 0.1, 0.1),
+        Size = UDim2.new(0, 35, 0, 35)
+    }):Play()
+    
+    task.wait(0.1)
+    
+    TweenService:Create(CloseButton, TweenInfo.new(0.1), {
+        BackgroundColor3 = Color3.new(0.9, 0.2, 0.2),
+        Size = UDim2.new(0, 40, 0, 40)
+    }):Play()
+    
+    task.wait(0.1)
+    ShowcaseScreen:Destroy()
+    
+    -- 清理模糊效果
+    local blur = Lighting:FindFirstChild("ScreenBlur")
+    if blur then blur:Destroy() end
+end)
+
+-- 创建背景模糊效果
+local function createBlurEffect()
+    local blur = Instance.new("BlurEffect")
+    blur.Name = "ScreenBlur"
+    blur.Size = 0
+    blur.Parent = Lighting
+    return blur
+end
+
+-- 深色渐变背景
+local Background = Instance.new("Frame")
+Background.Name = "Background"
+Background.BackgroundColor3 = Color3.new(0.03, 0.03, 0.05)
+Background.BackgroundTransparency = 1
+Background.Size = UDim2.new(1, 0, 1, 0)
+Background.Parent = ShowcaseScreen
+
+local bgGradient = Instance.new("UIGradient")
+bgGradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, Color3.new(0.02, 0.02, 0.03)),
+    ColorSequenceKeypoint.new(1, Color3.new(0.04, 0.04, 0.07))
+})
+bgGradient.Rotation = 135
+bgGradient.Parent = Background
+
+-- 主图片容器
+local ImageContainer = Instance.new("Frame")
+ImageContainer.Name = "ImageContainer"
+ImageContainer.BackgroundTransparency = 1
+ImageContainer.Size = UDim2.new(1, 0, 1, 0)
+ImageContainer.Parent = ShowcaseScreen
+
+-- ========== 创建运动中的可交互图片 ==========
+local ImageLayers = {}
+local LayerCount = 3  -- 更少层数，更清晰
+local MovementConnections = {}  -- 运动连接存储
+
+for i = 1, LayerCount do
+    local layer = Instance.new("ImageButton")
+    layer.Name = "MovingImage_" .. i
+    layer.Image = "rbxassetid://111333374680640"
+    layer.BackgroundTransparency = 1
+    layer.AnchorPoint = Vector2.new(0.5, 0.5)
+    layer.Position = UDim2.new(0.5, 0, 1.5, 0)
+    layer.Size = UDim2.new(0, 30, 0, 30)
+    layer.ImageTransparency = 1
+    layer.ZIndex = i * 10  -- 更高层级
+    layer.AutoButtonColor = false
+    layer.Active = true
+    layer.Selectable = true
+    layer.Parent = ImageContainer
+    
+    -- 初始颜色
+    local hue = 0.7 + (i-1) * 0.08
+    layer.ImageColor3 = Color3.fromHSV(hue, 0.12, 1)
+    
+    -- 点击边框
+    local clickBorder = Instance.new("UIStroke")
+    clickBorder.Name = "ClickBorder"
+    clickBorder.Color = Color3.fromHSV(hue, 0.25, 0.9)
+    clickBorder.Thickness = 0
+    clickBorder.Transparency = 1
+    clickBorder.Parent = layer
+    
+    -- 悬停效果
+    layer.MouseEnter:Connect(function()
+        if CanInteract then
+            TweenService:Create(clickBorder, TweenInfo.new(0.25), {
+                Thickness = 2.5,
+                Transparency = 0.4
+            }):Play()
+        end
+    end)
+    
+    layer.MouseLeave:Connect(function()
+        if CanInteract then
+            TweenService:Create(clickBorder, TweenInfo.new(0.25), {
+                Thickness = 0,
+                Transparency = 1
+            }):Play()
+        end
+    end)
+    
+    ImageLayers[i] = layer
+    MovementConnections[i] = nil
+end
+
+-- 主图片
+local MainImage = ImageLayers[1]
+MainImage.ImageColor3 = Color3.new(1, 1, 1)
+
+-- ========== 运动中的交互响应 ==========
+local function handleMovingClick(layerIndex)
+    if not CanInteract or not IsAnimationPlaying then return end
+    
+    local layer = ImageLayers[layerIndex]
+    if not layer then return end
+    
+    -- 点击音效
+    local clickSound = Instance.new("Sound")
+    clickSound.SoundId = "rbxassetid://278549903"
+    clickSound.Volume = 0.18
+    clickSound.Parent = SoundService
+    clickSound:Play()
+    clickSound.Ended:Connect(function() clickSound:Destroy() end)
+    
+    -- 脉冲动画（不影响运动）
+    local originalSize = layer.Size
+    local pulseAnim = {
+        TweenService:Create(layer, TweenInfo.new(0.08), {
+            Size = UDim2.new(0, originalSize.X.Offset * 0.85, 0, originalSize.Y.Offset * 0.85)
+        }),
+        TweenService:Create(layer, TweenInfo.new(0.22, Enum.EasingStyle.Elastic, Enum.EasingDirection.Out), {
+            Size = originalSize
+        })
+    }
+    
+    pulseAnim[1]:Play()
+    pulseAnim[1].Completed:Wait()
+    pulseAnim[2]:Play()
+    
+    -- 点击光晕
+    local clickGlow = Instance.new("Frame")
+    clickGlow.Name = "ClickGlow"
+    clickGlow.BackgroundColor3 = layer.ImageColor3
+    clickGlow.BackgroundTransparency = 0.75
+    clickGlow.Size = UDim2.new(0, 15, 0, 15)
+    clickGlow.AnchorPoint = Vector2.new(0.5, 0.5)
+    clickGlow.Position = layer.Position
+    clickGlow.ZIndex = layer.ZIndex - 5
+    clickGlow.Parent = ImageContainer
+    
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(1, 0)
+    corner.Parent = clickGlow
+    
+    -- 光晕扩散
+    TweenService:Create(clickGlow, TweenInfo.new(0.6), {
+        Size = UDim2.new(0, 120, 0, 120),
+        BackgroundTransparency = 1
+    }):Play()
+    
+    task.wait(0.6)
+    clickGlow:Destroy()
+    
+    -- 颜色微调
+    local currentColor = layer.ImageColor3
+    local h, s, v = currentColor:ToHSV()
+    local newHue = (h + 0.05) % 1
+    
+    TweenService:Create(layer, TweenInfo.new(0.4), {
+        ImageColor3 = Color3.fromHSV(newHue, math.min(s + 0.03, 0.2), v)
+    }):Play()
+end
+
+-- 绑定点击事件
+for i, layer in ipairs(ImageLayers) do
+    layer.MouseButton1Click:Connect(function()
+        handleMovingClick(i)
+    end)
+end
+
+-- ========== 创建运动轨迹效果 ==========
+local function createMotionTrails()
+    local trailsContainer = Instance.new("Frame")
+    trailsContainer.Name = "MotionTrails"
+    trailsContainer.BackgroundTransparency = 1
+    trailsContainer.Size = UDim2.new(1, 0, 1, 0)
+    trailsContainer.ZIndex = -10
+    trailsContainer.Parent = ImageContainer
+    
+    return trailsContainer
+end
+
+-- ========== 运动系统 ==========
+local function startLayerMovement(layerIndex, delayTime)
+    if not IsAnimationPlaying then return nil end
+    
+    local layer = ImageLayers[layerIndex]
+    if not layer then return nil end
+    
+    local trailContainer = ImageContainer:FindFirstChild("MotionTrails")
+    if not trailContainer then return nil end
+    
+    -- 创建轨迹点
+    local lastPositions = {}
+    local maxTrailLength = 8
+    
+    -- 运动循环
+    local movementThread = task.spawn(function()
+        task.wait(delayTime)
+        
+        while IsAnimationPlaying do
+            -- 生成随机运动目标（在屏幕范围内）
+            local targetX = 0.3 + math.random() * 0.4  -- 屏幕中间70%区域
+            local targetY = 0.3 + math.random() * 0.4
+            local targetRotation = math.random(-30, 30)
+            local moveTime = 2.5 + math.random() * 1.5  -- 运动时间
+            
+            -- 如果允许交互，运动更平滑
+            if CanInteract then
+                moveTime = moveTime * 1.2
+            end
+            
+            -- 运动动画
+            local movementTween = TweenService:Create(layer, TweenInfo.new(
+                moveTime,
+                Enum.EasingStyle.Sine,
+                Enum.EasingDirection.InOut
+            ), {
+                Position = UDim2.new(targetX, 0, targetY, 0),
+                Rotation = targetRotation
+            })
+            
+            -- 创建轨迹点
+            if CanInteract and IsAnimationPlaying then
+                local trailDot = Instance.new("Frame")
+                trailDot.Name = "TrailDot_" .. tick()
+                trailDot.BackgroundColor3 = layer.ImageColor3
+                trailDot.BackgroundTransparency = 0.85
+                trailDot.Size = UDim2.new(0, 8, 0, 8)
+                trailDot.AnchorPoint = Vector2.new(0.5, 0.5)
+                trailDot.Position = layer.Position
+                trailDot.ZIndex = layer.ZIndex - 1
+                trailDot.Parent = trailContainer
+                
+                local corner = Instance.new("UICorner")
+                corner.CornerRadius = UDim.new(1, 0)
+                corner.Parent = trailDot
+                
+                -- 轨迹点淡出
+                TweenService:Create(trailDot, TweenInfo.new(1.5), {
+                    BackgroundTransparency = 1,
+                    Size = UDim2.new(0, 2, 0, 2)
+                }):Play()
+                
+                -- 记录位置
+                table.insert(lastPositions, {
+                    dot = trailDot,
+                    time = tick()
+                })
+                
+                -- 清理旧轨迹
+                while #lastPositions > maxTrailLength do
+                    local oldTrail = table.remove(lastPositions, 1)
+                    if oldTrail.dot then
+                        oldTrail.dot:Destroy()
+                    end
+                end
+                
+                -- 自动清理轨迹点
+                task.delay(2, function()
+                    if trailDot and trailDot.Parent then
+                        trailDot:Destroy()
+                    end
+                end)
+            end
+            
+            -- 等待运动完成或中断
+            movementTween:Play()
+            local startTime = tick()
+            while tick() - startTime < moveTime and IsAnimationPlaying do
+                task.wait(0.1)
+            end
+            
+            if not IsAnimationPlaying then break end
+            
+            -- 短暂暂停
+            local pauseTime = 0.8 + math.random() * 0.4
+            task.wait(pauseTime)
+        end
+    end)
+    
+    return movementThread
+end
+
+-- ========== 主动画序列 ==========
+local function playMovingInteractiveAnimation()
+    -- 创建效果
+    local screenBlur = createBlurEffect()
+    local trailsContainer = createMotionTrails()
+    
+    -- 背景和模糊淡入
+    local bgFade = TweenService:Create(Background, TweenInfo.new(2.5), {
+        BackgroundTransparency = 0.88
+    })
+    bgFade:Play()
+    
+    local blurFade = TweenService:Create(screenBlur, TweenInfo.new(2), {
+        Size = 10
+    })
+    blurFade:Play()
+    
+    -- 图片升起入场
+    for i, layer in ipairs(ImageLayers) do
+        local riseTime = 1.8
+        local delay = (i-1) * 0.3
+        
+        task.wait(delay)
+        
+        TweenService:Create(layer, TweenInfo.new(riseTime, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+            Position = UDim2.new(0.5, math.sin(i) * 100, 0.5, 0),
+            Size = UDim2.new(0, 180 + i*20, 0, 180 + i*20),
+            ImageTransparency = 0.1
+        }):Play()
+    end
+    
+    task.wait(3.0)
+    
+    -- 启用交互
+    CanInteract = true
+    
+    -- 显示交互提示
+    local hintLabel = Instance.new("TextLabel")
+    hintLabel.Name = "HintLabel"
+    hintLabel.Text = "🖱️ 点击图片互动 | ✕ 关闭"
+    hintLabel.TextColor3 = Color3.new(0.9, 0.9, 0.9)
+    hintLabel.TextSize = 14
+    hintLabel.Font = Enum.Font.SourceSansSemibold
+    hintLabel.BackgroundColor3 = Color3.new(0.1, 0.1, 0.15)
+    hintLabel.BackgroundTransparency = 0.7
+    hintLabel.Size = UDim2.new(0, 200, 0, 30)
+    hintLabel.Position = UDim2.new(0.5, -100, 1, -50)
+    hintLabel.AnchorPoint = Vector2.new(0.5, 0)
+    hintLabel.ZIndex = 90
+    hintLabel.Parent = ShowcaseScreen
+    
+    local hintCorner = Instance.new("UICorner")
+    hintCorner.CornerRadius = UDim.new(0, 6)
+    hintCorner.Parent = hintLabel
+    
+    -- 提示淡入
+    TweenService:Create(hintLabel, TweenInfo.new(0.8), {
+        BackgroundTransparency = 0.3,
+        Position = UDim2.new(0.5, -100, 1, -40)
+    }):Play()
+    
+    -- 开始运动系统
+    for i, layer in ipairs(ImageLayers) do
+        MovementConnections[i] = startLayerMovement(i, i * 0.5)
+    end
+    
+    -- 保持运动15秒
+    local startTime = tick()
+    while tick() - startTime < 15 and IsAnimationPlaying do
+        task.wait(0.5)
+    end
+    
+    if not IsAnimationPlaying then return end
+    
+    -- 关闭交互
+    CanInteract = false
+    
+    -- 移除提示
+    TweenService:Create(hintLabel, TweenInfo.new(0.8), {
+        BackgroundTransparency = 1,
+        Position = UDim2.new(0.5, -100, 1, -30)
+    }):Play()
+    
+    task.wait(0.8)
+    hintLabel:Destroy()
+    
+    -- 停止运动
+    for i = 1, LayerCount do
+        if MovementConnections[i] then
+            task.cancel(MovementConnections[i])
+            MovementConnections[i] = nil
+        end
+    end
+    
+    -- 清理轨迹
+    trailsContainer:Destroy()
+    
+    -- 图片聚集到中心
+    for i, layer in ipairs(ImageLayers) do
+        TweenService:Create(layer, TweenInfo.new(1.5), {
+            Position = UDim2.new(0.5, 0, 0.5, 0),
+            Size = UDim2.new(0, 140, 0, 140),
+            Rotation = 0
+        }):Play()
+    end
+    
+    task.wait(1.5)
+    
+    -- 背景模糊减少
+    TweenService:Create(screenBlur, TweenInfo.new(1.5), {
+        Size = 4
+    }):Play()
+    
+    -- 背景淡出
+    TweenService:Create(Background, TweenInfo.new(1.5), {
+        BackgroundTransparency = 1
+    }):Play()
+    
+    -- 图片旋转上升消失
+    for i, layer in ipairs(ImageLayers) do
+        TweenService:Create(layer, TweenInfo.new(2, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
+            Position = UDim2.new(0.5, 0, -0.2, 0),
+            Size = UDim2.new(0, 60, 0, 60),
+            ImageTransparency = 1,
+            Rotation = layer.Rotation + 180
+        }):Play()
+    end
+    
+    task.wait(2.0)
+    
+    -- 完全移除模糊
+    TweenService:Create(screenBlur, TweenInfo.new(0.8), {
+        Size = 0
+    }):Play()
+    
+    task.wait(0.8)
+    screenBlur:Destroy()
+    
+    -- 最终清理
+    task.wait(0.5)
+    ShowcaseScreen:Destroy()
+end
+
+-- ========== 启动动画 ==========
+task.wait(0.5)
+playMovingInteractiveAnimation()
+
+-- 重新播放按键
+UserInputService.InputBegan:Connect(function(input)
+    if input.KeyCode == Enum.KeyCode.R then
+        if ShowcaseScreen and ShowcaseScreen.Parent then
+            ShowcaseScreen:Destroy()
+        end
+        loadstring(script.Source)()
+    end
+end)
