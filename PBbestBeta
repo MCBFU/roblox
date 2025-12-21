@@ -86,7 +86,7 @@ local function performExpertTeleport(location, locationName)
 
     local teleportPos = Vector3.new(location.X, location.Y, location.Z)
     humanoidRootPart.CFrame = CFrame.new(teleportPos)
-    createExpertNotification("已传送到"..locationName, Color3.fromRGB(50, 200, 50))
+    
     return true
 end
 
@@ -263,7 +263,7 @@ local function performAutoPipeTeleport()
         return
     end
 
-    Library:Notify("✅ 开始致命管道传送", true)
+
     local originalCFrame = root.CFrame
 
     task.spawn(function()
@@ -275,7 +275,7 @@ local function performAutoPipeTeleport()
         end
         local r = getRootPart()
         if r then r.CFrame = originalCFrame end
-        Library:Notify("✅ 管道传送完成，已返回原点", true)
+        
         pipeInProgress = false
     end)
 end
@@ -381,7 +381,7 @@ end)
 local NinjaModule = VisualsWin:CreateModule("仙人模式", function(state)
     if state then
         if startNinjaMode() then
-            Library:Notify("✅ 仙人模式已开启", true)
+            
         end
     else
         print("看什么看,没见过输出啊😡")
@@ -430,7 +430,7 @@ VisualsWin:CreateModule("自杀", function()
 
     -- 直接设置血量为0
     humanoid.Health = 0
-    Library:Notify("✅ 血量已归零", true)
+    
 end)
 
 -- ========== 12. 初始化 ==========
