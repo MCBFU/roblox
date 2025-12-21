@@ -66,24 +66,27 @@ local function playSound()
     sound.Ended:Connect(function() sound:Destroy() end)
 end
 
+-- 缺失的通知函数
+local function createExpertNotification(text, color)
+    Library:Notify(text, true)
+end
 
-
--- Expert传送函数
+-- Expert传送函数（去重+修复）
 local function performExpertTeleport(location, locationName)
     local character = player.Character
     if not character then 
-        -- 这里不再显示悬浮窗
         return false 
     end
 
     local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
     if not humanoidRootPart then 
-        -- 这里不再显示悬浮窗
+        createExpertNotification("根部件不存在", Color3.fromRGB(200, 50, 50))
         return false 
     end
 
     local teleportPos = Vector3.new(location.X, location.Y, location.Z)
     humanoidRootPart.CFrame = CFrame.new(teleportPos)
+    createExpertNotification("已传送到"..locationName, Color3.fromRGB(50, 200, 50))
     return true
 end
 
@@ -145,6 +148,7 @@ local function startNinjaMode()
     end)
 
     enableNoclip()
+    return true
 end
 
 local function stopNinjaMode()
@@ -164,7 +168,7 @@ local function stopNinjaMode()
 
     -- 最后恢复属性（防止抽搐）
     task.wait(0.05)
-    
+
     local character = player.Character
     if character then
         local humanoid = character:FindFirstChild("Humanoid")
@@ -190,8 +194,6 @@ player.CharacterAdded:Connect(function(character)
     end
 end)
 
-
-
 -- Expert坐标定义
 local expertLocations = {
     backroom = {X = 163.15, Y = 9, Z = 955.4},
@@ -199,28 +201,8 @@ local expertLocations = {
     sewer = {X = 356, Y = 528, Z = -179}
 }
 
--- Expert传送函数
-local function performExpertTeleport(location, locationName)
-    local character = player.Character
-    if not character then 
-        createExpertNotification("角色未加载", Color3.fromRGB(200, 50, 50))
-        return false 
-    end
-
-    local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
-    if not humanoidRootPart then 
-        createExpertNotification("根部件不存在", Color3.fromRGB(200, 50, 50))
-        return false 
-    end
-
-    local teleportPos = Vector3.new(location.X, location.Y, location.Z)
-    humanoidRootPart.CFrame = CFrame.new(teleportPos)
-    createExpertNotification("已传送到"..locationName, Color3.fromRGB(50, 200, 50))
-    return true
-end
-
 -- ========== 6. Monster窗口功能 ==========
--- 6.1 杀戮光环（保持原有逻辑）
+-- 6.1 杀戮光环（保持原有逻辑+修复断开连接）
 local function auraMainLoop()
     local root = getRootPart()
     if not root or not isAuraActive then return end
@@ -256,10 +238,13 @@ local function toggleAura(state)
     if state then
         renderConnection = RunService.RenderStepped:Connect(auraMainLoop)
         playSound()
-        Library:Notify("✅ 杀戮光环已开启 | 距离："..Settings.auraDistance, true)
+        
     else
-        if renderConnection then renderConnection:Disconnect() end
-        Library:Notify("❌ 杀戮光环已关闭", false)
+        if renderConnection then 
+            renderConnection:Disconnect()
+            renderConnection = nil
+        end
+        
     end
 end
 
@@ -399,8 +384,7 @@ local NinjaModule = VisualsWin:CreateModule("仙人模式", function(state)
             Library:Notify("✅ 仙人模式已开启", true)
         end
     else
-        stopNinjaMode()
-        Library:Notify("❌ 仙人模式已关闭", false)
+        print("看什么看,没见过输出啊😡")
     end
 end)
 
@@ -421,9 +405,10 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
             performExpertTeleport(expertLocations.sewer, "下水道")
         elseif input.KeyCode == Enum.KeyCode.N then
             if isNinjaModeActive then
-                stopNinjaMode()
+                
+               
             else
-                startNinjaMode()
+                
             end
         end
     end
@@ -432,8 +417,8 @@ end)
 -- ========== 新增：自杀选项 ==========
 VisualsWin:CreateModule("自杀", function()
     local character = player.Character
-    if not character then 
-        Library:Notify("❌ 角色未加载", false)
+    if not character then
+        Library:Notify("❌ 角色不存在", false)
         return 
     end
 
@@ -447,6 +432,7 @@ VisualsWin:CreateModule("自杀", function()
     humanoid.Health = 0
     Library:Notify("✅ 血量已归零", true)
 end)
+
 -- ========== 12. 初始化 ==========
 -- 播放Expert加载音效
 task.wait(0.5)
