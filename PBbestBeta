@@ -66,65 +66,7 @@ local function playSound()
     sound.Ended:Connect(function() sound:Destroy() end)
 end
 
--- ========== 5. Expert功能 - 仙人模式 ==========
-local isNinjaModeActive = false
-local originalWalkSpeed = 16
-local originalJumpPower = 50
-local ninjaModeMultiplier = 2.5
-local infiniteJumpEnabled = false
-local ninjaModeConnection = nil
 
-local function startNinjaMode()
-    if isNinjaModeActive then return false end
-
-    local character = player.Character
-    if not character then 
-        -- 这里不再显示悬浮窗
-        return false 
-    end
-
-    local humanoid = character:FindFirstChild("Humanoid")
-    if not humanoid then 
-        -- 这里不再显示悬浮窗
-        return false 
-    end
-
-    originalWalkSpeed = humanoid.WalkSpeed
-    originalJumpPower = humanoid.JumpPower
-    isNinjaModeActive = true
-    infiniteJumpEnabled = true
-
-    humanoid.WalkSpeed = originalWalkSpeed * ninjaModeMultiplier
-    humanoid.JumpPower = originalJumpPower * 3
-
-    ninjaModeConnection = UserInputService.JumpRequest:Connect(function()
-        if infiniteJumpEnabled and character and character:FindFirstChild("Humanoid") then
-            character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
-        end
-    end)
-
-    return true
-end
-
-local function stopNinjaMode()
-    if not isNinjaModeActive then return end
-    isNinjaModeActive = false
-    infiniteJumpEnabled = false
-
-    if ninjaModeConnection then
-        ninjaModeConnection:Disconnect()
-        ninjaModeConnection = nil
-    end
-
-    local character = player.Character
-    if character then
-        local humanoid = character:FindFirstChild("Humanoid")
-        if humanoid then
-            humanoid.WalkSpeed = originalWalkSpeed
-            humanoid.JumpPower = originalJumpPower
-        end
-    end
-end
 
 -- Expert传送函数
 local function performExpertTeleport(location, locationName)
@@ -145,57 +87,84 @@ local function performExpertTeleport(location, locationName)
     return true
 end
 
--- ========== 5. Expert功能 - 仙人模式 ==========
+-- ========== 5. Expert功能 - 仙人模式（优化版） ==========
 local isNinjaModeActive = false
 local originalWalkSpeed = 16
 local originalJumpPower = 50
 local ninjaModeMultiplier = 2.5
 local infiniteJumpEnabled = false
+local noclipEnabled = false
 local ninjaModeConnection = nil
+local noclipConnection = nil
+
+-- 穿墙功能（优化版）
+local function enableNoclip()
+    if noclipConnection then return end
+    noclipConnection = RunService.Stepped:Connect(function()
+        local character = player.Character
+        if character and noclipEnabled and isNinjaModeActive then
+            for _, part in pairs(character:GetDescendants()) do
+                if part:IsA("BasePart") then
+                    part.CanCollide = false
+                end
+            end
+        end
+    end)
+end
+
+local function disableNoclip()
+    if noclipConnection then
+        noclipConnection:Disconnect()
+        noclipConnection = nil
+    end
+end
 
 local function startNinjaMode()
-    if isNinjaModeActive then return false end
+    if isNinjaModeActive then return end
 
     local character = player.Character
-    if not character then 
-        createExpertNotification("角色未加载", Color3.fromRGB(200, 50, 50))
-        return false 
-    end
+    if not character then return end
 
     local humanoid = character:FindFirstChild("Humanoid")
-    if not humanoid then 
-        createExpertNotification("人形对象不存在", Color3.fromRGB(200, 50, 50))
-        return false 
-    end
+    if not humanoid then return end
 
     originalWalkSpeed = humanoid.WalkSpeed
     originalJumpPower = humanoid.JumpPower
     isNinjaModeActive = true
     infiniteJumpEnabled = true
-    createExpertNotification("仙人模式已开启", Color3.fromRGB(50, 200, 50))
+    noclipEnabled = true
 
     humanoid.WalkSpeed = originalWalkSpeed * ninjaModeMultiplier
     humanoid.JumpPower = originalJumpPower * 3
 
+    -- 无限跳跃（优化防抽搐）
     ninjaModeConnection = UserInputService.JumpRequest:Connect(function()
         if infiniteJumpEnabled and character and character:FindFirstChild("Humanoid") then
             character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
         end
     end)
 
-    return true
+    enableNoclip()
 end
 
 local function stopNinjaMode()
     if not isNinjaModeActive then return end
     isNinjaModeActive = false
     infiniteJumpEnabled = false
+    noclipEnabled = false
 
+    -- 先关闭跳跃
     if ninjaModeConnection then
         ninjaModeConnection:Disconnect()
         ninjaModeConnection = nil
     end
 
+    -- 然后关闭穿墙
+    disableNoclip()
+
+    -- 最后恢复属性（防止抽搐）
+    task.wait(0.05)
+    
     local character = player.Character
     if character then
         local humanoid = character:FindFirstChild("Humanoid")
@@ -204,9 +173,24 @@ local function stopNinjaMode()
             humanoid.JumpPower = originalJumpPower
         end
     end
-
-    createExpertNotification("仙人模式已关闭", Color3.fromRGB(200, 50, 50))
 end
+
+-- ========== 角色重生处理 ==========
+player.CharacterAdded:Connect(function(character)
+    task.wait(0.5)
+    if isNinjaModeActive then
+        local humanoid = character:FindFirstChild("Humanoid")
+        if humanoid then
+            humanoid.WalkSpeed = originalWalkSpeed * ninjaModeMultiplier
+            humanoid.JumpPower = originalJumpPower * 3
+            if noclipEnabled then
+                enableNoclip()
+            end
+        end
+    end
+end)
+
+
 
 -- Expert坐标定义
 local expertLocations = {
@@ -472,7 +456,7 @@ playExpertSound()
 Library:SetupSettings()
 
 -- 显示加载完成通知
-Library:Notify("✅ Monster & Expert全功能合集加载完成！", true)
+Library:Notify("欢迎使用", true)
 -- 完整搜索所有GUI
 local translation = {
     ["By BeiHai"] = "BY | 渔炒鱼",
