@@ -1,0 +1,582 @@
+-- 精准清理（按钮也清理）
+local Players = game:GetService("Players")
+
+-- 清理所有窗口包括这个按钮
+local function cleanAll()
+    local player = Players.LocalPlayer
+    if not player then return 0 end
+    
+    local playerGui = player:WaitForChild("PlayerGui")
+    local removedCount = 0
+    
+    -- 要清理的窗口名字
+    local targetNames = {
+        "AdvancedImageSniffer",
+        "ImageSnifferUI", 
+        "ImageSniffer",
+        "AudioSnifferUI",
+        "CompactImageSniffer",
+        "ImageCapture",
+        "WindowControlPanel",
+        "CleanButtonGui"  -- 加上这个按钮自己
+    }
+    
+    -- 清理所有符合条件的窗口
+    for _, gui in pairs(playerGui:GetChildren()) do
+        if gui:IsA("ScreenGui") then
+            local guiName = gui.Name
+            local isTarget = false
+            
+            -- 精确匹配
+            for _, target in ipairs(targetNames) do
+                if guiName == target then
+                    isTarget = true
+                    break
+                end
+            end
+            
+            -- 模糊匹配
+            if not isTarget then
+                local lowerName = guiName:lower()
+                if string.find(lowerName, "sniffer") or 
+                   string.find(lowerName, "capture") or
+                   string.find(lowerName, "clean") then  -- 清理按钮相关
+                    isTarget = true
+                end
+            end
+            
+            if isTarget then
+                gui:Destroy()
+                removedCount = removedCount + 1
+            end
+        end
+    end
+    
+    return removedCount
+end
+
+-- 先清理旧的
+cleanAll()
+
+-- 创建新按钮（这个按钮最后也会被清理）
+if Players.LocalPlayer then
+    local player = Players.LocalPlayer
+    local playerGui = player:WaitForChild("PlayerGui")
+    
+    -- 创建按钮
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "CleanButtonGui"
+    screenGui.ResetOnSpawn = false
+    
+    local button = Instance.new("TextButton")
+    button.Size = UDim2.new(0, 50, 0, 50)
+    button.Position = UDim2.new(0, 10, 0.5, -25)
+    button.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+    button.Text = "X"
+    button.TextColor3 = Color3.fromRGB(255, 100, 100)
+    button.TextSize = 20
+    button.Font = Enum.Font.GothamBold
+    
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0.2, 0)
+    corner.Parent = button
+    
+    button.Parent = screenGui
+    screenGui.Parent = playerGui
+    
+    -- 点击清理一切（包括按钮自己）
+    button.MouseButton1Click:Connect(function()
+        button.Text = "✓"
+        cleanAll()  -- 这会清理按钮自己
+    end)
+end
+-- 音频抓包脚本（带播放功能 + 关闭按钮）
+local HttpService = game:GetService("HttpService")
+local Players = game:GetService("Players")
+local SoundService = game:GetService("SoundService")
+
+local AudioSniffer = {
+    CapturedSounds = {},
+    Enabled = true,
+    SoundGroups = {},
+    PlayingSounds = {}  -- 记录正在播放的音频
+}
+
+-- 捕获所有音频
+function AudioSniffer:CaptureAll()
+    self.CapturedSounds = {}
+    self.SoundGroups = {}
+    
+    local function processObject(obj)
+        if obj:IsA("Sound") then
+            local soundId = tostring(obj.SoundId)
+            if soundId and soundId ~= "" then
+                local id = string.match(soundId, "%d+")
+                if id then
+                    self:AddSound(id, soundId, obj, "Sound")
+                end
+            end
+        elseif obj:IsA("SoundGroup") then
+            self.SoundGroups[obj.Name] = obj
+        end
+    end
+    
+    for _, obj in pairs(game:GetDescendants()) do
+        processObject(obj)
+    end
+    
+    for _, soundGroup in pairs(self.SoundGroups) do
+        for _, sound in pairs(soundGroup:GetChildren()) do
+            if sound:IsA("Sound") then
+                local soundId = tostring(sound.SoundId)
+                if soundId and soundId ~= "" then
+                    local id = string.match(soundId, "%d+")
+                    if id then
+                        self:AddSound(id, soundId, sound, "SoundGroup:" .. soundGroup.Name)
+                    end
+                end
+            end
+        end
+    end
+    
+    print("🎵 音频捕获完成: " .. #self:GetSoundList() .. " 个音频")
+    return self:GetSoundList()
+end
+
+function AudioSniffer:AddSound(id, url, obj, sourceType)
+    if not self.CapturedSounds[id] then
+        self.CapturedSounds[id] = {
+            id = id,
+            url = url,
+            object = obj:GetFullName(),
+            type = obj.ClassName,
+            sourceType = sourceType,
+            timestamp = os.time(),
+            volume = obj.Volume,
+            pitch = obj.Pitch,
+            looping = obj.Looped,
+            playing = obj.Playing,
+            maxDistance = obj.MaxDistance or 100,
+            minDistance = obj.MinDistance or 10,
+            isPlaying = false  -- 播放状态
+        }
+    end
+end
+
+-- 播放音频功能
+function AudioSniffer:PlaySound(id)
+    local soundData = self.CapturedSounds[id]
+    if not soundData then
+        warn("❌ 音频不存在: " .. id)
+        return
+    end
+    
+    -- 如果已经在播放，先停止
+    if self.PlayingSounds[id] then
+        self:StopSound(id)
+        return
+    end
+    
+    -- 创建播放器
+    local soundPlayer = Instance.new("Sound")
+    soundPlayer.SoundId = soundData.url
+    soundPlayer.Volume = soundData.volume
+    soundPlayer.Pitch = soundData.pitch
+    soundPlayer.Looped = soundData.looping
+    soundPlayer.Name = "AudioSniffer_Play_" .. id
+    soundPlayer.Parent = SoundService
+    
+    -- 播放
+    soundPlayer:Play()
+    
+    -- 记录
+    self.PlayingSounds[id] = {
+        player = soundPlayer,
+        startTime = os.time(),
+        data = soundData
+    }
+    
+    -- 更新状态
+    soundData.isPlaying = true
+    
+    print("▶️ 播放音频: " .. id)
+    
+    -- 监听结束
+    soundPlayer.Ended:Connect(function()
+        self:StopSound(id)
+    end)
+    
+    return soundPlayer
+end
+
+-- 停止播放
+function AudioSniffer:StopSound(id)
+    local playingSound = self.PlayingSounds[id]
+    if playingSound then
+        if playingSound.player and playingSound.player.Parent then
+            playingSound.player:Stop()
+            playingSound.player:Destroy()
+        end
+        self.PlayingSounds[id] = nil
+        
+        if self.CapturedSounds[id] then
+            self.CapturedSounds[id].isPlaying = false
+        end
+        
+        print("⏹️ 停止播放: " .. id)
+    end
+end
+
+function AudioSniffer:ExportJSON()
+    local exportData = {}
+    for id, data in pairs(self.CapturedSounds) do
+        table.insert(exportData, {
+            id = data.id,
+            object = data.object,
+            type = data.type,
+            sourceType = data.sourceType,
+            volume = data.volume,
+            pitch = data.pitch,
+            looping = data.looping,
+            timestamp = data.timestamp
+        })
+    end
+    return HttpService:JSONEncode(exportData)
+end
+
+function AudioSniffer:GetSoundList()
+    local list = {}
+    for id, data in pairs(self.CapturedSounds) do
+        table.insert(list, data)
+    end
+    table.sort(list, function(a, b) return a.timestamp > b.timestamp end)
+    return list
+end
+
+-- 创建UI（带播放按钮和关闭按钮）
+function AudioSniffer:CreateAudioUI()
+    local player = Players.LocalPlayer
+    if not player then return end
+    
+    local gui = Instance.new("ScreenGui")
+    gui.Name = "AudioSnifferWithPlay"
+    gui.ResetOnSpawn = false
+    gui.Parent = player:WaitForChild("PlayerGui")
+    
+    -- 主窗口 - 稍微加宽以容纳播放按钮
+    local mainFrame = Instance.new("Frame")
+    mainFrame.Size = UDim2.new(0, 420, 0, 500)
+    mainFrame.Position = UDim2.new(0.5, -210, 0.5, -250)
+    mainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+    mainFrame.BorderSizePixel = 0
+    mainFrame.Parent = gui
+    
+    -- 标题栏
+    local titleBar = Instance.new("Frame")
+    titleBar.Size = UDim2.new(1, 0, 0, 35)
+    titleBar.BackgroundColor3 = Color3.fromRGB(180, 90, 0)
+    titleBar.Parent = mainFrame
+    
+    local titleLabel = Instance.new("TextLabel")
+    titleLabel.Text = "🎵 音频抓包器 (带播放)"
+    titleLabel.Size = UDim2.new(1, -40, 1, 0)
+    titleLabel.Position = UDim2.new(0, 10, 0, 0)
+    titleLabel.BackgroundTransparency = 1
+    titleLabel.TextColor3 = Color3.new(1, 1, 1)
+    titleLabel.Font = Enum.Font.GothamBold
+    titleLabel.TextSize = 16
+    titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+    titleLabel.Parent = titleBar
+    
+    -- 关闭按钮（大而明显）
+    local closeButton = Instance.new("TextButton")
+    closeButton.Text = "✕ 关闭"
+    closeButton.Size = UDim2.new(0, 70, 0, 30)
+    closeButton.Position = UDim2.new(1, -75, 0.5, -15)
+    closeButton.BackgroundColor3 = Color3.fromRGB(220, 60, 60)
+    closeButton.TextColor3 = Color3.new(1, 1, 1)
+    closeButton.Font = Enum.Font.GothamBold
+    closeButton.TextSize = 14
+    closeButton.Parent = titleBar
+    
+    -- 控制面板
+    local controlPanel = Instance.new("Frame")
+    controlPanel.Size = UDim2.new(1, 0, 0, 50)
+    controlPanel.Position = UDim2.new(0, 0, 0, 35)
+    controlPanel.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    controlPanel.Parent = mainFrame
+    
+    -- 按钮们
+    local buttons = {
+        {name = "capture", text = "🔍 抓取", color = Color3.fromRGB(180, 120, 0)},
+        {name = "export", text = "💾 导出", color = Color3.fromRGB(46, 204, 113)},
+        {name = "clear", text = "🗑️ 清空", color = Color3.fromRGB(231, 76, 60)},
+        {name = "stopAll", text = "⏹️ 停止全部", color = Color3.fromRGB(255, 100, 100)}
+    }
+    
+    for i, btnInfo in ipairs(buttons) do
+        local btn = Instance.new("TextButton")
+        btn.Name = btnInfo.name
+        btn.Text = btnInfo.text
+        btn.Size = UDim2.new(0.22, -10, 0, 30)
+        btn.Position = UDim2.new((i-1) * 0.25 + 0.025, 0, 0.5, -15)
+        btn.BackgroundColor3 = btnInfo.color
+        btn.TextColor3 = Color3.new(1, 1, 1)
+        btn.Font = Enum.Font.Gotham
+        btn.TextSize = 11
+        btn.Parent = controlPanel
+    end
+    
+    -- 监控开关
+    local toggleBtn = Instance.new("TextButton")
+    toggleBtn.Name = "toggle"
+    toggleBtn.Text = "📡 监控:开"
+    toggleBtn.Size = UDim2.new(0, 80, 0, 25)
+    toggleBtn.Position = UDim2.new(0.5, -40, 1, -30)
+    toggleBtn.BackgroundColor3 = Color3.fromRGB(155, 89, 182)
+    toggleBtn.TextColor3 = Color3.new(1, 1, 1)
+    toggleBtn.Font = Enum.Font.Gotham
+    toggleBtn.TextSize = 11
+    toggleBtn.Parent = controlPanel
+    
+    -- 音频列表
+    local scrollFrame = Instance.new("ScrollingFrame")
+    scrollFrame.Size = UDim2.new(1, -10, 1, -100)
+    scrollFrame.Position = UDim2.new(0, 5, 0, 90)
+    scrollFrame.BackgroundTransparency = 1
+    scrollFrame.ScrollBarThickness = 6
+    scrollFrame.ScrollBarImageColor3 = Color3.fromRGB(100, 100, 100)
+    scrollFrame.VerticalScrollBarInset = Enum.ScrollBarInset.None
+    scrollFrame.ElasticBehavior = Enum.ElasticBehavior.Never
+    scrollFrame.Parent = mainFrame
+    
+    local listLayout = Instance.new("UIListLayout")
+    listLayout.Padding = UDim.new(0, 3)
+    listLayout.Parent = scrollFrame
+    
+    -- 状态标签
+    local statusLabel = Instance.new("TextLabel")
+    statusLabel.Text = "就绪"
+    statusLabel.Size = UDim2.new(1, 0, 0, 25)
+    statusLabel.Position = UDim2.new(0, 0, 1, -30)
+    statusLabel.BackgroundTransparency = 1
+    statusLabel.TextColor3 = Color3.new(1, 1, 1)
+    statusLabel.Font = Enum.Font.Gotham
+    statusLabel.TextSize = 12
+    statusLabel.Parent = mainFrame
+    
+    -- 更新显示
+    local function updateDisplay()
+        for _, child in pairs(scrollFrame:GetChildren()) do
+            if not child:IsA("UIListLayout") then
+                child:Destroy()
+            end
+        end
+        
+        local sounds = self:GetSoundList()
+        
+        for _, data in ipairs(sounds) do
+            local entry = Instance.new("Frame")
+            entry.Size = UDim2.new(1, 0, 0, 80)
+            entry.BackgroundColor3 = data.isPlaying and Color3.fromRGB(40, 60, 40) or Color3.fromRGB(35, 35, 35)
+            entry.BorderSizePixel = 1
+            entry.BorderColor3 = data.isPlaying and Color3.fromRGB(0, 150, 0) or Color3.fromRGB(60, 60, 60)
+            entry.Parent = scrollFrame
+            
+            -- 音频图标
+            local iconFrame = Instance.new("Frame")
+            iconFrame.Size = UDim2.new(0, 50, 0, 50)
+            iconFrame.Position = UDim2.new(0, 5, 0.5, -25)
+            iconFrame.BackgroundColor3 = data.isPlaying and Color3.fromRGB(0, 100, 0) or Color3.fromRGB(30, 60, 120)
+            iconFrame.Parent = entry
+            
+            local iconLabel = Instance.new("TextLabel")
+            iconLabel.Text = data.isPlaying and "▶️" or "🔊"
+            iconLabel.Size = UDim2.new(1, 0, 1, 0)
+            iconLabel.BackgroundTransparency = 1
+            iconLabel.TextColor3 = Color3.new(1, 1, 1)
+            iconLabel.Font = Enum.Font.GothamBold
+            iconLabel.TextSize = 16
+            iconLabel.Parent = iconFrame
+            
+            -- 信息区域
+            local infoFrame = Instance.new("Frame")
+            infoFrame.Size = UDim2.new(1, -135, 1, -10)
+            infoFrame.Position = UDim2.new(0, 60, 0, 5)
+            infoFrame.BackgroundTransparency = 1
+            infoFrame.Parent = entry
+            
+            -- 音频ID
+            local idLabel = Instance.new("TextLabel")
+            idLabel.Text = "ID: " .. data.id
+            idLabel.Size = UDim2.new(1, 0, 0, 20)
+            idLabel.Position = UDim2.new(0, 0, 0, 0)
+            idLabel.BackgroundTransparency = 1
+            idLabel.TextColor3 = Color3.fromRGB(0, 200, 255)
+            idLabel.Font = Enum.Font.GothamBold
+            idLabel.TextSize = 14
+            idLabel.TextXAlignment = Enum.TextXAlignment.Left
+            idLabel.Parent = infoFrame
+            
+            -- 音频属性
+            local propsLabel = Instance.new("TextLabel")
+            propsLabel.Text = string.format("🔊%.0f%% ⚡%.1f", data.volume * 100, data.pitch)
+            propsLabel.Size = UDim2.new(0.5, -5, 0, 15)
+            propsLabel.Position = UDim2.new(0, 0, 0, 20)
+            propsLabel.BackgroundTransparency = 1
+            propsLabel.TextColor3 = Color3.fromRGB(255, 200, 0)
+            propsLabel.Font = Enum.Font.Gotham
+            propsLabel.TextSize = 10
+            propsLabel.TextXAlignment = Enum.TextXAlignment.Left
+            propsLabel.Parent = infoFrame
+            
+            -- 按钮区域
+            local buttonFrame = Instance.new("Frame")
+            buttonFrame.Size = UDim2.new(0, 120, 1, -10)
+            buttonFrame.Position = UDim2.new(1, -125, 0, 5)
+            buttonFrame.BackgroundTransparency = 1
+            buttonFrame.Parent = entry
+            
+            -- 复制按钮
+            local copyBtn = Instance.new("TextButton")
+            copyBtn.Text = "📋"
+            copyBtn.Size = UDim2.new(0, 35, 0, 25)
+            copyBtn.Position = UDim2.new(0, 0, 0, 0)
+            copyBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+            copyBtn.TextColor3 = Color3.new(1, 1, 1)
+            copyBtn.Font = Enum.Font.Gotham
+            copyBtn.TextSize = 14
+            copyBtn.Parent = buttonFrame
+            
+            copyBtn.MouseButton1Click:Connect(function()
+                setclipboard(data.id)
+                copyBtn.Text = "✅"
+                task.wait(1)
+                copyBtn.Text = "📋"
+            end)
+            
+            -- 播放/停止按钮
+            local playBtn = Instance.new("TextButton")
+            playBtn.Text = data.isPlaying and "⏹️" or "▶️"
+            playBtn.Size = UDim2.new(0, 35, 0, 25)
+            playBtn.Position = UDim2.new(0, 40, 0, 0)
+            playBtn.BackgroundColor3 = data.isPlaying and Color3.fromRGB(200, 50, 50) or Color3.fromRGB(50, 150, 50)
+            playBtn.TextColor3 = Color3.new(1, 1, 1)
+            playBtn.Font = Enum.Font.Gotham
+            playBtn.TextSize = 14
+            playBtn.Parent = buttonFrame
+            
+            playBtn.MouseButton1Click:Connect(function()
+                if data.isPlaying then
+                    self:StopSound(data.id)
+                    playBtn.Text = "▶️"
+                    playBtn.BackgroundColor3 = Color3.fromRGB(50, 150, 50)
+                    entry.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+                    entry.BorderColor3 = Color3.fromRGB(60, 60, 60)
+                    iconFrame.BackgroundColor3 = Color3.fromRGB(30, 60, 120)
+                    iconLabel.Text = "🔊"
+                else
+                    self:PlaySound(data.id)
+                    playBtn.Text = "⏹️"
+                    playBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+                    entry.BackgroundColor3 = Color3.fromRGB(40, 60, 40)
+                    entry.BorderColor3 = Color3.fromRGB(0, 150, 0)
+                    iconFrame.BackgroundColor3 = Color3.fromRGB(0, 100, 0)
+                    iconLabel.Text = "▶️"
+                end
+            end)
+        end
+        
+        statusLabel.Text = string.format("找到 %d 个音频", #sounds)
+        scrollFrame.CanvasSize = UDim2.new(0, 0, 0, listLayout.AbsoluteContentSize.Y)
+    end
+    
+    -- 按钮功能
+    controlPanel.capture.MouseButton1Click:Connect(function()
+        statusLabel.Text = "抓取中..."
+        self:CaptureAll()
+        updateDisplay()
+        statusLabel.Text = string.format("抓取完成: %d 个音频", #self:GetSoundList())
+    end)
+    
+    controlPanel.export.MouseButton1Click:Connect(function()
+        local json = self:ExportJSON()
+        setclipboard(json)
+        statusLabel.Text = "JSON已复制"
+        task.wait(1.5)
+        updateDisplay()
+    end)
+    
+    controlPanel.clear.MouseButton1Click:Connect(function()
+        self:StopAllSounds()
+        self.CapturedSounds = {}
+        self.PlayingSounds = {}
+        updateDisplay()
+        statusLabel.Text = "列表已清空"
+    end)
+    
+    controlPanel.stopAll.MouseButton1Click:Connect(function()
+        for id, _ in pairs(self.PlayingSounds) do
+            self:StopSound(id)
+        end
+        updateDisplay()
+        statusLabel.Text = "已停止所有播放"
+    end)
+    
+    toggleBtn.MouseButton1Click:Connect(function()
+        self.Enabled = not self.Enabled
+        toggleBtn.Text = self.Enabled and "📡 监控:开" or "📡 监控:关"
+        toggleBtn.BackgroundColor3 = self.Enabled and 
+            Color3.fromRGB(155, 89, 182) or Color3.fromRGB(100, 100, 100)
+        statusLabel.Text = self.Enabled and "监控开启" or "监控关闭"
+    end)
+    
+    -- 关闭按钮功能
+    closeButton.MouseButton1Click:Connect(function()
+        -- 停止所有播放
+        for id, _ in pairs(self.PlayingSounds) do
+            self:StopSound(id)
+        end
+        gui:Destroy()
+        print("🛑 音频抓包器已关闭")
+    end)
+    
+    -- 停止所有播放的函数
+    function self:StopAllSounds()
+        for id, _ in pairs(self.PlayingSounds) do
+            self:StopSound(id)
+        end
+    end
+    
+    -- 初始抓取
+    self:CaptureAll()
+    updateDisplay()
+    
+    return gui
+end
+
+-- 初始化
+if Players.LocalPlayer then
+    task.wait(1)
+    AudioSniffer:CreateAudioUI()
+    print("🎵 音频抓包器已启动（带播放功能）")
+    print("▶️ 功能: 播放/停止音频，右上角有关闭按钮")
+    
+    -- 监控新音频
+    game.DescendantAdded:Connect(function(obj)
+        if not AudioSniffer.Enabled then return end
+        task.wait(0.1)
+        
+        if obj:IsA("Sound") then
+            local soundId = tostring(obj.SoundId)
+            if soundId and soundId ~= "" then
+                local id = string.match(soundId, "%d+")
+                if id then
+                    AudioSniffer:AddSound(id, soundId, obj, "Sound")
+                end
+            end
+        elseif obj:IsA("SoundGroup") then
+            AudioSniffer.SoundGroups[obj.Name] = obj
+        end
+    end)
+end
