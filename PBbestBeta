@@ -537,4 +537,4 @@ Library:Notify("欢迎使用", true)
 Wait(1)
 Library:Notify("已适配新地图管道", true)
 Wait(1)
-已激活音效包
+Library:Notify("已激活内置音效包", true)
