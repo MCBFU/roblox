@@ -546,3 +546,5 @@ Wait(2)
 Library:Notify("欢迎使用", true)
 Wait(1)
 Library:Notify("已适配新地图管道", true)
+Wait(1)
+已激活音效包
