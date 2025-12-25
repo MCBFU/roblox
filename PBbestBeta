@@ -1,3 +1,66 @@
+-- 双音效ID替换脚本
+local replacements = {
+    {old = "6027236630", new = "119031191462818"},--板板跳跃
+    {old = "119547018329590", new = "15689445424"},--火车逃离
+    {old = "9042971851", new = "133701137571082"},--开启新地图游戏
+    {old = "6794886454", new = "94624102598882"},--兔子音符盒
+    {old = "268933841", new = "9043491257"},--落地
+    {old = "81953263341178", new = "94624102598882"},--小哈吉突脸
+    {old = "6052548458", new = "7390036132"},
+    {old = "76006027271406", new = ""},--哈吉冲刺
+    {old = "17779172376", new = "15689451063"}--怪物选择界面
+}  -- 这里添加了缺失的 }
+
+-- 替换函数
+local function replaceSound(sound)
+    if sound and sound:IsA("Sound") then
+        local id = tostring(sound.SoundId)
+        local replaced = false
+        
+        for _, rep in pairs(replacements) do
+            if rep.old ~= "" and string.find(id, rep.old) then
+                if rep.new ~= "" then
+                    sound.SoundId = string.gsub(id, rep.old, rep.new)
+                    replaced = true
+                else
+                    -- 如果新ID为空，可以删除或静音音效
+                    sound.Volume = 0
+                    sound:Destroy()  -- 或者直接删除
+                    replaced = true
+                end
+            end
+        end
+        
+        return replaced
+    end
+    return false
+end
+
+-- 执行替换
+local count = 0
+for _, obj in pairs(game:GetDescendants()) do
+    if replaceSound(obj) then
+        count = count + 1
+    end
+end
+
+-- 监控新音效
+game.DescendantAdded:Connect(function(obj)
+    task.wait(0.05)
+    replaceSound(obj)
+end)
+
+print("✅ 替换完成: " .. count .. " 个音效")
+print("📋 替换列表:")
+for _, rep in pairs(replacements) do
+    if rep.old ~= "" then
+        local newId = rep.new ~= "" and rep.new or "[空 - 将被删除/静音]"
+        print("原: " .. rep.old .. " → 新: " .. newId)
+    end
+end
+
+
+
 -- 强制优先加载playbreak（必写在最顶部）
 local success, Library = pcall(function()
     return loadstring(game:HttpGet("https://gitee.com/cmbhbh/ycgui/raw/master/YCmain.lua"))()
