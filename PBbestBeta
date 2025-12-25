@@ -50,16 +50,6 @@ game.DescendantAdded:Connect(function(obj)
     replaceSound(obj)
 end)
 
-print("✅ 替换完成: " .. count .. " 个音效")
-print("📋 替换列表:")
-for _, rep in pairs(replacements) do
-    if rep.old ~= "" then
-        local newId = rep.new ~= "" and rep.new or "[空 - 将被删除/静音]"
-        print("原: " .. rep.old .. " → 新: " .. newId)
-    end
-end
-
-
 
 -- 强制优先加载playbreak（必写在最顶部）
 local success, Library = pcall(function()
