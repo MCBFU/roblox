@@ -1,0 +1,374 @@
+-- 高级图片抓包脚本（优化版）
+local HttpService = game:GetService("HttpService")
+local ContentProvider = game:GetService("ContentProvider")
+local Players = game:GetService("Players")
+
+local ImageSniffer = {
+    CapturedImages = {},
+    Enabled = true,
+    AutoSave = true
+}
+
+-- 捕获所有图片
+function ImageSniffer:CaptureAll()
+    self.CapturedImages = {}
+    
+    local function processObject(obj)
+        local properties = {
+            ["ImageLabel"] = {"Image"},
+            ["ImageButton"] = {"Image"},
+            ["Decal"] = {"Texture"},
+            ["Texture"] = {"TextureId"},
+            ["MeshPart"] = {"TextureID"},
+            ["SurfaceGui"] = {"Image"}
+        }
+        
+        local className = obj.ClassName
+        local props = properties[className]
+        
+        if props then
+            for _, propName in ipairs(props) do
+                local success, value = pcall(function()
+                    return obj[propName]
+                end)
+                
+                if success and type(value) == "string" and value ~= "" then
+                    local id = string.match(value, "%d+")
+                    if id then
+                        self:AddImage(id, value, obj, propName)
+                    end
+                end
+            end
+        end
+    end
+    
+    for _, obj in pairs(game:GetDescendants()) do
+        processObject(obj)
+    end
+    
+    print("📸 捕获完成: " .. #self:GetImageList() .. " 张图片")
+    return self:GetImageList()
+end
+
+function ImageSniffer:AddImage(id, url, obj, property)
+    if not self.CapturedImages[id] then
+        self.CapturedImages[id] = {
+            id = id,
+            url = url,
+            object = obj:GetFullName(),
+            type = obj.ClassName,
+            property = property,
+            timestamp = os.time(),
+            previewLoaded = false
+        }
+        
+        if self.AutoSave then
+            self:PreloadImage(id)
+        end
+    end
+end
+
+function ImageSniffer:PreloadImage(id)
+    local data = self.CapturedImages[id]
+    if data and not data.previewLoaded then
+        spawn(function()
+            local success = pcall(function()
+                ContentProvider:PreloadAsync({data.url})
+            end)
+            data.previewLoaded = success
+        end)
+    end
+end
+
+function ImageSniffer:ExportJSON()
+    local exportData = {}
+    for id, data in pairs(self.CapturedImages) do
+        table.insert(exportData, {
+            id = data.id,
+            object = data.object,
+            type = data.type,
+            property = data.property,
+            timestamp = data.timestamp
+        })
+    end
+    return HttpService:JSONEncode(exportData)
+end
+
+function ImageSniffer:GetImageList()
+    local list = {}
+    for id, data in pairs(self.CapturedImages) do
+        table.insert(list, data)
+    end
+    table.sort(list, function(a, b) return a.timestamp > b.timestamp end)
+    return list
+end
+
+function ImageSniffer:CreateAdvancedUI()
+    local player = Players.LocalPlayer
+    if not player then return end
+    
+    -- 创建GUI
+    local gui = Instance.new("ScreenGui")
+    gui.Name = "ImageSnifferUI"
+    gui.ResetOnSpawn = false
+    gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    gui.Parent = player:WaitForChild("PlayerGui")
+    
+    -- 主窗口 - 缩小尺寸
+    local mainFrame = Instance.new("Frame")
+    mainFrame.Size = UDim2.new(0, 380, 0, 450)  -- 缩小了
+    mainFrame.Position = UDim2.new(0.5, -190, 0.5, -225)
+    mainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+    mainFrame.BorderSizePixel = 1
+    mainFrame.BorderColor3 = Color3.fromRGB(60, 60, 60)
+    mainFrame.Parent = gui
+    
+    -- 标题栏
+    local titleBar = Instance.new("Frame")
+    titleBar.Size = UDim2.new(1, 0, 0, 30)
+    titleBar.BackgroundColor3 = Color3.fromRGB(0, 90, 180)
+    titleBar.Parent = mainFrame
+    
+    local titleLabel = Instance.new("TextLabel")
+    titleLabel.Text = "📷 图片抓包器"
+    titleLabel.Size = UDim2.new(1, -60, 1, 0)
+    titleLabel.Position = UDim2.new(0, 10, 0, 0)
+    titleLabel.BackgroundTransparency = 1
+    titleLabel.TextColor3 = Color3.new(1, 1, 1)
+    titleLabel.Font = Enum.Font.GothamBold
+    titleLabel.TextSize = 14
+    titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+    titleLabel.Parent = titleBar
+    
+    -- 关闭按钮
+    local closeButton = Instance.new("TextButton")
+    closeButton.Text = "×"
+    closeButton.Size = UDim2.new(0, 25, 0, 25)
+    closeButton.Position = UDim2.new(1, -30, 0.5, -12.5)
+    closeButton.BackgroundColor3 = Color3.fromRGB(200, 60, 60)
+    closeButton.TextColor3 = Color3.new(1, 1, 1)
+    closeButton.Font = Enum.Font.GothamBold
+    closeButton.TextSize = 18
+    closeButton.Parent = titleBar
+    
+    -- 控制面板
+    local controlPanel = Instance.new("Frame")
+    controlPanel.Size = UDim2.new(1, 0, 0, 40)
+    controlPanel.Position = UDim2.new(0, 0, 0, 30)
+    controlPanel.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    controlPanel.Parent = mainFrame
+    
+    -- 按钮们
+    local buttons = {
+        {name = "capture", text = "抓取", color = Color3.fromRGB(0, 120, 215)},
+        {name = "export", text = "导出", color = Color3.fromRGB(46, 204, 113)},
+        {name = "clear", text = "清空", color = Color3.fromRGB(231, 76, 60)},
+        {name = "toggle", text = "监控", color = Color3.fromRGB(155, 89, 182)}
+    }
+    
+    for i, btnInfo in ipairs(buttons) do
+        local btn = Instance.new("TextButton")
+        btn.Name = btnInfo.name
+        btn.Text = btnInfo.text
+        btn.Size = UDim2.new(0.22, -8, 0, 25)
+        btn.Position = UDim2.new((i-1) * 0.25 + 0.025, 0, 0.5, -12.5)
+        btn.BackgroundColor3 = btnInfo.color
+        btn.TextColor3 = Color3.new(1, 1, 1)
+        btn.Font = Enum.Font.Gotham
+        btn.TextSize = 11
+        btn.Parent = controlPanel
+    end
+    
+    -- 图片列表 - 关键修复：关闭弹性滚动
+    local scrollFrame = Instance.new("ScrollingFrame")
+    scrollFrame.Size = UDim2.new(1, -8, 1, -80)
+    scrollFrame.Position = UDim2.new(0, 4, 0, 75)
+    scrollFrame.BackgroundTransparency = 1
+    scrollFrame.ScrollBarThickness = 6
+    scrollFrame.ScrollBarImageColor3 = Color3.fromRGB(100, 100, 100)
+    scrollFrame.VerticalScrollBarInset = Enum.ScrollBarInset.None  -- 移除内边距
+    scrollFrame.ElasticBehavior = Enum.ElasticBehavior.Never  -- 关键：关闭弹性行为
+    scrollFrame.Parent = mainFrame
+    
+    local listLayout = Instance.new("UIListLayout")
+    listLayout.Padding = UDim.new(0, 2)
+    listLayout.Parent = scrollFrame
+    
+    -- 状态标签
+    local statusLabel = Instance.new("TextLabel")
+    statusLabel.Text = "就绪"
+    statusLabel.Size = UDim2.new(1, -10, 0, 20)
+    statusLabel.Position = UDim2.new(0, 5, 1, -25)
+    statusLabel.BackgroundTransparency = 1
+    statusLabel.TextColor3 = Color3.new(1, 1, 1)
+    statusLabel.Font = Enum.Font.Gotham
+    statusLabel.TextSize = 11
+    statusLabel.Parent = mainFrame
+    
+    -- 更新显示函数
+    local function updateDisplay()
+        -- 清除旧内容
+        for _, child in pairs(scrollFrame:GetChildren()) do
+            if not child:IsA("UIListLayout") then
+                child:Destroy()
+            end
+        end
+        
+        local images = self:GetImageList()
+        
+        for i, data in ipairs(images) do
+            -- 创建条目（更紧凑）
+            local entry = Instance.new("Frame")
+            entry.Size = UDim2.new(1, 0, 0, 70)  -- 更矮
+            entry.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+            entry.BorderSizePixel = 1
+            entry.BorderColor3 = Color3.fromRGB(60, 60, 60)
+            entry.Parent = scrollFrame
+            
+            -- 预览图
+            local previewFrame = Instance.new("Frame")
+            previewFrame.Size = UDim2.new(0, 50, 0, 50)
+            previewFrame.Position = UDim2.new(0, 5, 0.5, -25)
+            previewFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+            previewFrame.Parent = entry
+            
+            local previewImage = Instance.new("ImageLabel")
+            previewImage.Size = UDim2.new(1, -2, 1, -2)
+            previewImage.Position = UDim2.new(0, 1, 0, 1)
+            previewImage.BackgroundTransparency = 1
+            previewImage.Image = data.url
+            previewImage.Parent = previewFrame
+            
+            -- 信息区域
+            local infoFrame = Instance.new("Frame")
+            infoFrame.Size = UDim2.new(1, -65, 1, -10)
+            infoFrame.Position = UDim2.new(0, 60, 0, 5)
+            infoFrame.BackgroundTransparency = 1
+            infoFrame.Parent = entry
+            
+            -- ID
+            local idLabel = Instance.new("TextLabel")
+            idLabel.Text = "ID: " .. data.id
+            idLabel.Size = UDim2.new(1, 0, 0, 20)
+            idLabel.Position = UDim2.new(0, 0, 0, 0)
+            idLabel.BackgroundTransparency = 1
+            idLabel.TextColor3 = Color3.fromRGB(0, 200, 255)
+            idLabel.Font = Enum.Font.GothamBold
+            idLabel.TextSize = 12
+            idLabel.TextXAlignment = Enum.TextXAlignment.Left
+            idLabel.Parent = infoFrame
+            
+            -- 路径
+            local pathLabel = Instance.new("TextLabel")
+            pathLabel.Text = data.object
+            pathLabel.Size = UDim2.new(1, -50, 0, 30)
+            pathLabel.Position = UDim2.new(0, 0, 0, 20)
+            pathLabel.BackgroundTransparency = 1
+            pathLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+            pathLabel.Font = Enum.Font.Gotham
+            pathLabel.TextSize = 9
+            pathLabel.TextXAlignment = Enum.TextXAlignment.Left
+            pathLabel.TextWrapped = true
+            pathLabel.Parent = infoFrame
+            
+            -- 复制按钮
+            local copyBtn = Instance.new("TextButton")
+            copyBtn.Text = "复制"
+            copyBtn.Size = UDim2.new(0, 40, 0, 20)
+            copyBtn.Position = UDim2.new(1, -45, 0, 5)
+            copyBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+            copyBtn.TextColor3 = Color3.new(1, 1, 1)
+            copyBtn.Font = Enum.Font.Gotham
+            copyBtn.TextSize = 10
+            copyBtn.Parent = entry
+            
+            copyBtn.MouseButton1Click:Connect(function()
+                setclipboard(data.id)
+                copyBtn.Text = "✅"
+                task.wait(1)
+                copyBtn.Text = "复制"
+            end)
+        end
+        
+        statusLabel.Text = "找到 " .. #images .. " 张图片"
+        scrollFrame.CanvasSize = UDim2.new(0, 0, 0, listLayout.AbsoluteContentSize.Y)
+    end
+    
+    -- 按钮功能
+    controlPanel.capture.MouseButton1Click:Connect(function()
+        statusLabel.Text = "抓取中..."
+        self:CaptureAll()
+        updateDisplay()
+    end)
+    
+    controlPanel.export.MouseButton1Click:Connect(function()
+        local json = self:ExportJSON()
+        setclipboard(json)
+        statusLabel.Text = "已复制JSON"
+        task.wait(1)
+        updateDisplay()
+    end)
+    
+    controlPanel.clear.MouseButton1Click:Connect(function()
+        self.CapturedImages = {}
+        updateDisplay()
+        statusLabel.Text = "列表已清空"
+    end)
+    
+    controlPanel.toggle.MouseButton1Click:Connect(function()
+        self.Enabled = not self.Enabled
+        controlPanel.toggle.BackgroundColor3 = self.Enabled and 
+            Color3.fromRGB(46, 204, 113) or Color3.fromRGB(231, 76, 60)
+        statusLabel.Text = self.Enabled and "监控开启" or "监控关闭"
+    end)
+    
+    -- 关闭按钮功能
+    closeButton.MouseButton1Click:Connect(function()
+        gui:Destroy()
+        print("图片抓包器已关闭")
+    end)
+    
+    -- 初始抓取
+    self:CaptureAll()
+    updateDisplay()
+    
+    return gui
+end
+
+-- 初始化
+if Players.LocalPlayer then
+    -- 延迟创建，避免冲突
+    task.wait(1)
+    ImageSniffer:CreateAdvancedUI()
+    print("图片抓包器已启动")
+    
+    -- 监控新图片
+    game.DescendantAdded:Connect(function(obj)
+        if not ImageSniffer.Enabled then return end
+        task.wait(0.1)
+        
+        local properties = {
+            ["ImageLabel"] = {"Image"},
+            ["ImageButton"] = {"Image"},
+            ["Decal"] = {"Texture"}
+        }
+        
+        local className = obj.ClassName
+        local props = properties[className]
+        
+        if props then
+            for _, propName in ipairs(props) do
+                local success, value = pcall(function()
+                    return obj[propName]
+                end)
+                
+                if success and type(value) == "string" and value ~= "" then
+                    local id = string.match(value, "%d+")
+                    if id then
+                        ImageSniffer:AddImage(id, value, obj, propName)
+                    end
+                end
+            end
+        end
+    end)
+end
