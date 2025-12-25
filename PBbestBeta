@@ -39,14 +39,35 @@ local Settings = {
     pipeSpeed = 0.1          -- 每次传送间隔
 }
 
--- 致命管道坐标
+-- 致命管道坐标（修复语法错误：补充分隔符、去重）
 local allPipeLocations = {
-    Vector3.new(43.06, 68.98, -254.75),Vector3.new(-0.53, 71.14, -329.87),Vector3.new(12.90, 94.29, -531.77),
-    Vector3.new(-13.55, 87.70, -455.12),Vector3.new(-38.72, 87.45, -269.56),Vector3.new(-60.21, 105.48, -156.82),
-    Vector3.new(-44.85, 112.19, -398.75),Vector3.new(73.64, 105.44, -404.03),Vector3.new(327.87, 37.94, 246.22),
-    Vector3.new(386.97, 7.47, 331.48),Vector3.new(408.68, 34.45, 169.92),Vector3.new(335.75, 18.12, 205.47),
-    Vector3.new(406.35, 33.01, 375.60),Vector3.new(359.39, 18.07, 437.61),Vector3.new(184.68, 18.11, 245.28),
-    Vector3.new(312.79, 10.66, 351.58),Vector3.new(358.95, 18, 436.84),Vector3.new(358.95, 18, 436.84)
+    Vector3.new(43.06, 68.98, -254.75),
+    Vector3.new(-0.53, 71.14, -329.87),
+    Vector3.new(12.90, 94.29, -531.77),
+    Vector3.new(-13.55, 87.70, -455.12),
+    Vector3.new(-38.72, 87.45, -269.56),
+    Vector3.new(-60.21, 105.48, -156.82),
+    Vector3.new(-44.85, 112.19, -398.75),
+    Vector3.new(73.64, 105.44, -404.03),
+    Vector3.new(327.87, 37.94, 246.22),
+    Vector3.new(386.97, 7.47, 331.48),
+    Vector3.new(408.68, 34.45, 169.92),
+    Vector3.new(335.75, 18.12, 205.47),
+    Vector3.new(406.35, 33.01, 375.60),
+    Vector3.new(359.39, 18.07, 437.61),
+    Vector3.new(184.68, 18.11, 245.28),
+    Vector3.new(312.79, 10.66, 351.58),
+    Vector3.new(358.95, 18, 436.84),
+    Vector3.new(-367.8, 5.0, -272.1),
+    Vector3.new(-196.9, 63.4, -306.7),
+    Vector3.new(-269.1, 4.8, -499.9),
+    Vector3.new(-151.4, 63.4, -514.7),
+    Vector3.new(-177.8, 30.4, -398.7),
+    Vector3.new(-420.1, 30.3, -407.2),
+    Vector3.new(-265.7, 4.9, -621.5),
+    Vector3.new(-343.5, 4.8, -621.5),
+    Vector3.new(-345.4, 4.9, -561.1),
+    Vector3.new(42.9, 7.7, -687.2)
 }
 
 -- ========== 3. 辅助函数 ==========
@@ -66,12 +87,12 @@ local function playSound()
     sound.Ended:Connect(function() sound:Destroy() end)
 end
 
--- 缺失的通知函数
+-- 缺失的通知函数（空实现，不弹出提示）
 local function createExpertNotification(text, color)
-    Library:Notify(text, true)
+    -- 空函数，不发送任何提示
 end
 
--- Expert传送函数（去重+修复）
+-- Expert传送函数（去重+修复，无提示）
 local function performExpertTeleport(location, locationName)
     local character = player.Character
     if not character then 
@@ -80,17 +101,15 @@ local function performExpertTeleport(location, locationName)
 
     local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
     if not humanoidRootPart then 
-        createExpertNotification("根部件不存在", Color3.fromRGB(200, 50, 50))
         return false 
     end
 
     local teleportPos = Vector3.new(location.X, location.Y, location.Z)
     humanoidRootPart.CFrame = CFrame.new(teleportPos)
-    
     return true
 end
 
--- ========== 5. Expert功能 - 仙人模式（优化版） ==========
+-- ========== 5. Expert功能 - 仙人模式（优化版，无提示） ==========
 local isNinjaModeActive = false
 local originalWalkSpeed = 16
 local originalJumpPower = 50
@@ -119,6 +138,15 @@ local function disableNoclip()
     if noclipConnection then
         noclipConnection:Disconnect()
         noclipConnection = nil
+        -- 恢复碰撞
+        local character = player.Character
+        if character then
+            for _, part in pairs(character:GetDescendants()) do
+                if part:IsA("BasePart") then
+                    part.CanCollide = true
+                end
+            end
+        end
     end
 end
 
@@ -126,10 +154,14 @@ local function startNinjaMode()
     if isNinjaModeActive then return end
 
     local character = player.Character
-    if not character then return end
+    if not character then 
+        return false 
+    end
 
     local humanoid = character:FindFirstChild("Humanoid")
-    if not humanoid then return end
+    if not humanoid then 
+        return false 
+    end
 
     originalWalkSpeed = humanoid.WalkSpeed
     originalJumpPower = humanoid.JumpPower
@@ -142,7 +174,7 @@ local function startNinjaMode()
 
     -- 无限跳跃（优化防抽搐）
     ninjaModeConnection = UserInputService.JumpRequest:Connect(function()
-        if infiniteJumpEnabled and character and character:FindFirstChild("Humanoid") then
+        if infiniteJumpEnabled and character and character:FindFirstChild("Humanoid") and character.Humanoid.FloorMaterial == Enum.Material.Air then
             character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
         end
     end)
@@ -196,13 +228,13 @@ end)
 
 -- Expert坐标定义
 local expertLocations = {
-    backroom = {X = 163.15, Y = 9, Z = 955.4},
-    theaterFactory = {X = 0, Y = -297, Z = 0},
-    sewer = {X = 356, Y = 528, Z = -179}
+    backroom = {X = 163.15, Y = 9, Z = 955.4, Name = "等候厅"},
+    theaterFactory = {X = 0, Y = -297, Z = 0, Name = "剧院/工厂"},
+    sewer = {X = 356, Y = 528, Z = -179, Name = "下水道"}
 }
 
 -- ========== 6. Monster窗口功能 ==========
--- 6.1 杀戮光环（保持原有逻辑+修复断开连接）
+-- 6.1 杀戮光环（保持原有逻辑+修复断开连接，无提示）
 local function auraMainLoop()
     local root = getRootPart()
     if not root or not isAuraActive then return end
@@ -238,20 +270,17 @@ local function toggleAura(state)
     if state then
         renderConnection = RunService.RenderStepped:Connect(auraMainLoop)
         playSound()
-        
     else
         if renderConnection then 
             renderConnection:Disconnect()
             renderConnection = nil
         end
-        
     end
 end
 
--- 6.2 致命管道
+-- 6.2 致命管道（无提示）
 local function performAutoPipeTeleport()
     if pipeInProgress then
-        Library:Notify("⚠ 传送中，请勿重复点击", false)
         return
     end
     pipeInProgress = true
@@ -259,10 +288,8 @@ local function performAutoPipeTeleport()
     local root = getRootPart()
     if not root then
         pipeInProgress = false
-        Library:Notify("❌ 根部件获取失败", false)
         return
     end
-
 
     local originalCFrame = root.CFrame
 
@@ -275,21 +302,18 @@ local function performAutoPipeTeleport()
         end
         local r = getRootPart()
         if r then r.CFrame = originalCFrame end
-        
         pipeInProgress = false
     end)
 end
 
--- 6.3 轮流传送
+-- 6.3 轮流传送（无提示）
 local cycleTeleportIndex = 1
 local function performCycleTeleport()
     if pipeInProgress then
-        Library:Notify("⚠ 传送中，无法执行", false)
         return
     end
     local root = getRootPart()
     if not root then
-        Library:Notify("❌ 根部件获取失败", false)
         return
     end
 
@@ -305,7 +329,6 @@ local function performCycleTeleport()
     end
 
     if #validPlayers == 0 then
-        Library:Notify("❌ 无有效存活玩家", false)
         return
     end
 
@@ -313,7 +336,6 @@ local function performCycleTeleport()
     local target = validPlayers[cycleTeleportIndex]
     local tRoot = target.Character:FindFirstChild("HumanoidRootPart")
     root.CFrame = CFrame.new(tRoot.Position.X, tRoot.Position.Y + Settings.teleportHeight, tRoot.Position.Z)
-    Library:Notify(string.format("➡ 传送到玩家：%s", target.Name), true)
 end
 
 -- ========== 7. 播放Expert音效 ==========
@@ -331,26 +353,6 @@ local function playExpertSound()
     end
 end
 
--- ========== 8. 角色重生处理仙人模式 ==========
-player.CharacterAdded:Connect(function(character)
-    if isNinjaModeActive then
-        task.wait(0.5)
-        if isNinjaModeActive then
-            local humanoid = character:FindFirstChild("Humanoid")
-            if humanoid then
-                humanoid.WalkSpeed = originalWalkSpeed * ninjaModeMultiplier
-                humanoid.JumpPower = originalJumpPower * 3
-                if ninjaModeConnection then ninjaModeConnection:Disconnect() end
-                ninjaModeConnection = UserInputService.JumpRequest:Connect(function()
-                    if infiniteJumpEnabled and character and character:FindFirstChild("Humanoid") then
-                        character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
-                    end
-                end)
-            end
-        end
-    end
-end)
-
 -- ========== 9. 创建Monster窗口功能模块 ==========
 -- 只保留攻击距离滑块和每次传送间隔滑块
 local Aura = CombatWin:CreateModule("杀戮光环", toggleAura)
@@ -367,23 +369,22 @@ CombatWin:CreateModule("轮流传送", performCycleTeleport)
 
 -- ========== 10. 创建Expert窗口功能模块 ==========
 VisualsWin:CreateModule("传送等候厅", function()
-    performExpertTeleport(expertLocations.backroom, "等候厅")
+    performExpertTeleport(expertLocations.backroom, expertLocations.backroom.Name)
 end)
 
 VisualsWin:CreateModule("万能传送", function()
-    performExpertTeleport(expertLocations.theaterFactory, "剧院/工厂")
+    performExpertTeleport(expertLocations.theaterFactory, expertLocations.theaterFactory.Name)
 end)
 
 VisualsWin:CreateModule("传送下水道", function()
-    performExpertTeleport(expertLocations.sewer, "下水道")
+    performExpertTeleport(expertLocations.sewer, expertLocations.sewer.Name)
 end)
 
 local NinjaModule = VisualsWin:CreateModule("仙人模式", function(state)
     if state then
-        if startNinjaMode() then
-            
-        end
+        startNinjaMode()
     else
+        stopNinjaMode()
         print("看什么看,没见过输出啊😡")
     end
 end)
@@ -398,39 +399,35 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
 
         -- Expert功能快捷键
         elseif input.KeyCode == Enum.KeyCode.B then
-            performExpertTeleport(expertLocations.backroom, "等候厅")
+            performExpertTeleport(expertLocations.backroom, expertLocations.backroom.Name)
         elseif input.KeyCode == Enum.KeyCode.T then
-            performExpertTeleport(expertLocations.theaterFactory, "剧院/工厂")
+            performExpertTeleport(expertLocations.theaterFactory, expertLocations.theaterFactory.Name)
         elseif input.KeyCode == Enum.KeyCode.S then
-            performExpertTeleport(expertLocations.sewer, "下水道")
+            performExpertTeleport(expertLocations.sewer, expertLocations.sewer.Name)
         elseif input.KeyCode == Enum.KeyCode.N then
             if isNinjaModeActive then
-                
-               
+                stopNinjaMode()
             else
-                
+                startNinjaMode()
             end
         end
     end
 end)
 
--- ========== 新增：自杀选项 ==========
+-- ========== 新增：自杀选项（无提示） ==========
 VisualsWin:CreateModule("自杀", function()
     local character = player.Character
     if not character then
-        Library:Notify("❌ 角色不存在", false)
         return 
     end
 
     local humanoid = character:FindFirstChild("Humanoid")
     if not humanoid then 
-        Library:Notify("❌ 未找到人形对象", false)
         return 
     end
 
     -- 直接设置血量为0
     humanoid.Health = 0
-    
 end)
 
 -- ========== 12. 初始化 ==========
@@ -441,8 +438,6 @@ playExpertSound()
 -- 设置playbreak
 Library:SetupSettings()
 
--- 显示加载完成通知
-Library:Notify("欢迎使用", true)
 -- 完整搜索所有GUI
 local translation = {
     ["By BeiHai"] = "BY | 渔炒鱼",
@@ -474,3 +469,17 @@ for _, gui in pairs(places) do
         end
     end
 end
+
+-- 新增：防卡死处理（强制关闭所有连接）
+game.Close:Connect(function()
+    if renderConnection then renderConnection:Disconnect() end
+    if ninjaModeConnection then ninjaModeConnection:Disconnect() end
+    if noclipConnection then noclipConnection:Disconnect() end
+    pipeInProgress = false
+    isAuraActive = false
+    isNinjaModeActive = false
+end)
+Wait(2)
+Library:Notify("欢迎使用", true)
+Wait(1)
+Library:Notify("已适配新地图管道", true)
