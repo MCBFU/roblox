@@ -1,15 +1,154 @@
--- 图片和音效批量替换工具 - 修复版
+-- 高级加载界面 + 图片音效替换整合版
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+
+local player = Players.LocalPlayer
+
+-- ============== 第一部分：高级加载界面 ==============
+
+-- 创建全屏界面
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "PremiumLoader"
+screenGui.ResetOnSpawn = false
+screenGui.IgnoreGuiInset = true
+screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+-- 主图片容器（绝对全屏）
+local imageContainer = Instance.new("Frame")
+imageContainer.Size = UDim2.new(1, 0, 1, 0)
+imageContainer.Position = UDim2.new(0, 0, 0, 0)
+imageContainer.BackgroundTransparency = 1
+imageContainer.ClipsDescendants = true
+
+-- 主图片（完美填充）
+local mainImage = Instance.new("ImageLabel")
+mainImage.Size = UDim2.new(1.1, 0, 1.1, 0)  -- 稍微放大防止边缘缝隙
+mainImage.Position = UDim2.new(-0.05, 0, -0.05, 0)
+mainImage.BackgroundTransparency = 1
+mainImage.Image = "rbxassetid://111333374680640"
+mainImage.ScaleType = Enum.ScaleType.Crop
+mainImage.ImageColor3 = Color3.fromRGB(255, 255, 255)
+mainImage.ImageTransparency = 0
+
+-- 进度条容器（左下角超小超精致）
+local progressContainer = Instance.new("Frame")
+progressContainer.Size = UDim2.new(0.12, 0, 0, 4)  -- 超小超细
+progressContainer.Position = UDim2.new(0.02, 0, 0.96, 0)  -- 左下角
+progressContainer.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+progressContainer.BackgroundTransparency = 0.8
+progressContainer.AnchorPoint = Vector2.new(0, 1)
+
+local progressCorner = Instance.new("UICorner")
+progressCorner.CornerRadius = UDim.new(1, 0)
+
+-- 进度条背景
+local progressBackground = Instance.new("Frame")
+progressBackground.Size = UDim2.new(1, -2, 1, -2)
+progressBackground.Position = UDim2.new(0, 1, 0, 1)
+progressBackground.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+progressBackground.BackgroundTransparency = 0.7
+
+local bgCorner = Instance.new("UICorner")
+bgCorner.CornerRadius = UDim.new(1, 0)
+
+-- 进度条前景（霓虹蓝色）
+local progressBar = Instance.new("Frame")
+progressBar.Size = UDim2.new(0, 0, 1, -2)
+progressBar.Position = UDim2.new(0, 1, 0, 1)
+progressBar.BackgroundColor3 = Color3.fromRGB(0, 200, 255)
+progressBar.BorderSizePixel = 0
+
+local barCorner = Instance.new("UICorner")
+barCorner.CornerRadius = UDim.new(1, 0)
+
+-- 进度百分比（超小字体）
+local progressText = Instance.new("TextLabel")
+progressText.Text = "0"
+progressText.Size = UDim2.new(0, 30, 0, 20)
+progressText.Position = UDim2.new(1, 5, 0, -8)
+progressText.BackgroundTransparency = 1
+progressText.TextColor3 = Color3.fromRGB(0, 200, 255)
+progressText.Font = Enum.Font.GothamBold
+progressText.TextSize = 14
+progressText.TextXAlignment = Enum.TextXAlignment.Left
+
+-- 组装UI
+progressCorner.Parent = progressContainer
+bgCorner.Parent = progressBackground
+barCorner.Parent = progressBar
+
+progressBackground.Parent = progressContainer
+progressBar.Parent = progressBackground
+progressText.Parent = progressContainer
+
+mainImage.Parent = imageContainer
+progressContainer.Parent = imageContainer
+imageContainer.Parent = screenGui
+screenGui.Parent = player:WaitForChild("PlayerGui")
+
+-- 进度条动画
+local progress = 0
+local function smoothProgress()
+    local startTime = tick()
+    
+    while progress < 100 do
+        local elapsed = tick() - startTime
+        progress = (elapsed / 3) * 100  -- 3秒完成
+        
+        if progress > 100 then progress = 100 end
+        
+        -- 超丝滑的进度条动画
+        local tween = TweenService:Create(
+            progressBar,
+            TweenInfo.new(0.05, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+            {Size = UDim2.new(progress / 100, 0, 1, -2)}
+        )
+        tween:Play()
+        
+        -- 进度文本
+        progressText.Text = string.format("%d", math.floor(progress))
+        
+        RunService.RenderStepped:Wait()
+    end
+end
+
+-- 启动进度条
+spawn(smoothProgress)
+
+-- 等待完成
+repeat wait(0.1) until progress >= 100
+
+-- 完成效果
+progressText.Text = "100"
+wait(0.3)
+
+-- 渐出动画
+local fadeOut = TweenService:Create(
+    imageContainer,
+    TweenInfo.new(1, Enum.EasingStyle.Cubic, Enum.EasingDirection.Out),
+    {BackgroundTransparency = 1}
+)
+fadeOut:Play()
+
+-- ============== 第二部分：图片音效替换 ==============
+
 local replacementLists = {
     -- 图片替换列表
     Images = {
         {oldId = "18983980709", newId = "7361324455"},--死亡人类
-        {oldId = "733082708", newId = "98446998103932"},--残血人类
+        {oldId = "733082708", newId = "14202378435"},--残血人类
         {oldId = "18143239786", newId = "98446998103932"},--小猫吐舌p
         {oldId = "18143239786", newId = "98446998103932"},--盒子选择
         {oldId = "17873701775", newId = "14188388240"},--票子框
+        {oldId = "111766019087066", newId = "14188388240"},--
         {oldId = "76846693971609", newId = ""},--罗宝
         {oldId = "84173824340486", newId = "11419702905"},--盾牌技能
         {oldId = "80280801657905", newId = "12974453788"},--逃跑技能
+        {oldId = "109696182350022", newId = "12974362186"},--医疗技能
+        {oldId = "11245756484", newId = "11432834725"},--潜行技能
+        {oldId = "3041611933", newId = "5948297313"},--G
+        {oldId = "18984010733", newId = "11293978505"},--翻滚
         {oldId = "71894692127690", newId = "98446998103932"},--有名图片
         {oldId = "15459548442", newId = "98446998103932"},--盒子选择
         {oldId = "17623366300", newId = "15236655346"},--老版本等候厅火车（开始按钮）
@@ -20,10 +159,24 @@ local replacementLists = {
         {oldId = "18983985638", newId = "15540208282"},--火车图案
         {oldId = "77354540467357", newId = ""},--小黑人
         {oldId = "105124043854658", newId = "11295273292"},--怪物逃生阵营切换
+        {oldId = "16244554485", newId = "76846693971609"},--等待
+        {oldId = "13518130183", newId = "13910235294"},--小星星
+        {oldId = "108218417623236", newId = "7361324455"},--挣脱轮盘
+        {oldId = "18983982189", newId = "18848424198"},--正常玩家
+        {oldId = "18983983311", newId = "7361324455"},--已掉入管道的玩家
+        {oldId = "18697280880", newId = "11963356747"},--管道标识
+        {oldId = "117426859805043", newId = "7361324455"},--下拉机器
+        {oldId = "9367208286", newId = "11455761101"},--玩家失误提示
+        {oldId = "7539983773", newId = "11963364026"},--设置界面
     },
     
     -- 音效替换列表  
     Sounds = {
+        {old = "6027236630", new = "119031191462818"},--翻滚
+        {old = "118826043355401", new = "119031191462818"},
+        {old = "102502859803169", new = "9126102254"},--卷帘门
+        {old = "8509804480", new = "8509804480"},--机器人砍倒人
+        {old = "6461775588", new = "8509804480"},
         {old = "6027236630", new = "119031191462818"},--板板跳跃
         {old = "119547018329590", new = "15689445424"},--火车逃离
         {old = "9042971851", new = "133701137571082"},--开启新地图游戏
@@ -31,9 +184,12 @@ local replacementLists = {
         {old = "268933841", new = "9043491257"},--落地
         {old = "1014740409", new = "94624102598882"},--小哈吉突脸
         {old = "6052548458", new = "7390036132"},
+        {old = "81953263341178", new = "94624102598882"},
         {old = "4697381311", new = "94624102598882"},--哈吉冲刺突脸
         {old = "17779172376", new = "15689451063"},--怪物选择界面
         {old = "105708271085646", new = "9040093731"},--最后结束
+        {old = "15161202088", new = "9040093731"},
+        {old = "70802680979187", new = "9040093731"},
         {old = "93555365323626", new = "6592039185"},--刚开游戏
         {old = "9047227058", new = "6698737249"},
         {old = "17754461645", new = "102635449518574"},--拍打玩家
@@ -51,209 +207,90 @@ local replacementLists = {
         {old = "18108929972", new = "17754461645"},--被放入井道
         {old = "103208711906653", new = "15183765436"},--休闲时刻背景音乐✅️
         {old = "125643578367125", new = "111358125948665"},--你买不起
-        {old = "130307677976118", new = ""},--加载画面
+        {old = "130307677976118", new = "166047422"},--加载画面
         {old = "139792801528961", new = "90645451074699"},--举起玩家
         {old = "89226672351498", new = "93411834929338"},--妈咪突脸
         {old = "81665056647548", new = "93411834929338"},--盒子突脸
     }
 }
 
--- 图片替换函数（调试版）
-local function replaceAllImages()
-    local imageCount = 0
-    print("开始替换图片...")
-    
+-- 替换函数
+local function replaceAll()
+    -- 图片替换
     for _, item in ipairs(replacementLists.Images) do
-        local oldId = item.oldId
-        local newId = item.newId
-        
-        if oldId == "" then goto continue end
-        
-        print("检查图片ID: " .. oldId .. " -> " .. (newId ~= "" and newId or "删除"))
-        
-        -- 检查所有地方
-        local function processObject(obj)
-            if obj:IsA("ImageLabel") or obj:IsA("ImageButton") then
-                local image = tostring(obj.Image)
-                -- 检查多种可能的格式
-                local patterns = {
-                    oldId,
-                    "rbxassetid://" .. oldId,
-                    "http://www.roblox.com/asset/?id=" .. oldId,
-                    "https://www.roblox.com/asset/?id=" .. oldId,
-                    "rbxasset://" .. oldId
-                }
-                
-                for _, pattern in ipairs(patterns) do
-                    if image == pattern then
-                        if newId ~= "" then
-                            obj.Image = "rbxassetid://" .. newId
-                            print("✅ 替换图片: " .. obj:GetFullName())
-                            imageCount = imageCount + 1
-                        else
-                            obj:Destroy()
-                            print("🗑️ 删除图片: " .. obj:GetFullName())
-                        end
-                        return true
+        if item.oldId ~= "" and item.newId ~= "" then
+            for _, obj in pairs(game:GetDescendants()) do
+                if obj:IsA("ImageLabel") or obj:IsA("ImageButton") then
+                    local image = tostring(obj.Image)
+                    if image == item.oldId or 
+                       image == "rbxassetid://" .. item.oldId or
+                       image:find(item.oldId) then
+                        obj.Image = "rbxassetid://" .. item.newId
+                    end
+                elseif obj:IsA("Decal") or obj:IsA("Texture") then
+                    local texture = tostring(obj.Texture)
+                    if texture == item.oldId or 
+                       texture == "rbxassetid://" .. item.oldId or
+                       texture:find(item.oldId) then
+                        obj.Texture = "rbxassetid://" .. item.newId
                     end
                 end
             end
-            return false
         end
-        
-        -- 检查所有服务
-        local services = {
-            workspace,
-            game:GetService("Players"),
-            game:GetService("ReplicatedStorage"),
-            game:GetService("ServerStorage"),
-            game:GetService("Lighting"),
-            game:GetService("StarterGui"),
-            game:GetService("StarterPack"),
-            game:GetService("StarterPlayer"),
-            game:GetService("SoundService")
-        }
-        
-        for _, service in ipairs(services) do
-            for _, obj in pairs(service:GetDescendants()) do
-                processObject(obj)
-            end
-        end
-        
-        ::continue::
     end
     
-    print("✅ 图片替换完成，处理了 " .. imageCount .. " 个图片")
-    return imageCount
-end
-
--- 音效替换函数（调试版）
-local function replaceAllSounds()
-    local soundCount = 0
-    print("开始替换音效...")
-    
+    -- 音效替换
     for _, item in ipairs(replacementLists.Sounds) do
-        local oldSound = item.old
-        local newSound = item.new
-        
-        if oldSound == "" then goto continue end
-        
-        print("检查音效ID: " .. oldSound .. " -> " .. (newSound ~= "" and newSound or "删除"))
-        
-        -- 检查所有音效
-        for _, obj in pairs(game:GetDescendants()) do
-            if obj:IsA("Sound") then
-                local soundId = tostring(obj.SoundId)
-                
-                -- 检查多种可能的格式
-                local patterns = {
-                    oldSound,
-                    "rbxassetid://" .. oldSound,
-                    "http://www.roblox.com/asset/?id=" .. oldSound,
-                    "https://www.roblox.com/asset/?id=" .. oldSound,
-                    "rbxasset://" .. oldSound
-                }
-                
-                for _, pattern in ipairs(patterns) do
-                    if string.find(soundId, pattern) then
-                        if newSound ~= "" then
-                            obj.SoundId = "rbxassetid://" .. newSound
-                            print("✅ 替换音效: " .. obj:GetFullName())
-                            soundCount = soundCount + 1
-                        else
-                            obj.Volume = 0
-                            obj:Destroy()
-                            print("🗑️ 删除音效: " .. obj:GetFullName())
-                        end
-                        break
+        if item.old ~= "" and item.new ~= "" then
+            for _, obj in pairs(game:GetDescendants()) do
+                if obj:IsA("Sound") then
+                    local soundId = tostring(obj.SoundId)
+                    if soundId:find(item.old) then
+                        obj.SoundId = "rbxassetid://" .. item.new
                     end
                 end
             end
         end
-        
-        ::continue::
     end
     
-    print("✅ 音效替换完成，处理了 " .. soundCount .. " 个音效")
-    return soundCount
-end
-
--- 实时监控新内容
-local function monitorNewContent()
+    -- 实时监控
     game.DescendantAdded:Connect(function(obj)
-        task.wait(0.1)  -- 等待对象完全加载
+        task.wait(0.1)
         
-        -- 检查图片
+        -- 图片
         if obj:IsA("ImageLabel") or obj:IsA("ImageButton") then
             local image = tostring(obj.Image)
             for _, item in ipairs(replacementLists.Images) do
-                if item.oldId ~= "" then
-                    local patterns = {
-                        item.oldId,
-                        "rbxassetid://" .. item.oldId,
-                        "http://www.roblox.com/asset/?id=" .. item.oldId,
-                        "https://www.roblox.com/asset/?id=" .. item.oldId,
-                        "rbxasset://" .. item.oldId
-                    }
-                    
-                    for _, pattern in ipairs(patterns) do
-                        if image == pattern then
-                            if item.newId ~= "" then
-                                obj.Image = "rbxassetid://" .. item.newId
-                                print("🔄 实时替换图片: " .. obj:GetFullName())
-                            else
-                                obj:Destroy()
-                            end
-                            break
-                        end
+                if item.oldId ~= "" and item.newId ~= "" then
+                    if image == item.oldId or 
+                       image == "rbxassetid://" .. item.oldId or
+                       image:find(item.oldId) then
+                        obj.Image = "rbxassetid://" .. item.newId
                     end
                 end
             end
         end
         
-        -- 检查音效
+        -- 音效
         if obj:IsA("Sound") then
             local soundId = tostring(obj.SoundId)
             for _, item in ipairs(replacementLists.Sounds) do
-                if item.old ~= "" then
-                    local patterns = {
-                        item.old,
-                        "rbxassetid://" .. item.old,
-                        "http://www.roblox.com/asset/?id=" .. item.old,
-                        "https://www.roblox.com/asset/?id=" .. item.old,
-                        "rbxasset://" .. item.old
-                    }
-                    
-                    for _, pattern in ipairs(patterns) do
-                        if string.find(soundId, pattern) then
-                            if item.new ~= "" then
-                                obj.SoundId = "rbxassetid://" .. item.new
-                                print("🔄 实时替换音效: " .. obj:GetFullName())
-                            else
-                                obj.Volume = 0
-                                obj:Destroy()
-                            end
-                            break
-                        end
+                if item.old ~= "" and item.new ~= "" then
+                    if soundId:find(item.old) then
+                        obj.SoundId = "rbxassetid://" .. item.new
                     end
                 end
             end
         end
     end)
-    
-    print("🔍 开始监控新内容...")
 end
 
--- 执行所有替换
-print("🚀 开始执行替换脚本...")
-local imageCount = replaceAllImages()
-local soundCount = replaceAllSounds()
-monitorNewContent()
+-- 等待加载界面消失后执行替换
+fadeOut.Completed:Connect(function()
+    wait(0.5)
+    replaceAll()
+    print("✅ 图片音效替换完成")
+    screenGui:Destroy()
+end)
 
-print("====================================")
-print("✅ 替换完成")
-print("图片替换项: " .. #replacementLists.Images)
-print("音效替换项: " .. #replacementLists.Sounds)
-print("实际处理图片: " .. imageCount)
-print("实际处理音效: " .. soundCount)
-print("====================================")
+print("🚀 高级加载界面启动，3秒后执行替换")
