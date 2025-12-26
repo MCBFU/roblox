@@ -29,14 +29,14 @@ mainImage.BackgroundTransparency = 1
 mainImage.Image = "rbxassetid://111333374680640"
 mainImage.ScaleType = Enum.ScaleType.Crop
 mainImage.ImageColor3 = Color3.fromRGB(255, 255, 255)
-mainImage.ImageTransparency = 0
+mainImage.ImageTransparency = 1  -- 初始透明，准备淡入
 
 -- 进度条容器（左下角超小超精致）
 local progressContainer = Instance.new("Frame")
 progressContainer.Size = UDim2.new(0.12, 0, 0, 4)  -- 超小超细
 progressContainer.Position = UDim2.new(0.02, 0, 0.96, 0)  -- 左下角
 progressContainer.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-progressContainer.BackgroundTransparency = 0.8
+progressContainer.BackgroundTransparency = 1  -- 初始透明
 progressContainer.AnchorPoint = Vector2.new(0, 1)
 
 local progressCorner = Instance.new("UICorner")
@@ -72,6 +72,7 @@ progressText.TextColor3 = Color3.fromRGB(0, 200, 255)
 progressText.Font = Enum.Font.GothamBold
 progressText.TextSize = 14
 progressText.TextXAlignment = Enum.TextXAlignment.Left
+progressText.TextTransparency = 1  -- 初始透明
 
 -- 组装UI
 progressCorner.Parent = progressContainer
@@ -87,17 +88,42 @@ progressContainer.Parent = imageContainer
 imageContainer.Parent = screenGui
 screenGui.Parent = player:WaitForChild("PlayerGui")
 
+-- 淡入动画
+local fadeIn = TweenService:Create(
+    mainImage,
+    TweenInfo.new(0.8, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+    {ImageTransparency = 0}
+)
+
+local progressFadeIn = TweenService:Create(
+    progressContainer,
+    TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+    {BackgroundTransparency = 0.8}
+)
+
+local textFadeIn = TweenService:Create(
+    progressText,
+    TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+    {TextTransparency = 0}
+)
+
+-- 执行淡入动画
+fadeIn:Play()
+wait(0.3)
+progressFadeIn:Play()
+textFadeIn:Play()
+
 -- 进度条动画
 local progress = 0
 local function smoothProgress()
     local startTime = tick()
-    
+
     while progress < 100 do
         local elapsed = tick() - startTime
         progress = (elapsed / 3) * 100  -- 3秒完成
-        
+
         if progress > 100 then progress = 100 end
-        
+
         -- 超丝滑的进度条动画
         local tween = TweenService:Create(
             progressBar,
@@ -105,10 +131,10 @@ local function smoothProgress()
             {Size = UDim2.new(progress / 100, 0, 1, -2)}
         )
         tween:Play()
-        
+
         -- 进度文本
         progressText.Text = string.format("%d", math.floor(progress))
-        
+
         RunService.RenderStepped:Wait()
     end
 end
@@ -123,13 +149,34 @@ repeat wait(0.1) until progress >= 100
 progressText.Text = "100"
 wait(0.3)
 
--- 渐出动画
-local fadeOut = TweenService:Create(
-    imageContainer,
-    TweenInfo.new(1, Enum.EasingStyle.Cubic, Enum.EasingDirection.Out),
-    {BackgroundTransparency = 1}
-)
-fadeOut:Play()
+-- 淡出动画
+local fadeOutSequence = {
+    -- 进度条先淡出
+    TweenService:Create(
+        progressContainer,
+        TweenInfo.new(0.5, Enum.EasingStyle.Cubic, Enum.EasingDirection.Out),
+        {BackgroundTransparency = 1}
+    ),
+    
+    TweenService:Create(
+        progressText,
+        TweenInfo.new(0.5, Enum.EasingStyle.Cubic, Enum.EasingDirection.Out),
+        {TextTransparency = 1}
+    ),
+    
+    -- 主图片淡出
+    TweenService:Create(
+        mainImage,
+        TweenInfo.new(1.2, Enum.EasingStyle.Cubic, Enum.EasingDirection.Out),
+        {ImageTransparency = 1}
+    )
+}
+
+-- 执行淡出动画
+for i, tween in ipairs(fadeOutSequence) do
+    tween:Play()
+    wait(0.2)
+end
 
 -- ============== 第二部分：图片音效替换 ==============
 
@@ -150,7 +197,7 @@ local replacementLists = {
         {oldId = "3041611933", newId = "5948297313"},--G
         {oldId = "18984010733", newId = "11293978505"},--翻滚
         {oldId = "71894692127690", newId = "98446998103932"},--有名图片
-        {oldId = "15459548442", newId = "98446998103932"},--盒子选择
+        {oldId = "15459548442", newId = "28872862"},--盒子选择
         {oldId = "17623366300", newId = "15236655346"},--老版本等候厅火车（开始按钮）
         {oldId = "113441953421169", newId = "98446998103932"},--月色下追逐
         {oldId = "7792025253", newId = "14202377267"},--玩家列表未加载出来的人
@@ -169,19 +216,21 @@ local replacementLists = {
         {oldId = "9367208286", newId = "11455761101"},--玩家失误提示
         {oldId = "7539983773", newId = "11963364026"},--设置界面
     },
-    
+
     -- 音效替换列表  
     Sounds = {
         {old = "6027236630", new = "119031191462818"},--翻滚
         {old = "118826043355401", new = "119031191462818"},
         {old = "102502859803169", new = "9126102254"},--卷帘门
+        {old = "90782284167817", new = "16190782181"},--开始挣脱
         {old = "8509804480", new = "8509804480"},--机器人砍倒人
         {old = "6461775588", new = "8509804480"},
+        {old = "2867269913", new = "16190782181"},--追逐战
         {old = "6027236630", new = "119031191462818"},--板板跳跃
         {old = "119547018329590", new = "15689445424"},--火车逃离
         {old = "9042971851", new = "133701137571082"},--开启新地图游戏
         {old = "6794886454", new = "94624102598882"},--兔子音符盒
-        {old = "268933841", new = "9043491257"},--落地
+        {old = "268933841", new = "8400918001"},--落地
         {old = "1014740409", new = "94624102598882"},--小哈吉突脸
         {old = "6052548458", new = "7390036132"},
         {old = "81953263341178", new = "94624102598882"},
@@ -190,17 +239,18 @@ local replacementLists = {
         {old = "105708271085646", new = "9040093731"},--最后结束
         {old = "15161202088", new = "9040093731"},
         {old = "70802680979187", new = "9040093731"},
+        {old = "18580125132", new = "9040093731"},
         {old = "93555365323626", new = "6592039185"},--刚开游戏
         {old = "9047227058", new = "6698737249"},
         {old = "17754461645", new = "102635449518574"},--拍打玩家
-        {old = "102227464743820", new = "1838285490"},--等候厅小曲✅️
+        {old = "102227464743820", new = "1838285490"},--等候厅小曲
         {old = "18108930258", new = "86764987673138"},--从管道被救出
         {old = "4458750140", new = "79486256972927"},--骨折
         {old = "18108929583", new = "88694614773673"},--怪物胜利
         {old = "136847579", new = "4685847723"},--怪物是机器人
         {old = "17830578431", new = "9113988327"},--怪物是哈吉
         {old = "100117953439271", new = "1014740409"},--怪物是妈咪
-        {old = "", new = "17830572203"},--怪物是盒子
+        {old = "17830572203", new = "17830572203"},--怪物是盒子
         {old = "9125467397", new = "17208380755"},--爬起
         {old = "131136929849120", new = "166047422"},--挣脱成功
         {old = "18783467913", new = "106235104957151"},--集齐所有零件
@@ -211,6 +261,7 @@ local replacementLists = {
         {old = "139792801528961", new = "90645451074699"},--举起玩家
         {old = "89226672351498", new = "93411834929338"},--妈咪突脸
         {old = "81665056647548", new = "93411834929338"},--盒子突脸
+        {old = "5312518467", new = "70406650561771"},--下水道背景音
     }
 }
 
@@ -238,7 +289,7 @@ local function replaceAll()
             end
         end
     end
-    
+
     -- 音效替换
     for _, item in ipairs(replacementLists.Sounds) do
         if item.old ~= "" and item.new ~= "" then
@@ -252,11 +303,11 @@ local function replaceAll()
             end
         end
     end
-    
+
     -- 实时监控
     game.DescendantAdded:Connect(function(obj)
         task.wait(0.1)
-        
+
         -- 图片
         if obj:IsA("ImageLabel") or obj:IsA("ImageButton") then
             local image = tostring(obj.Image)
@@ -270,7 +321,7 @@ local function replaceAll()
                 end
             end
         end
-        
+
         -- 音效
         if obj:IsA("Sound") then
             local soundId = tostring(obj.SoundId)
@@ -285,12 +336,13 @@ local function replaceAll()
     end)
 end
 
--- 等待加载界面消失后执行替换
-fadeOut.Completed:Connect(function()
-    wait(0.5)
-    replaceAll()
-    print("✅ 图片音效替换完成")
-    screenGui:Destroy()
-end)
+-- 等待淡出动画完成后执行替换
+wait(1.5)
+replaceAll()
+print("✅ 图片音效替换完成")
 
-print("🚀 高级加载界面启动，3秒后执行替换")
+-- 最终清理
+wait(0.5)
+screenGui:Destroy()
+
+print("🚀 高级加载界面+替换完成")
