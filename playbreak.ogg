@@ -88,11 +88,11 @@ local function replaceAllImages()
                     if image == pattern then
                         if newId ~= "" then
                             obj.Image = "rbxassetid://" .. newId
-                            print("✅ 替换图片: " .. obj:GetFullName())
+                            
                             imageCount = imageCount + 1
                         else
                             obj:Destroy()
-                            print("🗑️ 删除图片: " .. obj:GetFullName())
+                            
                         end
                         return true
                     end
@@ -122,8 +122,6 @@ local function replaceAllImages()
         
         ::continue::
     end
-    
-    print("✅ 图片替换完成，处理了 " .. imageCount .. " 个图片")
     return imageCount
 end
 
@@ -158,12 +156,10 @@ local function replaceAllSounds()
                     if string.find(soundId, pattern) then
                         if newSound ~= "" then
                             obj.SoundId = "rbxassetid://" .. newSound
-                            print("✅ 替换音效: " .. obj:GetFullName())
                             soundCount = soundCount + 1
                         else
                             obj.Volume = 0
                             obj:Destroy()
-                            print("🗑️ 删除音效: " .. obj:GetFullName())
                         end
                         break
                     end
@@ -173,8 +169,6 @@ local function replaceAllSounds()
         
         ::continue::
     end
-    
-    print("✅ 音效替换完成，处理了 " .. soundCount .. " 个音效")
     return soundCount
 end
 
@@ -200,7 +194,7 @@ local function monitorNewContent()
                         if image == pattern then
                             if item.newId ~= "" then
                                 obj.Image = "rbxassetid://" .. item.newId
-                                print("🔄 实时替换图片: " .. obj:GetFullName())
+                          
                             else
                                 obj:Destroy()
                             end
@@ -228,7 +222,6 @@ local function monitorNewContent()
                         if string.find(soundId, pattern) then
                             if item.new ~= "" then
                                 obj.SoundId = "rbxassetid://" .. item.new
-                                print("🔄 实时替换音效: " .. obj:GetFullName())
                             else
                                 obj.Volume = 0
                                 obj:Destroy()
