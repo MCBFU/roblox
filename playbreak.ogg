@@ -1,73 +1,259 @@
--- 双音效ID替换脚本
-local replacements = {
-    {old = "6027236630", new = "119031191462818"},--板板跳跃
-    {old = "119547018329590", new = "15689445424"},--火车逃离
-    {old = "9042971851", new = "133701137571082"},--开启新地图游戏
-    {old = "6794886454", new = "94624102598882"},--兔子音符盒
-    {old = "268933841", new = "9043491257"},--落地
-    {old = "1014740409", new = "94624102598882"},--小哈吉突脸
-    {old = "6052548458", new = "7390036132"},
-    {old = "4697381311", new = "94624102598882"},--哈吉冲刺突脸
-    {old = "17779172376", new = "15689451063"},--怪物选择界面
-    {old = "105708271085646", new = "9040093731"},--最后结束
-    {old = "93555365323626", new = "6592039185"},--刚开游戏
-    {old = "9047227058", new = "6698737249"},
-    {old = "17754461645", new = "102635449518574"},--拍打玩家
-    {old = "102227464743820", new = "1838285490"},--等候厅小曲✅️
-    {old = "18108930258", new = "86764987673138"},--从管道被救出
-    {old = "4458750140", new = "79486256972927"},--骨折
-    {old = "18108929583", new = "88694614773673"},--怪物胜利
-    {old = "136847579", new = "4685847723"},--怪物是机器人
-    {old = "17830578431", new = "9113988327"},--怪物是哈吉
-    {old = "100117953439271", new = "1014740409"},--怪物是妈咪
-    {old = "", new = "17830572203"},--怪物是盒子
-    {old = "9125467397", new = "17208380755"},--爬起
-    {old = "131136929849120", new = "166047422"},--挣脱成功
-    {old = "18783467913", new = "106235104957151"},--集齐所有零件
-    {old = "18108929972", new = "17754461645"},--被放入井道
-    {old = "103208711906653", new = "15183765436"},--休闲时刻背景音乐✅️
-    {old = "125643578367125", new = "111358125948665"},--你买不起
-    {old = "130307677976118", new = ""},--加载画面
-    {old = "139792801528961", new = "90645451074699"},--举起玩家
-    {old = "89226672351498", new = "93411834929338"},--妈咪突脸
-    {old = "81665056647548", new = "93411834929338"},--盒子突脸
-}  -- 这里添加了缺失的 }
+-- 图片和音效批量替换工具 - 修复版
+local replacementLists = {
+    -- 图片替换列表
+    Images = {
+        {oldId = "18983980709", newId = "7361324455"},--死亡人类
+        {oldId = "733082708", newId = "98446998103932"},--残血人类
+        {oldId = "18143239786", newId = "98446998103932"},--小猫吐舌p
+        {oldId = "18143239786", newId = "98446998103932"},--盒子选择
+        {oldId = "17873701775", newId = "14188388240"},--票子框
+        {oldId = "76846693971609", newId = ""},--罗宝
+        {oldId = "84173824340486", newId = "11419702905"},--盾牌技能
+        {oldId = "80280801657905", newId = "12974453788"},--逃跑技能
+        {oldId = "71894692127690", newId = "98446998103932"},--有名图片
+        {oldId = "15459548442", newId = "98446998103932"},--盒子选择
+        {oldId = "17623366300", newId = "15236655346"},--老版本等候厅火车（开始按钮）
+        {oldId = "113441953421169", newId = "98446998103932"},--月色下追逐
+        {oldId = "7792025253", newId = "14202377267"},--玩家列表未加载出来的人
+        {oldId = "18848118551", newId = "98446998103932"},--返回按钮
+        {oldId = "18983984311", newId = "12974446859"},--在地上趴着的人
+        {oldId = "18983985638", newId = "15540208282"},--火车图案
+        {oldId = "77354540467357", newId = ""},--小黑人
+        {oldId = "105124043854658", newId = "11295273292"},--怪物逃生阵营切换
+    },
+    
+    -- 音效替换列表  
+    Sounds = {
+        {old = "6027236630", new = "119031191462818"},--板板跳跃
+        {old = "119547018329590", new = "15689445424"},--火车逃离
+        {old = "9042971851", new = "133701137571082"},--开启新地图游戏
+        {old = "6794886454", new = "94624102598882"},--兔子音符盒
+        {old = "268933841", new = "9043491257"},--落地
+        {old = "1014740409", new = "94624102598882"},--小哈吉突脸
+        {old = "6052548458", new = "7390036132"},
+        {old = "4697381311", new = "94624102598882"},--哈吉冲刺突脸
+        {old = "17779172376", new = "15689451063"},--怪物选择界面
+        {old = "105708271085646", new = "9040093731"},--最后结束
+        {old = "93555365323626", new = "6592039185"},--刚开游戏
+        {old = "9047227058", new = "6698737249"},
+        {old = "17754461645", new = "102635449518574"},--拍打玩家
+        {old = "102227464743820", new = "1838285490"},--等候厅小曲✅️
+        {old = "18108930258", new = "86764987673138"},--从管道被救出
+        {old = "4458750140", new = "79486256972927"},--骨折
+        {old = "18108929583", new = "88694614773673"},--怪物胜利
+        {old = "136847579", new = "4685847723"},--怪物是机器人
+        {old = "17830578431", new = "9113988327"},--怪物是哈吉
+        {old = "100117953439271", new = "1014740409"},--怪物是妈咪
+        {old = "", new = "17830572203"},--怪物是盒子
+        {old = "9125467397", new = "17208380755"},--爬起
+        {old = "131136929849120", new = "166047422"},--挣脱成功
+        {old = "18783467913", new = "106235104957151"},--集齐所有零件
+        {old = "18108929972", new = "17754461645"},--被放入井道
+        {old = "103208711906653", new = "15183765436"},--休闲时刻背景音乐✅️
+        {old = "125643578367125", new = "111358125948665"},--你买不起
+        {old = "130307677976118", new = ""},--加载画面
+        {old = "139792801528961", new = "90645451074699"},--举起玩家
+        {old = "89226672351498", new = "93411834929338"},--妈咪突脸
+        {old = "81665056647548", new = "93411834929338"},--盒子突脸
+    }
+}
 
--- 替换函数
-local function replaceSound(sound)
-    if sound and sound:IsA("Sound") then
-        local id = tostring(sound.SoundId)
-        local replaced = false
+-- 图片替换函数（调试版）
+local function replaceAllImages()
+    local imageCount = 0
+    print("开始替换图片...")
+    
+    for _, item in ipairs(replacementLists.Images) do
+        local oldId = item.oldId
+        local newId = item.newId
+        
+        if oldId == "" then goto continue end
+        
+        print("检查图片ID: " .. oldId .. " -> " .. (newId ~= "" and newId or "删除"))
+        
+        -- 检查所有地方
+        local function processObject(obj)
+            if obj:IsA("ImageLabel") or obj:IsA("ImageButton") then
+                local image = tostring(obj.Image)
+                -- 检查多种可能的格式
+                local patterns = {
+                    oldId,
+                    "rbxassetid://" .. oldId,
+                    "http://www.roblox.com/asset/?id=" .. oldId,
+                    "https://www.roblox.com/asset/?id=" .. oldId,
+                    "rbxasset://" .. oldId
+                }
+                
+                for _, pattern in ipairs(patterns) do
+                    if image == pattern then
+                        if newId ~= "" then
+                            obj.Image = "rbxassetid://" .. newId
+                            print("✅ 替换图片: " .. obj:GetFullName())
+                            imageCount = imageCount + 1
+                        else
+                            obj:Destroy()
+                            print("🗑️ 删除图片: " .. obj:GetFullName())
+                        end
+                        return true
+                    end
+                end
+            end
+            return false
+        end
+        
+        -- 检查所有服务
+        local services = {
+            workspace,
+            game:GetService("Players"),
+            game:GetService("ReplicatedStorage"),
+            game:GetService("ServerStorage"),
+            game:GetService("Lighting"),
+            game:GetService("StarterGui"),
+            game:GetService("StarterPack"),
+            game:GetService("StarterPlayer"),
+            game:GetService("SoundService")
+        }
+        
+        for _, service in ipairs(services) do
+            for _, obj in pairs(service:GetDescendants()) do
+                processObject(obj)
+            end
+        end
+        
+        ::continue::
+    end
+    
+    print("✅ 图片替换完成，处理了 " .. imageCount .. " 个图片")
+    return imageCount
+end
 
-        for _, rep in pairs(replacements) do
-            if rep.old ~= "" and string.find(id, rep.old) then
-                if rep.new ~= "" then
-                    sound.SoundId = string.gsub(id, rep.old, rep.new)
-                    replaced = true
-                else
-                    -- 如果新ID为空，可以删除或静音音效
-                    sound.Volume = 0
-                    sound:Destroy()  -- 或者直接删除
-                    replaced = true
+-- 音效替换函数（调试版）
+local function replaceAllSounds()
+    local soundCount = 0
+    print("开始替换音效...")
+    
+    for _, item in ipairs(replacementLists.Sounds) do
+        local oldSound = item.old
+        local newSound = item.new
+        
+        if oldSound == "" then goto continue end
+        
+        print("检查音效ID: " .. oldSound .. " -> " .. (newSound ~= "" and newSound or "删除"))
+        
+        -- 检查所有音效
+        for _, obj in pairs(game:GetDescendants()) do
+            if obj:IsA("Sound") then
+                local soundId = tostring(obj.SoundId)
+                
+                -- 检查多种可能的格式
+                local patterns = {
+                    oldSound,
+                    "rbxassetid://" .. oldSound,
+                    "http://www.roblox.com/asset/?id=" .. oldSound,
+                    "https://www.roblox.com/asset/?id=" .. oldSound,
+                    "rbxasset://" .. oldSound
+                }
+                
+                for _, pattern in ipairs(patterns) do
+                    if string.find(soundId, pattern) then
+                        if newSound ~= "" then
+                            obj.SoundId = "rbxassetid://" .. newSound
+                            print("✅ 替换音效: " .. obj:GetFullName())
+                            soundCount = soundCount + 1
+                        else
+                            obj.Volume = 0
+                            obj:Destroy()
+                            print("🗑️ 删除音效: " .. obj:GetFullName())
+                        end
+                        break
+                    end
                 end
             end
         end
-
-        return replaced
+        
+        ::continue::
     end
-    return false
+    
+    print("✅ 音效替换完成，处理了 " .. soundCount .. " 个音效")
+    return soundCount
 end
 
--- 执行替换
-local count = 0
-for _, obj in pairs(game:GetDescendants()) do
-    if replaceSound(obj) then
-        count = count + 1
-    end
+-- 实时监控新内容
+local function monitorNewContent()
+    game.DescendantAdded:Connect(function(obj)
+        task.wait(0.1)  -- 等待对象完全加载
+        
+        -- 检查图片
+        if obj:IsA("ImageLabel") or obj:IsA("ImageButton") then
+            local image = tostring(obj.Image)
+            for _, item in ipairs(replacementLists.Images) do
+                if item.oldId ~= "" then
+                    local patterns = {
+                        item.oldId,
+                        "rbxassetid://" .. item.oldId,
+                        "http://www.roblox.com/asset/?id=" .. item.oldId,
+                        "https://www.roblox.com/asset/?id=" .. item.oldId,
+                        "rbxasset://" .. item.oldId
+                    }
+                    
+                    for _, pattern in ipairs(patterns) do
+                        if image == pattern then
+                            if item.newId ~= "" then
+                                obj.Image = "rbxassetid://" .. item.newId
+                                print("🔄 实时替换图片: " .. obj:GetFullName())
+                            else
+                                obj:Destroy()
+                            end
+                            break
+                        end
+                    end
+                end
+            end
+        end
+        
+        -- 检查音效
+        if obj:IsA("Sound") then
+            local soundId = tostring(obj.SoundId)
+            for _, item in ipairs(replacementLists.Sounds) do
+                if item.old ~= "" then
+                    local patterns = {
+                        item.old,
+                        "rbxassetid://" .. item.old,
+                        "http://www.roblox.com/asset/?id=" .. item.old,
+                        "https://www.roblox.com/asset/?id=" .. item.old,
+                        "rbxasset://" .. item.old
+                    }
+                    
+                    for _, pattern in ipairs(patterns) do
+                        if string.find(soundId, pattern) then
+                            if item.new ~= "" then
+                                obj.SoundId = "rbxassetid://" .. item.new
+                                print("🔄 实时替换音效: " .. obj:GetFullName())
+                            else
+                                obj.Volume = 0
+                                obj:Destroy()
+                            end
+                            break
+                        end
+                    end
+                end
+            end
+        end
+    end)
+    
+    print("🔍 开始监控新内容...")
 end
 
--- 监控新音效
-game.DescendantAdded:Connect(function(obj)
-    task.wait(0.05)
-    replaceSound(obj)
-end)
+-- 执行所有替换
+print("🚀 开始执行替换脚本...")
+local imageCount = replaceAllImages()
+local soundCount = replaceAllSounds()
+monitorNewContent()
+
+print("====================================")
+print("✅ 替换完成")
+print("图片替换项: " .. #replacementLists.Images)
+print("音效替换项: " .. #replacementLists.Sounds)
+print("实际处理图片: " .. imageCount)
+print("实际处理音效: " .. soundCount)
+print("====================================")
