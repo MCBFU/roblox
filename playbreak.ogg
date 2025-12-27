@@ -1,363 +1,223 @@
--- 高级加载界面 + 图片音效替换整合版
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+
+local player = Players.LocalPlayer
+local gui = Instance.new("ScreenGui")
+gui.ResetOnSpawn = false
+gui.IgnoreGuiInset = true
+gui.Parent = player:WaitForChild("PlayerGui")
+
+local label = Instance.new("TextLabel")
+label.Size = UDim2.new(0, 200, 0, 80)
+label.Position = UDim2.new(0.5, -100, 0.5, -40)
+label.BackgroundTransparency = 1
+label.Text = "   正在加载资源包中...\n请稍候"
+label.Font = Enum.Font.GothamBold
+label.TextSize = 36
+label.TextColor3 = Color3.new(1, 1, 1)
+label.TextStrokeColor3 = Color3.new(0, 0, 0)
+label.TextStrokeTransparency = 0.5
+label.Parent = gui
+
+task.wait(3)
+TweenService:Create(label, TweenInfo.new(0.5), {TextTransparency = 1, TextStrokeTransparency = 1}):Play()
+task.wait(0.5)
+gui:Destroy()
+
+
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
+local ContentProvider = game:GetService("ContentProvider")
 
 local player = Players.LocalPlayer
+local PlayerGui = player:WaitForChild("PlayerGui")
 
--- ============== 第一部分：高级加载界面 ==============
+-- 水印UI 创建
+local mcbGui = Instance.new("ScreenGui")
+mcbGui.Name = "MCBWatermark"
+mcbGui.ResetOnSpawn = false
+mcbGui.IgnoreGuiInset = true
+mcbGui.Parent = PlayerGui
 
--- 创建全屏界面
-local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "PremiumLoader"
-screenGui.ResetOnSpawn = false
-screenGui.IgnoreGuiInset = true
-screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+local mcbMark = Instance.new("TextLabel")
+mcbMark.Size = UDim2.new(0,60,0,20)
+mcbMark.Position = UDim2.new(0.015,0,0.97,0)
+mcbMark.AnchorPoint = Vector2.new(0,1)
+mcbMark.BackgroundTransparency = 1
+mcbMark.Text = "MCB材质GUI  BY  渔炒鱼"
+mcbMark.Font = Enum.Font.GothamBold
+mcbMark.TextSize = 10
+mcbMark.TextTransparency = 0.7
+mcbMark.TextColor3 = Color3.new(1,1,1)
+mcbMark.TextStrokeTransparency = 0.9
+mcbMark.TextStrokeColor3 = Color3.new(0,0.7,1)
+mcbMark.ZIndex = 999
+mcbMark.Parent = mcbGui
+-- 水印呼吸动画
+TweenService:Create(mcbMark,TweenInfo.new(6,Enum.EasingStyle.Sine,Enum.EasingDirection.InOut,-1),{TextTransparency=0.85,TextStrokeTransparency=0.95}):Play()
 
--- 主图片容器（绝对全屏）
-local imageContainer = Instance.new("Frame")
-imageContainer.Size = UDim2.new(1, 0, 1, 0)
-imageContainer.Position = UDim2.new(0, 0, 0, 0)
-imageContainer.BackgroundTransparency = 1
-imageContainer.ClipsDescendants = true
+-- 加载界面 轻量初始化
+local loadGui = Instance.new("ScreenGui")
+loadGui.Name = "PremiumLoader"
+loadGui.ResetOnSpawn = false
+loadGui.IgnoreGuiInset = true
+loadGui.Parent = PlayerGui
 
--- 主图片（完美填充）
-local mainImage = Instance.new("ImageLabel")
-mainImage.Size = UDim2.new(1.1, 0, 1.1, 0)  -- 稍微放大防止边缘缝隙
-mainImage.Position = UDim2.new(-0.05, 0, -0.05, 0)
-mainImage.BackgroundTransparency = 1
-mainImage.Image = "rbxassetid://111333374680640"
-mainImage.ScaleType = Enum.ScaleType.Crop
-mainImage.ImageColor3 = Color3.fromRGB(255, 255, 255)
-mainImage.ImageTransparency = 1  -- 初始透明，准备淡入
+local mainFrame = Instance.new("Frame")
+mainFrame.Size = UDim2.new(1,0,1,0)
+mainFrame.BackgroundTransparency = 1
+mainFrame.Parent = loadGui
 
--- 进度条容器（左下角超小超精致）
-local progressContainer = Instance.new("Frame")
-progressContainer.Size = UDim2.new(0.12, 0, 0, 4)  -- 超小超细
-progressContainer.Position = UDim2.new(0.02, 0, 0.96, 0)  -- 左下角
-progressContainer.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-progressContainer.BackgroundTransparency = 1  -- 初始透明
-progressContainer.AnchorPoint = Vector2.new(0, 1)
+local loadImg = Instance.new("ImageLabel")
+loadImg.Size = UDim2.new(1.1,0,1.1,0)
+loadImg.Position = UDim2.new(-0.05,0,-0.05,0)
+loadImg.BackgroundTransparency = 1
+loadImg.Image = "rbxassetid://111333374680640"
+loadImg.ScaleType = Enum.ScaleType.Crop
+loadImg.ImageTransparency = 1
+loadImg.Parent = mainFrame
 
-local progressCorner = Instance.new("UICorner")
-progressCorner.CornerRadius = UDim.new(1, 0)
+local progressFrame = Instance.new("Frame")
+progressFrame.Size = UDim2.new(0.12,0,0,4)
+progressFrame.Position = UDim2.new(0.02,0,0.96,0)
+progressFrame.BackgroundColor3 = Color3.new(0.08,0.08,0.08)
+progressFrame.BackgroundTransparency = 1
+progressFrame.AnchorPoint = Vector2.new(0,1)
+progressFrame.Parent = mainFrame
+Instance.new("UICorner",progressFrame).CornerRadius = UDim.new(1,0)
 
--- 进度条背景
-local progressBackground = Instance.new("Frame")
-progressBackground.Size = UDim2.new(1, -2, 1, -2)
-progressBackground.Position = UDim2.new(0, 1, 0, 1)
-progressBackground.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-progressBackground.BackgroundTransparency = 0.7
+local progressBg = Instance.new("Frame")
+progressBg.Size = UDim2.new(1,-2,1,-2)
+progressBg.Position = UDim2.new(0,1,0,1)
+progressBg.BackgroundColor3 = Color3.new(0.12,0.12,0.12)
+progressBg.BackgroundTransparency = 0.7
+progressBg.Parent = progressFrame
+Instance.new("UICorner",progressBg).CornerRadius = UDim.new(1,0)
 
-local bgCorner = Instance.new("UICorner")
-bgCorner.CornerRadius = UDim.new(1, 0)
-
--- 进度条前景（霓虹蓝色）
 local progressBar = Instance.new("Frame")
-progressBar.Size = UDim2.new(0, 0, 1, -2)
-progressBar.Position = UDim2.new(0, 1, 0, 1)
-progressBar.BackgroundColor3 = Color3.fromRGB(0, 200, 255)
+progressBar.Size = UDim2.new(0,0,1,-2)
+progressBar.Position = UDim2.new(0,1,0,1)
+progressBar.BackgroundColor3 = Color3.new(0,0.78,1)
 progressBar.BorderSizePixel = 0
+progressBar.Parent = progressBg
+Instance.new("UICorner",progressBar).CornerRadius = UDim.new(1,0)
 
-local barCorner = Instance.new("UICorner")
-barCorner.CornerRadius = UDim.new(1, 0)
+local progressTxt = Instance.new("TextLabel")
+progressTxt.Text = "0%"
+progressTxt.Size = UDim2.new(0,40,0,240,0,20)
+progressTxt.Position = UDim2.new(1,5,0,-8)
+progressTxt.BackgroundTransparency = 1
+progressTxt.TextColor3 = Color3.new(0,0.78,1)
+progressTxt.Font = Enum.Font.GothamBold
+progressTxt.TextSize = 14
+progressTxt.TextTransparency = 1
+progressTxt.Parent = progressFrame
 
--- 进度百分比（超小字体）
-local progressText = Instance.new("TextLabel")
-progressText.Text = "0"
-progressText.Size = UDim2.new(0, 30, 0, 20)
-progressText.Position = UDim2.new(1, 5, 0, -8)
-progressText.BackgroundTransparency = 1
-progressText.TextColor3 = Color3.fromRGB(0, 200, 255)
-progressText.Font = Enum.Font.GothamBold
-progressText.TextSize = 14
-progressText.TextXAlignment = Enum.TextXAlignment.Left
-progressText.TextTransparency = 1  -- 初始透明
+-- 加载淡入动画 快速触发
+TweenService:Create(loadImg,TweenInfo.new(0.3,Enum.EasingStyle.Quad),{ImageTransparency=0}):Play()
+task.wait(0.1)
+TweenService:Create(progressFrame,TweenInfo.new(0.2,Enum.EasingStyle.Quad),{BackgroundTransparency=0.8}):Play()
+TweenService:Create(progressTxt,TweenInfo.new(0.2,Enum.EasingStyle.Quad),{TextTransparency=0}):Play()
 
--- 组装UI
-progressCorner.Parent = progressContainer
-bgCorner.Parent = progressBackground
-barCorner.Parent = progressBar
-
-progressBackground.Parent = progressContainer
-progressBar.Parent = progressBackground
-progressText.Parent = progressContainer
-
-mainImage.Parent = imageContainer
-progressContainer.Parent = imageContainer
-imageContainer.Parent = screenGui
-screenGui.Parent = player:WaitForChild("PlayerGui")
-
--- 淡入动画
-local fadeIn = TweenService:Create(
-    mainImage,
-    TweenInfo.new(0.8, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-    {ImageTransparency = 0}
-)
-
-local progressFadeIn = TweenService:Create(
-    progressContainer,
-    TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-    {BackgroundTransparency = 0.8}
-)
-
-local textFadeIn = TweenService:Create(
-    progressText,
-    TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-    {TextTransparency = 0}
-)
-
--- 执行淡入动画
-fadeIn:Play()
-wait(0.3)
-progressFadeIn:Play()
-textFadeIn:Play()
-
--- 进度条动画
+-- 进度条快速推进 无冗余渲染
 local progress = 0
-local function smoothProgress()
-    local startTime = tick()
+repeat
+    progress = math.min(progress + 5, 100)
+    progressBar.Size = UDim2.new(progress/100,0,1,-2)
+    progressTxt.Text = math.floor(progress).."%"
+    task.wait(0.01)
+until progress >= 100
+progressTxt.Text = "100%"
+task.wait(0.2)
 
-    while progress < 100 do
-        local elapsed = tick() - startTime
-        progress = (elapsed / 3) * 100  -- 3秒完成
+-- 加载淡出动画 快速清理
+TweenService:Create(progressFrame,TweenInfo.new(0.2,Enum.EasingStyle.Cubic),{BackgroundTransparency=1}):Play()
+TweenService:Create(progressTxt,TweenInfo.new(0.2,Enum.EasingStyle.Cubic),{TextTransparency=1}):Play()
+TweenService:Create(loadImg,TweenInfo.new(0.4,Enum.EasingStyle.Cubic),{ImageTransparency=1}):Play()
+task.wait(0.5)
+loadGui:Destroy()
 
-        if progress > 100 then progress = 100 end
-
-        -- 超丝滑的进度条动画
-        local tween = TweenService:Create(
-            progressBar,
-            TweenInfo.new(0.05, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-            {Size = UDim2.new(progress / 100, 0, 1, -2)}
-        )
-        tween:Play()
-
-        -- 进度文本
-        progressText.Text = string.format("%d", math.floor(progress))
-
-        RunService.RenderStepped:Wait()
-    end
-end
-
--- 启动进度条
-spawn(smoothProgress)
-
--- 等待完成
-repeat wait(0.1) until progress >= 100
-
--- 完成效果
-progressText.Text = "100"
-wait(0.3)
-
--- 淡出动画
-local fadeOutSequence = {
-    -- 进度条先淡出
-    TweenService:Create(
-        progressContainer,
-        TweenInfo.new(0.5, Enum.EasingStyle.Cubic, Enum.EasingDirection.Out),
-        {BackgroundTransparency = 1}
-    ),
-    
-    TweenService:Create(
-        progressText,
-        TweenInfo.new(0.5, Enum.EasingStyle.Cubic, Enum.EasingDirection.Out),
-        {TextTransparency = 1}
-    ),
-    
-    -- 主图片淡出
-    TweenService:Create(
-        mainImage,
-        TweenInfo.new(1.2, Enum.EasingStyle.Cubic, Enum.EasingDirection.Out),
-        {ImageTransparency = 1}
-    )
+-- 贴图替换表 [旧ID] = 新ID
+local replaceImg = {
+    ["9819025862"] = "5887957252",["18983980709"] = "1883128632",["733082708"] = "16876797391",["18143239786"] = "111333374680640",
+    ["17873701775"] = "19005661344",["111766019087066"] = "19005661344",["84173824340486"] = "11419702905",["80280801657905"] = "12974453788",
+    ["109696182350022"] = "12974362186",["11245756484"] = "11432834725",["3041611933"] = "10709790644",["18984010733"] = "11293978505",
+    ["71894692127690"] = "98446998103932",["15459548442"] = "28872862",["18457697895"] = "1883128632",["17623366300"] = "15236655346",
+    ["113441953421169"] = "98446998103932",["7792025253"] = "131794018998093",["18983984311"] = "12974446859",["18983985638"] = "15540208282",
+    ["105124043854658"] = "11295273292",["16244554485"] = "77354540467357",["13518130183"] = "13910235294",["108218417623236"] = "123922080862042",
+    ["18983982189"] = "18848424198",["18983983311"] = "7361324455",["18697280880"] = "11963356747",["117426859805043"] = "12967561554",
+    ["112771731716467"] = "98446998103932",["9367208286"] = "11455761101",["11030033771"] = "11963356747",["16771569388"] = "76561912587311",
+    ["16307805649"] = "10723433935",["16294678871"] = "11419666746",["128541005752913"] = "94698906864666",["71258592588220"] = "11814673280",
+    ["483229625"] = "11419666746",["483231231"] = "11295275950",["8119252523"] = "14187749511",["96028253925505"] = "14188388240",
+    ["18984040900"] = "11963364026",["5107199773"] = "100148515061030",["13050415802"] = "11245756484",["18318977415"] = "86119075739911",
+    ["18318988523"] = "86119075739911",["125028983718775"] = "11295287158",["71943104392583"] = "11419666512",["5887957252"] = "11963364026",
+    ["5945121255"] = "11963364026",["11901680822"] = "11963364026",["3124804643"] = "11963364026",["9525535512"] = "11245756484",
+    ["112467754663467"] = "85052282749542",["74592393527729"] = "98540618745439",["114609020373684"] = "103943763384616",["123457018967026"] = "138603836848808",
+    ["79899399105462"] = "83549476158609",["129283713909372"] = "16259096470",["18848139891"] = "12754479702",["18848327399"] = "12817454402",
+    ["18861353517"] = "11963365322",["101804118103190"] = "4625478089",["93426961710317"] = "4625478089",["104232165431178"] = "4625478089",
+    ["120452710152785"] = "4625478089",["95825012919180"] = "4625478089",["77823426566285"] = "4625478089",["18395608861"] = "76561912587311",
+    ["7539983773"] = "11432855214"
 }
 
--- 执行淡出动画
-for i, tween in ipairs(fadeOutSequence) do
-    tween:Play()
-    wait(0.2)
-end
-
--- ============== 第二部分：图片音效替换 ==============
-
-local replacementLists = {
-    -- 图片替换列表
-    Images = {
-        {oldId = "9819025862", newId = "5887957252"},--机器人进度
-        {oldId = "18983980709", newId = "7361324455"},--死亡人类
-        {oldId = "733082708", newId = "10104327834"},--残血人类
-        {oldId = "18143239786", newId = "98446998103932"},--小猫吐舌
-        {oldId = "18143239786", newId = "98446998103932"},--盒子选择
-        {oldId = "17873701775", newId = "19005661344"},--票子框
-        {oldId = "111766019087066", newId = "19005661344"},
-        {oldId = "84173824340486", newId = "11419702905"},--盾牌技能
-        {oldId = "80280801657905", newId = "12974453788"},--逃跑技能
-        {oldId = "109696182350022", newId = "12974362186"},--医疗技能
-        {oldId = "11245756484", newId = "11432834725"},--潜行技能
-        {oldId = "3041611933", newId = "5948297313"},--G
-        {oldId = "18984010733", newId = "11293978505"},--翻滚
-        {oldId = "71894692127690", newId = "98446998103932"},--有名图片
-        {oldId = "15459548442", newId = "28872862"},--盒子选择
-        {oldId = "18457697895", newId = "1883128632"},--哈吉是怪
-        {oldId = "17623366300", newId = "15236655346"},--老版本等候厅火车（开始按钮）
-        {oldId = "113441953421169", newId = "98446998103932"},--月色下追逐
-        {oldId = "7792025253", newId = "14202377267"},--玩家列表未加载出来的人
-        {oldId = "18848118551", newId = "98446998103932"},--返回按钮
-        {oldId = "18983984311", newId = "12974446859"},--在地上趴着的人
-        {oldId = "18983985638", newId = "15540208282"},--火车图案
-        {oldId = "105124043854658", newId = "11295273292"},--怪物逃生阵营切换
-        {oldId = "16244554485", newId = "77354540467357"},--等待
-        {oldId = "13518130183", newId = "13910235294"},--小星星
-        {oldId = "108218417623236", newId = "123922080862042"},--挣脱轮盘
-        {oldId = "18983982189", newId = "18848424198"},--正常玩家
-        {oldId = "18983983311", newId = "7361324455"},--已掉入管道的玩家
-        {oldId = "18697280880", newId = "11963356747"},--管道标识
-        {oldId = "117426859805043", newId = "7361324455"},--下拉机器
-        {oldId = "112771731716467", newId = "98446998103932"},
-        {oldId = "9367208286", newId = "11455761101"},--玩家失误提示
-        {oldId = "11030033771", newId = "11963356747"},--怪物追人
-        {oldId = "16771569388", newId = "11963364026"},--蓝屏
-        {oldId = "16307805649", newId = "10723433935"},--玩具部件
-        {oldId = "16294678871", newId = "11419666746"},--设置
-        {oldId = "128541005752913", newId = "94698906864666"},--怪物红光
-        {oldId = "71258592588220", newId = "11814673280"},--LOGO 
-        {oldId = "483229625", newId = "11419666746"},--怪物准星圆圈
-        {oldId = "483231231", newId = "11295275950"},-- 设置小房子
-        {oldId = "8119252523", newId = "14187749511"},--获得经验票子弹窗
-        {oldId = "96028253925505", newId = "14188388240"},--剩余命数
-        {oldId = "18984040900", newId = "11963364026"},--
-    },
-
-    -- 音效替换列表  
-    Sounds = {        
-        {old = "85947068032779", new = "11963364026"},--荡秋千
-        {old = "17754462333", new = ""},--开启奔跑
-        {old = "127588576195602", new = "16190782181"},--开启狂暴
-        {old = "7048844460", new = "11963364026"},--机器人弹跳
-        {old = "6027236630", new = "119031191462818"},--翻滚
-        {old = "118826043355401", new = "119031191462818"},
-        {old = "102502859803169", new = "9126102254"},--卷帘门
-        {old = "90782284167817", new = "111358125948665"},--开始挣脱
-        {old = "8509804480", new = "8509804480"},--机器人砍倒人
-        {old = "6461775588", new = "8509804480"},
-        {old = "6027236630", new = "119031191462818"},--板板跳跃
-        {old = "119547018329590", new = "15689445424"},--火车逃离
-        {old = "9042971851", new = "133701137571082"},--开启新地图游戏
-        {old = "6794886454", new = "94624102598882"},--兔子音符盒
-        {old = "268933841", new = "8400918001"},--落地
-        {old = "1014740409", new = "94624102598882"},--小哈吉突脸
-        {old = "6052548458", new = "7390036132"},
-        {old = "81953263341178", new = "94624102598882"},
-        {old = "4697381311", new = "94624102598882"},--哈吉冲刺突脸
-        {old = "17779172376", new = "15689451063"},--怪物选择界面
-        {old = "105708271085646", new = "9040093731"},--最后结束
-        {old = "15161202088", new = "9040093731"},
-        {old = "70802680979187", new = "9040093731"},
-        {old = "18580125132", new = "9040093731"},
-        {old = "93555365323626", new = "6592039185"},--刚开游戏
-        {old = "9047227058", new = "6698737249"},
-        {old = "17754461645", new = "102635449518574"},--拍打玩家
-        {old = "102227464743820", new = "1838285490"},--等候厅小曲
-        {old = "18108930258", new = "86764987673138"},--从管道被救出
-        {old = "4458750140", new = "79486256972927"},--骨折
-        {old = "18108929583", new = "88694614773673"},--怪物胜利
-        {old = "136847579", new = "4685847723"},--怪物是机器人
-        {old = "17830578431", new = "9113988327"},--怪物是哈吉
-        {old = "100117953439271", new = "1014740409"},--怪物是妈咪
-        {old = "17830572203", new = "17830572203"},--怪物是盒子
-        {old = "9125467397", new = "17208380755"},--爬起
-        {old = "131136929849120", new = "166047422"},--挣脱成功
-        {old = "18783467913", new = "106235104957151"},--集齐所有零件
-        {old = "18108929972", new = "17754461645"},--被放入井道
-        {old = "103208711906653", new = "15183765436"},--休闲时刻背景音乐
-        {old = "125643578367125", new = "111358125948665"},--你买不起
-        {old = "130307677976118", new = "166047422"},--加载画面
-        {old = "139792801528961", new = "90645451074699"},--举起玩家
-        {old = "89226672351498", new = "93411834929338"},--妈咪突脸
-        {old = "81665056647548", new = "93411834929338"},--盒子突脸
-        {old = "5312518467", new = "70406650561771"},--下水道背景音
-        {old = "120625154390198", new = "79130056188513"},--卷帘门拉起
-    }
+-- 音效替换表 [旧ID] = 新ID（空值则静音）
+local replaceSnd = {
+    ["85947068032779"] = "11963364026",["17754462333"] = "",["127588576195602"] = "16190782181",["7048844460"] = "11963364026",
+    ["6027236630"] = "121714577724271",["77641329246584"] = "121714577724271",["134749582867639"] = "121714577724271",["131298589984160"] = "121714577724271",
+    ["118826043355401"] = "121714577724271",["102502859803169"] = "9126102254",["90782284167817"] = "111358125948665",["8509804480"] = "8509804480",
+    ["6461775588"] = "8509804480",["6027236630"] = "119031191462818",["119547018329590"] = "15689445424",["9042971851"] = "133701137571082",
+    ["6794886454"] = "94624102598882",["268933841"] = "8400918001",["1014740409"] = "94624102598882",["6052548458"] = "7390036132",
+    ["81953263341178"] = "94624102598882",["4697381311"] = "94624102598882",["17779172376"] = "78979695510585",["105708271085646"] = "9040093731",
+    ["15161202088"] = "9040093731",["70802680979187"] = "9040093731",["18580125132"] = "9040093731",["93555365323626"] = "6592039185",
+    ["9047227058"] = "6698737249",["17754461645"] = "102635449518574",["102227464743820"] = "1838285490",["18108930258"] = "86764987673138",
+    ["4458750140"] = "79486256972927",["18108929583"] = "88694618694614773673",["136847579"] = "4685847723",["17830578431"] = "9113988327",
+    ["100117953439271"] = "1014740409",["17830572203"] = "17830572203",["9125467397"] = "15746991650",["131136929849120"] = "166047422",
+    ["18783467913"] = "106235104957151",["18108929972"] = "17754461645",["103208711906653"] = "15183765436",["125643578367125"] = "8400918001",
+    ["130307677976118"] = "166047422",["139792801528961"] = "90645451074699",["89226672351498"] = "93411834929338",["81665056647548"] = "93411834929338",
+    ["5312518467"] = "70406650561771",["120625154390198"] = "9120059083",["9116385079"] = "166047422",["115504092505776"] = "6592039185",
+    ["9125844189"] = "79130056188513",["9113678359"] = "79130056188513",["9118398526"] = "79130056188513",["1837829154"] = "79486256972927",
+    ["1837829473"] = "79486256972927",["9116698830"] = "79486256972927",["9116684733"] = "79130056188513",["3521543186"] = "79130056188513",
+    ["147722227"] = "79130056188513",["125677551407985"] = "4685847723",["4681189157"] = "5694665239",["4678745096"] = "5694665239",
+    ["4681189562"] = "5694665239",["112282490730834"] = "",["116093533132760"] = "",["116423712355422"] = "",
+    ["115504092505776"] = "",["106779899806168"] = "",["112771731716467"] = "79130056188513",["17856099558"] = "",
+    ["119794608146606"] = "1840172845",["907514098"] = "6698737249",["9119701012"] = "79130056188513"
 }
 
--- 替换函数
-local function replaceAll()
-    -- 图片替换
-    for _, item in ipairs(replacementLists.Images) do
-        if item.oldId ~= "" and item.newId ~= "" then
-            for _, obj in pairs(game:GetDescendants()) do
-                if obj:IsA("ImageLabel") or obj:IsA("ImageButton") then
-                    local image = tostring(obj.Image)
-                    if image == item.oldId or 
-                       image == "rbxassetid://" .. item.oldId or
-                       image:find(item.oldId) then
-                        obj.Image = "rbxassetid://" .. item.newId
-                    end
-                elseif obj:IsA("Decal") or obj:IsA("Texture") then
-                    local texture = tostring(obj.Texture)
-                    if texture == item.oldId or 
-                       texture == "rbxassetid://" .. item.oldId or
-                       texture:find(item.oldId) then
-                        obj.Texture = "rbxassetid://" .. item.newId
-                    end
-                end
-            end
+-- 预加载优化：异步预加载 不阻塞主线程
+task.spawn(function()
+    local preloadList = {}
+    for _,newId in pairs(replaceImg) do table.insert(preloadList, "rbxassetid://"..newId) end
+    for _,newId in pairs(replaceSnd) do if newId ~= "" then table.insert(preloadList, "rbxassetid://"..newId) end end
+    pcall(function() ContentProvider:PreloadAsync(preloadList) end)
+end)
+
+-- 核心替换函数：精准匹配+单次遍历 无冗余
+local function doReplace(obj)
+    local target = obj and {obj} or game:GetDescendants()
+    -- 贴图替换
+    for oldId,newId in pairs(replaceImg) do
+        local oldAsset = "rbxassetid://"..oldId
+        local newAsset = "rbxassetid://"..newId
+        for _,v in pairs(target) do
+            pcall(function()
+                if v:IsA("ImageLabel") or v:IsA("ImageButton") then v.Image = v.Image == oldAsset and newAsset or v.Image end
+                if v:IsA("Decal") or v:IsA("Texture") then v.Texture = v.Texture == oldAsset and newAsset or v.Texture end
+            end)
         end
     end
-
     -- 音效替换
-    for _, item in ipairs(replacementLists.Sounds) do
-        if item.old ~= "" and item.new ~= "" then
-            for _, obj in pairs(game:GetDescendants()) do
-                if obj:IsA("Sound") then
-                    local soundId = tostring(obj.SoundId)
-                    if soundId:find(item.old) then
-                        obj.SoundId = "rbxassetid://" .. item.new
-                    end
-                end
-            end
+    for oldId,newId in pairs(replaceSnd) do
+        local oldAsset = "rbxassetid://"..oldId
+        local newAsset = newId == "" and "" or "rbxassetid://"..newId
+        for _,v in pairs(target) do
+            pcall(function() if v:IsA("Sound") then v.SoundId = v.SoundId == oldAsset and newAsset or v.SoundId end end)
         end
     end
-
-    -- 实时监控
-    game.DescendantAdded:Connect(function(obj)
-        task.wait(0.1)
-
-        -- 图片
-        if obj:IsA("ImageLabel") or obj:IsA("ImageButton") then
-            local image = tostring(obj.Image)
-            for _, item in ipairs(replacementLists.Images) do
-                if item.oldId ~= "" and item.newId ~= "" then
-                    if image == item.oldId or 
-                       image == "rbxassetid://" .. item.oldId or
-                       image:find(item.oldId) then
-                        obj.Image = "rbxassetid://" .. item.newId
-                    end
-                end
-            end
-        end
-
-        -- 音效
-        if obj:IsA("Sound") then
-            local soundId = tostring(obj.SoundId)
-            for _, item in ipairs(replacementLists.Sounds) do
-                if item.old ~= "" and item.new ~= "" then
-                    if soundId:find(item.old) then
-                        obj.SoundId = "rbxassetid://" .. item.new
-                    end
-                end
-            end
-        end
-    end)
 end
 
--- 等待淡出动画完成后执行替换
-wait(1.5)
-replaceAll()
-print("✅ 图片音效替换完成")
-
--- 最终清理
-wait(0.5)
-screenGui:Destroy()
-
-print("🚀 高级加载界面+替换完成")
+-- 替换逻辑极致优化：1次全量替换 + 精准监听新增 无循环兜底
+doReplace()
+-- 新增对象仅替换当前对象 不全局遍历 大幅降负载
+game.DescendantAdded:Connect(function(obj)
+    task.spawn(doReplace, obj)
+end)
