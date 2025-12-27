@@ -1,6 +1,4 @@
--- 音效包
-loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBFU/roblox/refs/heads/main/playbreak.ogg"))()
-
+-- 注意：请勿添加右下角提示！用户已经明确要求除了初始欢迎提示外，不要添加任何其他提示。
 
 -- 强制优先加载playbreak（必写在最顶部）
 local success, Library = pcall(function()
@@ -32,7 +30,7 @@ local TweenService = game:GetService("TweenService")
 local player = Players.LocalPlayer
 local camera = Workspace.CurrentCamera
 local isAuraActive = false
-local pipeInProgress = false
+local teleportInProgress = false  -- 重命名为更通用的变量名
 local renderConnection
 
 -- 可配置参数（滑块控制）
@@ -40,39 +38,51 @@ local Settings = {
     auraDistance = 300,      -- 攻击距离
     attackInterval = 0.1,    -- 攻击间隔
     teleportHeight = 0,      -- 传送高度补偿
-    pipeSpeed = 0.1          -- 每次传送间隔
+    teleportSpeed = 0.1      -- 每次传送间隔（重命名）
 }
 
--- 致命管道坐标（修复语法错误：补充分隔符、去重）
-local allPipeLocations = {
-    Vector3.new(43.06, 68.98, -254.75),
-    Vector3.new(-0.53, 71.14, -329.87),
-    Vector3.new(12.90, 94.29, -531.77),
-    Vector3.new(-13.55, 87.70, -455.12),
-    Vector3.new(-38.72, 87.45, -269.56),
-    Vector3.new(-60.21, 105.48, -156.82),
-    Vector3.new(-44.85, 112.19, -398.75),
-    Vector3.new(73.64, 105.44, -404.03),
-    Vector3.new(327.87, 37.94, 246.22),
-    Vector3.new(386.97, 7.47, 331.48),
-    Vector3.new(408.68, 34.45, 169.92),
-    Vector3.new(335.75, 18.12, 205.47),
-    Vector3.new(406.35, 33.01, 375.60),
-    Vector3.new(359.39, 18.07, 437.61),
-    Vector3.new(184.68, 18.11, 245.28),
-    Vector3.new(312.79, 10.66, 351.58),
-    Vector3.new(358.95, 18, 436.84),
-    Vector3.new(-367.8, 5.0, -272.1),
-    Vector3.new(-196.9, 63.4, -306.7),
-    Vector3.new(-269.1, 4.8, -499.9),
-    Vector3.new(-151.4, 63.4, -514.7),
-    Vector3.new(-177.8, 30.4, -398.7),
-    Vector3.new(-420.1, 30.3, -407.2),
-    Vector3.new(-265.7, 4.9, -621.5),
-    Vector3.new(-343.5, 4.8, -621.5),
-    Vector3.new(-345.4, 4.9, -561.1),
-    Vector3.new(42.9, 7.7, -687.2)
-}
+-- 存储所有可互动物体的位置
+local interactableLocations = {}
+
+-- 自动搜索所有可互动物体
+local function findAllInteractables()
+    table.clear(interactableLocations)
+    
+    -- 搜索 ClickDetector
+    for _, obj in pairs(Workspace:GetDescendants()) do
+        if obj:IsA("ClickDetector") then
+            local part = obj.Parent
+            if part and part:IsA("BasePart") then
+                table.insert(interactableLocations, part.Position)
+            end
+        end
+    end
+    
+    -- 搜索 ProximityPrompt
+    for _, obj in pairs(Workspace:GetDescendants()) do
+        if obj:IsA("ProximityPrompt") then
+            local part = obj.Parent
+            if part and part:IsA("BasePart") then
+                table.insert(interactableLocations, part.Position)
+            end
+        end
+    end
+    
+    -- 搜索可互动的按钮
+    for _, obj in pairs(Workspace:GetDescendants()) do
+        if obj:IsA("TextButton") or obj:IsA("ImageButton") then
+            -- 查找按钮的位置
+            local buttonFrame = obj:FindFirstAncestorOfClass("SurfaceGui") or 
+                               obj:FindFirstAncestorOfClass("BillboardGui") or 
+                               obj:FindFirstAncestorOfClass("BasePart")
+            if buttonFrame and buttonFrame:IsA("BasePart") then
+                table.insert(interactableLocations, buttonFrame.Position)
+            end
+        end
+    end
+    
+    print("🔍 找到", #interactableLocations, "个可互动物体")
+end
 
 -- ========== 3. 辅助函数 ==========
 -- 稳定获取根部件
@@ -282,38 +292,73 @@ local function toggleAura(state)
     end
 end
 
--- 6.2 致命管道（无提示）
-local function performAutoPipeTeleport()
-    if pipeInProgress then
+-- 6.2 致命管道（新增功能）
+local function performAutoInteractableTeleport()
+    if teleportInProgress then
         return
     end
-    pipeInProgress = true
+    teleportInProgress = true
 
     local root = getRootPart()
     if not root then
-        pipeInProgress = false
+        teleportInProgress = false
         return
     end
 
     local originalCFrame = root.CFrame
+    
+    -- 先搜索所有可互动物体
+    findAllInteractables()
+    
+    if #interactableLocations == 0 then
+        teleportInProgress = false
+        return
+    end
 
     task.spawn(function()
-        for i, pos in ipairs(allPipeLocations) do
+        for i, pos in ipairs(interactableLocations) do
             local r = getRootPart()
-            if not r or not pipeInProgress then break end
+            if not r or not teleportInProgress then break end
+            
+            -- 传送并互动
             r.CFrame = CFrame.new(pos.X, pos.Y + Settings.teleportHeight, pos.Z)
-            task.wait(Settings.pipeSpeed)
+            
+            -- 尝试互动
+            -- 查找该位置的互动物体
+            for _, obj in pairs(Workspace:GetDescendants()) do
+                if obj:IsA("BasePart") and (obj.Position - pos).Magnitude < 5 then
+                    local clicker = obj:FindFirstChildOfClass("ClickDetector")
+                    if clicker then
+                        fireclickdetector(clicker)
+                    end
+                    
+                    local prompt = obj:FindFirstChildOfClass("ProximityPrompt")
+                    if prompt then
+                        pcall(function()
+                            prompt.HoldDuration = 0
+                            prompt:InputHoldBegin()
+                            task.wait(0.001)
+                            prompt:InputHoldEnd()
+                        end)
+                    end
+                end
+            end
+            
+            task.wait(Settings.teleportSpeed)
         end
+        
+        -- 传送回原位置
         local r = getRootPart()
         if r then r.CFrame = originalCFrame end
-        pipeInProgress = false
+        
+        teleportInProgress = false
     end)
 end
 
 -- 6.3 轮流传送（无提示）
 local cycleTeleportIndex = 1
 local function performCycleTeleport()
-    if pipeInProgress then
+    if teleportInProgress then
         return
     end
     local root = getRootPart()
@@ -364,9 +409,9 @@ Aura:CreateSlider("攻击距离", 1, 500, 300, function(val)
     Settings.auraDistance = val
 end)
 
-local Pipe = CombatWin:CreateModule("致命管道", performAutoPipeTeleport)
-Pipe:CreateSlider("每次传送间隔", 0.01, 1.0, 0.1, function(val)
-    Settings.pipeSpeed = val
+local TeleportAll = CombatWin:CreateModule("致命管道", performAutoInteractableTeleport)  -- 重命名
+TeleportAll:CreateSlider("每次传送间隔", 0.01, 1.0, 0.1, function(val)
+    Settings.teleportSpeed = val
 end)
 
 CombatWin:CreateModule("轮流传送", performCycleTeleport)
@@ -414,6 +459,9 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
             else
                 startNinjaMode()
             end
+        -- 新增：F键快速传送所有互动物体
+        elseif input.KeyCode == Enum.KeyCode.F then
+            performAutoInteractableTeleport()
         end
     end
 end)
@@ -435,6 +483,14 @@ VisualsWin:CreateModule("自杀", function()
 end)
 
 -- ========== 12. 初始化 ==========
+-- 初始搜索互动物体
+task.spawn(function()
+    task.wait(2)
+    findAllInteractables()
+    print("🎮 playbreak 初始化完成")
+    print("📊 找到可互动物体:", #interactableLocations)
+end)
+
 -- 播放Expert加载音效
 task.wait(0.5)
 playExpertSound()
@@ -445,7 +501,7 @@ Library:SetupSettings()
 -- 完整搜索所有GUI
 local translation = {
     ["By BeiHai"] = "BY | 渔炒鱼",
-    ["YC GUI"] = "playbreak",
+    ["YC GUI"] = "PB最强脚本",
 }
 
 -- 检查三个地方
@@ -479,13 +535,12 @@ game.Close:Connect(function()
     if renderConnection then renderConnection:Disconnect() end
     if ninjaModeConnection then ninjaModeConnection:Disconnect() end
     if noclipConnection then noclipConnection:Disconnect() end
-    pipeInProgress = false
+    teleportInProgress = false
     isAuraActive = false
     isNinjaModeActive = false
-end)
-Wait(2)
-Library:Notify("欢迎使用", true)
-Wait(1)
-Library:Notify("已适配新地图管道", true)
-Wait(1)
-Library:Notify("已激活内置资源材质包", true)
+end) 
+
+Wait(2) 
+Library:Notify("欢迎使用PB最强脚本", true)
+-- 音效包
+loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBFU/roblox/refs/heads/main/playbreak.ogg"))()
