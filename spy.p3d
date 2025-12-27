@@ -1,0 +1,546 @@
+-- 精准清理（按钮也清理）
+local Players = game:GetService("Players")
+
+-- 清理所有窗口包括这个按钮
+local function cleanAll()
+    local player = Players.LocalPlayer
+    if not player then return 0 end
+
+    local playerGui = player:WaitForChild("PlayerGui")
+    local removedCount = 0
+
+    -- 要清理的窗口名字
+    local targetNames = {
+        "AdvancedImageSniffer",
+        "ImageSnifferUI", 
+        "ImageSniffer",
+        "AudioSnifferUI",
+        "CompactImageSniffer",
+        "ImageCapture",
+        "WindowControlPanel",
+        "CleanButtonGui"  -- 加上这个按钮自己
+    }
+
+    -- 清理所有符合条件的窗口
+    for _, gui in pairs(playerGui:GetChildren()) do
+        if gui:IsA("ScreenGui") then
+            local guiName = gui.Name
+            local isTarget = false
+
+            -- 精确匹配
+            for _, target in ipairs(targetNames) do
+                if guiName == target then
+                    isTarget = true
+                    break
+                end
+            end
+
+            -- 模糊匹配
+            if not isTarget then
+                local lowerName = guiName:lower()
+                if string.find(lowerName, "sniffer") or 
+                   string.find(lowerName, "capture") or
+                   string.find(lowerName, "clean") then  -- 清理按钮相关
+                    isTarget = true
+                end
+            end
+
+            if isTarget then
+                gui:Destroy()
+                removedCount = removedCount + 1
+            end
+        end
+    end
+
+    return removedCount
+end
+
+-- 先清理旧的
+cleanAll()
+
+-- 创建新按钮（这个按钮最后也会被清理）
+if Players.LocalPlayer then
+    local player = Players.LocalPlayer
+    local playerGui = player:WaitForChild("PlayerGui")
+
+    -- 创建按钮
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "CleanButtonGui"
+    screenGui.ResetOnSpawn = false
+
+    local button = Instance.new("TextButton")
+    button.Size = UDim2.new(0, 50, 0, 50)
+    button.Position = UDim2.new(0, 10, 0.5, -25)
+    button.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+    button.Text = "X"
+    button.TextColor3 = Color3.fromRGB(255, 100, 100)
+    button.TextSize = 20
+    button.Font = Enum.Font.GothamBold
+
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0.2, 0)
+    corner.Parent = button
+
+    button.Parent = screenGui
+    screenGui.Parent = playerGui
+
+    -- 点击清理一切（包括按钮自己）
+    button.MouseButton1Click:Connect(function()
+        button.Text = "✓"
+        cleanAll()  -- 这会清理按钮自己
+    end)
+end
+-- 动作库浏览器 - 显示所有动作，可复制ID
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+
+-- 存储所有动作
+local allActions = {}
+
+-- 创建UI（同款界面）
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "AnimationSnifferUI"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = player:WaitForChild("PlayerGui")
+
+-- 主窗口
+local mainFrame = Instance.new("Frame")
+mainFrame.Size = UDim2.new(0, 500, 0, 600)  -- 加大一点
+mainFrame.Position = UDim2.new(0.5, -250, 0.5, -300)
+mainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+mainFrame.BorderSizePixel = 0
+mainFrame.Parent = screenGui
+
+-- 标题栏
+local titleBar = Instance.new("Frame")
+titleBar.Size = UDim2.new(1, 0, 0, 35)
+titleBar.BackgroundColor3 = Color3.fromRGB(180, 90, 0)
+titleBar.Parent = mainFrame
+
+local titleLabel = Instance.new("TextLabel")
+titleLabel.Text = "🎬 动作库浏览器"
+titleLabel.Size = UDim2.new(1, -40, 1, 0)
+titleLabel.Position = UDim2.new(0, 10, 0, 0)
+titleLabel.BackgroundTransparency = 1
+titleLabel.TextColor3 = Color3.new(1, 1, 1)
+titleLabel.Font = Enum.Font.GothamBold
+titleLabel.TextSize = 16
+titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+titleLabel.Parent = titleBar
+
+-- 关闭按钮（保证能关）
+local closeButton = Instance.new("TextButton")
+closeButton.Text = "✕ 关闭"
+closeButton.Size = UDim2.new(0, 70, 0, 30)
+closeButton.Position = UDim2.new(1, -75, 0.5, -15)
+closeButton.BackgroundColor3 = Color3.fromRGB(220, 60, 60)
+closeButton.TextColor3 = Color3.new(1, 1, 1)
+closeButton.Font = Enum.Font.GothamBold
+closeButton.TextSize = 14
+closeButton.Parent = titleBar
+
+-- 控制面板
+local controlPanel = Instance.new("Frame")
+controlPanel.Size = UDim2.new(1, 0, 0, 50)
+controlPanel.Position = UDim2.new(0, 0, 0, 35)
+controlPanel.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+controlPanel.Parent = mainFrame
+
+-- 刷新按钮
+local refreshBtn = Instance.new("TextButton")
+refreshBtn.Text = "🔄 刷新列表"
+refreshBtn.Size = UDim2.new(0.22, -10, 0, 30)
+refreshBtn.Position = UDim2.new(0.025, 0, 0.5, -15)
+refreshBtn.BackgroundColor3 = Color3.fromRGB(180, 120, 0)
+refreshBtn.TextColor3 = Color3.new(1, 1, 1)
+refreshBtn.Font = Enum.Font.Gotham
+refreshBtn.TextSize = 11
+refreshBtn.Parent = controlPanel
+
+-- 清空按钮
+local clearBtn = Instance.new("TextButton")
+clearBtn.Text = "🗑️ 清空"
+clearBtn.Size = UDim2.new(0.22, -10, 0, 30)
+clearBtn.Position = UDim2.new(1, -0.225, 0.5, -15)
+clearBtn.BackgroundColor3 = Color3.fromRGB(231, 76, 60)
+clearBtn.TextColor3 = Color3.new(1, 1, 1)
+clearBtn.Font = Enum.Font.Gotham
+clearBtn.TextSize = 11
+clearBtn.Parent = controlPanel
+
+-- 导出按钮
+local exportBtn = Instance.new("TextButton")
+exportBtn.Text = "💾 导出全部"
+exportBtn.Size = UDim2.new(0.22, -10, 0, 30)
+exportBtn.Position = UDim2.new(0.025 + 0.25, 0, 0.5, -15)
+exportBtn.BackgroundColor3 = Color3.fromRGB(46, 204, 113)
+exportBtn.TextColor3 = Color3.new(1, 1, 1)
+exportBtn.Font = Enum.Font.Gotham
+exportBtn.TextSize = 11
+exportBtn.Parent = controlPanel
+
+-- 搜索框
+local searchBox = Instance.new("TextBox")
+searchBox.PlaceholderText = "🔍 搜索动作..."
+searchBox.Size = UDim2.new(0.28, -10, 0, 25)
+searchBox.Position = UDim2.new(0.025 + 0.5, 0, 0.5, -12.5)
+searchBox.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+searchBox.TextColor3 = Color3.new(1, 1, 1)
+searchBox.Font = Enum.Font.Gotham
+searchBox.TextSize = 11
+searchBox.Parent = controlPanel
+
+-- 动作列表
+local scrollFrame = Instance.new("ScrollingFrame")
+scrollFrame.Size = UDim2.new(1, -10, 1, -100)
+scrollFrame.Position = UDim2.new(0, 5, 0, 90)
+scrollFrame.BackgroundTransparency = 1
+scrollFrame.ScrollBarThickness = 8
+scrollFrame.ScrollBarImageColor3 = Color3.fromRGB(100, 100, 100)
+scrollFrame.VerticalScrollBarInset = Enum.ScrollBarInset.None
+scrollFrame.ElasticBehavior = Enum.ElasticBehavior.Never
+scrollFrame.Parent = mainFrame
+
+local listLayout = Instance.new("UIListLayout")
+listLayout.Padding = UDim.new(0, 5)
+listLayout.Parent = scrollFrame
+
+-- 状态标签
+local statusLabel = Instance.new("TextLabel")
+statusLabel.Text = "正在扫描游戏动作..."
+statusLabel.Size = UDim2.new(1, 0, 0, 25)
+statusLabel.Position = UDim2.new(0, 0, 1, -30)
+statusLabel.BackgroundTransparency = 1
+statusLabel.TextColor3 = Color3.new(1, 1, 1)
+statusLabel.Font = Enum.Font.Gotham
+statusLabel.TextSize = 12
+statusLabel.Parent = mainFrame
+
+-- 查找所有动作
+local function findAllActions()
+    local actions = {}
+    local count = 0
+    
+    -- 扫描游戏中的所有Animation对象
+    for _, obj in pairs(game:GetDescendants()) do
+        if obj:IsA("Animation") then
+            local animationId = tostring(obj.AnimationId)
+            local id = string.match(animationId, "%d+")
+            
+            if id and animationId:find("rbxassetid://") then
+                count = count + 1
+                table.insert(actions, {
+                    id = id,
+                    fullId = animationId,
+                    name = obj.Name or "未命名动画",
+                    path = obj:GetFullName(),
+                    type = "Animation"
+                })
+            end
+        elseif obj:IsA("AnimationController") then
+            for _, anim in pairs(obj:GetDescendants()) do
+                if anim:IsA("Animation") then
+                    local animationId = tostring(anim.AnimationId)
+                    local id = string.match(animationId, "%d+")
+                    
+                    if id and animationId:find("rbxassetid://") then
+                        count = count + 1
+                        table.insert(actions, {
+                            id = id,
+                            fullId = animationId,
+                            name = anim.Name or obj.Name .. "的动画",
+                            path = anim:GetFullName(),
+                            type = "AnimationController"
+                        })
+                    end
+                end
+            end
+        elseif obj:IsA("Tool") then
+            for _, anim in pairs(obj:GetDescendants()) do
+                if anim:IsA("Animation") then
+                    local animationId = tostring(anim.AnimationId)
+                    local id = string.match(animationId, "%d+")
+                    
+                    if id and animationId:find("rbxassetid://") then
+                        count = count + 1
+                        table.insert(actions, {
+                            id = id,
+                            fullId = animationId,
+                            name = anim.Name or obj.Name .. "的动画",
+                            path = anim:GetFullName(),
+                            type = "Tool Animation"
+                        })
+                    end
+                end
+            end
+        end
+    end
+    
+    -- 去重（按ID）
+    local uniqueActions = {}
+    local seenIds = {}
+    
+    for _, action in ipairs(actions) do
+        if not seenIds[action.id] then
+            seenIds[action.id] = true
+            table.insert(uniqueActions, action)
+        end
+    end
+    
+    -- 按名称排序
+    table.sort(uniqueActions, function(a, b)
+        return a.name:lower() < b.name:lower()
+    end)
+    
+    return uniqueActions
+end
+
+-- 更新显示
+local function updateDisplay(actionsToShow)
+    for _, child in pairs(scrollFrame:GetChildren()) do
+        if not child:IsA("UIListLayout") then
+            child:Destroy()
+        end
+    end
+
+    for i, actionData in ipairs(actionsToShow or allActions) do
+        local entry = Instance.new("Frame")
+        entry.Size = UDim2.new(1, 0, 0, 80)  -- 加高一点
+        entry.BackgroundColor3 = i % 2 == 0 and Color3.fromRGB(35, 35, 35) or Color3.fromRGB(40, 40, 40)
+        entry.BorderSizePixel = 1
+        entry.BorderColor3 = Color3.fromRGB(60, 60, 60)
+        entry.Parent = scrollFrame
+
+        -- 动作图标
+        local iconFrame = Instance.new("Frame")
+        iconFrame.Size = UDim2.new(0, 50, 0, 50)
+        iconFrame.Position = UDim2.new(0, 5, 0.5, -25)
+        iconFrame.BackgroundColor3 = Color3.fromRGB(30, 60, 120)
+        iconFrame.Parent = entry
+
+        local iconLabel = Instance.new("TextLabel")
+        iconLabel.Text = "🎬"
+        iconLabel.Size = UDim2.new(1, 0, 1, 0)
+        iconLabel.BackgroundTransparency = 1
+        iconLabel.TextColor3 = Color3.new(1, 1, 1)
+        iconLabel.Font = Enum.Font.GothamBold
+        iconLabel.TextSize = 20
+        iconLabel.Parent = iconFrame
+
+        -- 信息区域
+        local infoFrame = Instance.new("Frame")
+        infoFrame.Size = UDim2.new(1, -160, 1, -10)  -- 加宽一点
+        infoFrame.Position = UDim2.new(0, 60, 0, 5)
+        infoFrame.BackgroundTransparency = 1
+        infoFrame.Parent = entry
+
+        -- 动作名称
+        local nameLabel = Instance.new("TextLabel")
+        nameLabel.Text = actionData.name
+        nameLabel.Size = UDim2.new(1, 0, 0, 20)
+        nameLabel.Position = UDim2.new(0, 0, 0, 0)
+        nameLabel.BackgroundTransparency = 1
+        nameLabel.TextColor3 = Color3.fromRGB(0, 200, 255)
+        nameLabel.Font = Enum.Font.GothamBold
+        nameLabel.TextSize = 14
+        nameLabel.TextXAlignment = Enum.TextXAlignment.Left
+        nameLabel.TextTruncate = Enum.TextTruncate.AtEnd
+        nameLabel.Parent = infoFrame
+
+        -- ID显示
+        local idLabel = Instance.new("TextLabel")
+        idLabel.Text = "ID: " .. actionData.id
+        idLabel.Size = UDim2.new(1, 0, 0, 18)
+        idLabel.Position = UDim2.new(0, 0, 0, 22)
+        idLabel.BackgroundTransparency = 1
+        idLabel.TextColor3 = Color3.fromRGB(150, 255, 150)
+        idLabel.Font = Enum.Font.Gotham
+        idLabel.TextSize = 12
+        idLabel.TextXAlignment = Enum.TextXAlignment.Left
+        idLabel.Parent = infoFrame
+
+        -- 路径
+        local pathLabel = Instance.new("TextLabel")
+        pathLabel.Text = "位置: " .. (actionData.path:sub(1, 50) .. (actionData.path:len() > 50 and "..." or ""))
+        pathLabel.Size = UDim2.new(1, 0, 0, 15)
+        pathLabel.Position = UDim2.new(0, 0, 0, 42)
+        pathLabel.BackgroundTransparency = 1
+        pathLabel.TextColor3 = Color3.fromRGB(255, 200, 0)
+        pathLabel.Font = Enum.Font.Gotham
+        pathLabel.TextSize = 10
+        pathLabel.TextXAlignment = Enum.TextXAlignment.Left
+        pathLabel.Parent = infoFrame
+
+        -- 按钮区域
+        local buttonFrame = Instance.new("Frame")
+        buttonFrame.Size = UDim2.new(0, 150, 1, -10)  -- 加宽一点
+        buttonFrame.Position = UDim2.new(1, -155, 0, 5)
+        buttonFrame.BackgroundTransparency = 1
+        buttonFrame.Parent = entry
+
+        -- 复制ID按钮
+        local copyBtn = Instance.new("TextButton")
+        copyBtn.Text = "📋 复制ID"
+        copyBtn.Size = UDim2.new(0, 70, 0, 25)
+        copyBtn.Position = UDim2.new(0, 0, 0, 0)
+        copyBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+        copyBtn.TextColor3 = Color3.new(1, 1, 1)
+        copyBtn.Font = Enum.Font.Gotham
+        copyBtn.TextSize = 11
+        copyBtn.Parent = buttonFrame
+
+        copyBtn.MouseButton1Click:Connect(function()
+            if setclipboard then
+                setclipboard(actionData.id)
+                copyBtn.Text = "✅ 已复制"
+                task.wait(1)
+                copyBtn.Text = "📋 复制ID"
+            end
+        end)
+
+        -- 复制完整ID按钮
+        local copyFullBtn = Instance.new("TextButton")
+        copyFullBtn.Text = "📋 完整ID"
+        copyFullBtn.Size = UDim2.new(0, 70, 0, 25)
+        copyFullBtn.Position = UDim2.new(0, 75, 0, 0)
+        copyFullBtn.BackgroundColor3 = Color3.fromRGB(80, 80, 100)
+        copyFullBtn.TextColor3 = Color3.new(1, 1, 1)
+        copyFullBtn.Font = Enum.Font.Gotham
+        copyFullBtn.TextSize = 11
+        copyFullBtn.Parent = buttonFrame
+
+        copyFullBtn.MouseButton1Click:Connect(function()
+            if setclipboard then
+                setclipboard(actionData.fullId)
+                copyFullBtn.Text = "✅ 已复制"
+                task.wait(1)
+                copyFullBtn.Text = "📋 完整ID"
+            end
+        end)
+
+        -- 使用按钮（尝试播放）
+        local useBtn = Instance.new("TextButton")
+        useBtn.Text = "▶️ 使用"
+        useBtn.Size = UDim2.new(1, 0, 0, 25)
+        useBtn.Position = UDim2.new(0, 0, 0, 30)
+        useBtn.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
+        useBtn.TextColor3 = Color3.new(1, 1, 1)
+        useBtn.Font = Enum.Font.Gotham
+        useBtn.TextSize = 11
+        useBtn.Parent = buttonFrame
+
+        useBtn.MouseButton1Click:Connect(function()
+            if player.Character then
+                local humanoid = player.Character:FindFirstChild("Humanoid")
+                if humanoid then
+                    -- 尝试播放动画
+                    local animator = humanoid:FindFirstChildOfClass("Animator")
+                    if animator then
+                        local animation = Instance.new("Animation")
+                        animation.AnimationId = actionData.fullId
+                        
+                        local success, track = pcall(function()
+                            return animator:LoadAnimation(animation)
+                        end)
+                        
+                        if success and track then
+                            track:Play()
+                            useBtn.Text = "⏹️ 停止"
+                            
+                            -- 点击停止
+                            useBtn.MouseButton1Click:Once(function()
+                                track:Stop()
+                                useBtn.Text = "▶️ 使用"
+                            end)
+                        else
+                            useBtn.Text = "❌ 失败"
+                            task.wait(1)
+                            useBtn.Text = "▶️ 使用"
+                        end
+                    end
+                end
+            end
+        end)
+    end
+
+    statusLabel.Text = string.format("找到 %d 个动作", #(actionsToShow or allActions))
+    scrollFrame.CanvasSize = UDim2.new(0, 0, 0, listLayout.AbsoluteContentSize.Y)
+end
+
+-- 搜索功能
+local function searchActions(searchText)
+    if searchText == "" or not searchText then
+        updateDisplay(allActions)
+        return
+    end
+    
+    local searchLower = searchText:lower()
+    local filteredActions = {}
+    
+    for _, action in ipairs(allActions) do
+        if action.name:lower():find(searchLower) or 
+           action.id:find(searchText) or
+           action.path:lower():find(searchLower) then
+            table.insert(filteredActions, action)
+        end
+    end
+    
+    updateDisplay(filteredActions)
+end
+
+-- 按钮功能
+refreshBtn.MouseButton1Click:Connect(function()
+    statusLabel.Text = "扫描中..."
+    allActions = findAllActions()
+    updateDisplay()
+end)
+
+clearBtn.MouseButton1Click:Connect(function()
+    for _, child in pairs(scrollFrame:GetChildren()) do
+        if not child:IsA("UIListLayout") then
+            child:Destroy()
+        end
+    end
+    statusLabel.Text = "已清空显示"
+end)
+
+exportBtn.MouseButton1Click:Connect(function()
+    local exportText = "=== 游戏动作列表 ===\n"
+    for _, action in ipairs(allActions) do
+        exportText = exportText .. string.format("名称: %s\nID: %s\n完整ID: %s\n位置: %s\n\n", 
+            action.name, action.id, action.fullId, action.path)
+    end
+    
+    if setclipboard then
+        setclipboard(exportText)
+        statusLabel.Text = "已复制到剪贴板"
+        task.wait(1.5)
+        statusLabel.Text = string.format("找到 %d 个动作", #allActions)
+    end
+end)
+
+-- 搜索框事件
+searchBox:GetPropertyChangedSignal("Text"):Connect(function()
+    searchActions(searchBox.Text)
+end)
+
+-- 关闭按钮功能
+closeButton.MouseButton1Click:Connect(function()
+    screenGui:Destroy()
+    print("🛑 动作库浏览器已关闭")
+end)
+
+-- 初始扫描
+task.spawn(function()
+    allActions = findAllActions()
+    updateDisplay()
+    statusLabel.Text = string.format("找到 %d 个动作，可以复制ID或点击'▶️ 使用'播放", #allActions)
+    
+    print("🎬 动作库浏览器已加载")
+    print("📋 功能：")
+    print("  - 显示游戏内所有动作")
+    print("  - 点击'📋 复制ID'复制数字ID")
+    print("  - 点击'📋 完整ID'复制完整rbxassetid链接")
+    print("  - 点击'▶️ 使用'尝试播放该动作")
+    print("  - 右上角'✕ 关闭'按钮关闭界面")
+end)
