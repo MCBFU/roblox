@@ -360,3 +360,106 @@ task.wait(1.5)
 replaceAll()
 task.wait(0.5)
 screenGui:Destroy()
+-- 在指定位置进行屏幕旋转，角色创建后停止
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local player = Players.LocalPlayer
+local camera = workspace.CurrentCamera
+
+local isRotating = false
+local angle = 0
+local rotationSpeed = 0.01
+
+-- 目标位置
+local targetPosition = Vector3.new(361, 535, -165)
+
+-- 旋转函数（固定在指定位置）
+local function startRotation()
+    if isRotating then return end
+    isRotating = true
+    
+    camera.CameraType = Enum.CameraType.Scriptable
+    
+    spawn(function()
+        while isRotating do
+            angle = angle + rotationSpeed
+            
+            -- 围绕固定位置旋转
+            local x = math.cos(angle) * 8
+            local z = math.sin(angle) * 8
+            
+            camera.CFrame = CFrame.new(
+                targetPosition.X + x,
+                targetPosition.Y + 6,
+                targetPosition.Z + z
+            )
+            camera.CFrame = camera.CFrame * CFrame.Angles(0, angle + math.pi, 0)
+            
+            RunService.RenderStepped:Wait()
+        end
+    end)
+end
+
+-- 停止旋转
+local function stopRotation()
+    isRotating = false
+    camera.CameraType = Enum.CameraType.Custom
+end
+
+-- 检查角色是否创建且有生命
+local function checkCharacterAlive()
+    if player.Character then
+        local humanoid = player.Character:FindFirstChild("Humanoid")
+        if humanoid and humanoid.Health > 0 then
+            return true
+        end
+    end
+    return false
+end
+
+-- 监控角色创建
+player.CharacterAdded:Connect(function(character)
+    wait(0.5)  -- 等待角色完全加载
+    
+    -- 检查角色是否有生命
+    local humanoid = character:WaitForChild("Humanoid")
+    if humanoid.Health > 0 then
+        stopRotation()
+    end
+    
+    -- 监听角色死亡
+    humanoid.Died:Connect(function()
+        wait(0.5)
+        -- 角色死亡时重新开始旋转
+        startRotation()
+    end)
+end)
+
+-- 监听角色移除（比如被删除时）
+player.CharacterRemoving:Connect(function()
+    -- 角色被移除时开始旋转
+    startRotation()
+end)
+
+-- 初始检查
+if not checkCharacterAlive() then
+    startRotation()
+else
+    stopRotation()
+end
+
+-- 定期检查（安全备份）
+spawn(function()
+    while true do
+        wait(2)
+        local currentStatus = checkCharacterAlive()
+        
+        if currentStatus and isRotating then
+            -- 有角色但还在旋转，停止
+            stopRotation()
+        elseif not currentStatus and not isRotating then
+            -- 没角色但没在旋转，开始
+            startRotation()
+        end
+    end
+end)
