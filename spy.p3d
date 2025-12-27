@@ -1,23 +1,42 @@
--- 动作库浏览器 - 显示所有动作，可复制ID
+-- 左侧 收缩/展开 控制按钮 + 完整版动作库浏览器
+-- 功能：点击隐藏界面 | 再次点击展开界面 | 保留原脚本所有功能
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
 
--- 存储所有动作
-local allActions = {}
+-- ===================== 核心控制：左侧收缩/展开按钮 =====================
+local controlGui = Instance.new("ScreenGui")
+controlGui.Name = "AnimControlBtnGui"
+controlGui.ResetOnSpawn = false
+controlGui.Parent = playerGui
 
--- 创建UI（同款界面）
+-- 左侧固定收缩/展开小按钮
+local toggleBtn = Instance.new("TextButton")
+toggleBtn.Text = "📎"
+toggleBtn.Size = UDim2.new(0, 32, 0, 32)
+toggleBtn.Position = UDim2.new(0, 8, 0.5, -16) -- 左侧垂直居中
+toggleBtn.BackgroundColor3 = Color3.fromRGB(180, 90, 0)
+toggleBtn.TextColor3 = Color3.new(1, 1, 1)
+toggleBtn.Font = Enum.Font.GothamBold
+toggleBtn.TextSize = 16
+toggleBtn.BorderSizePixel = 0
+toggleBtn.ZIndex = 9999 -- 置顶显示，永不被遮挡
+toggleBtn.Parent = controlGui
+
+-- ===================== 原动作库浏览器完整脚本（带隐藏/展开逻辑） =====================
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "AnimationSnifferUI"
 screenGui.ResetOnSpawn = false
-screenGui.Parent = player:WaitForChild("PlayerGui")
+screenGui.Parent = playerGui
 
--- 主窗口
+-- 主窗口（核心：添加可见性控制）
 local mainFrame = Instance.new("Frame")
-mainFrame.Size = UDim2.new(0, 500, 0, 600)  -- 加大一点
+mainFrame.Size = UDim2.new(0, 500, 0, 600)
 mainFrame.Position = UDim2.new(0.5, -250, 0.5, -300)
 mainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
 mainFrame.BorderSizePixel = 0
 mainFrame.Parent = screenGui
+mainFrame.Visible = true -- 默认展开
 
 -- 标题栏
 local titleBar = Instance.new("Frame")
@@ -124,6 +143,9 @@ statusLabel.Font = Enum.Font.Gotham
 statusLabel.TextSize = 12
 statusLabel.Parent = mainFrame
 
+-- 存储所有动作
+local allActions = {}
+
 -- 查找所有动作
 local function findAllActions()
     local actions = {}
@@ -213,7 +235,7 @@ local function updateDisplay(actionsToShow)
 
     for i, actionData in ipairs(actionsToShow or allActions) do
         local entry = Instance.new("Frame")
-        entry.Size = UDim2.new(1, 0, 0, 80)  -- 加高一点
+        entry.Size = UDim2.new(1, 0, 0, 80)
         entry.BackgroundColor3 = i % 2 == 0 and Color3.fromRGB(35, 35, 35) or Color3.fromRGB(40, 40, 40)
         entry.BorderSizePixel = 1
         entry.BorderColor3 = Color3.fromRGB(60, 60, 60)
@@ -237,7 +259,7 @@ local function updateDisplay(actionsToShow)
 
         -- 信息区域
         local infoFrame = Instance.new("Frame")
-        infoFrame.Size = UDim2.new(1, -160, 1, -10)  -- 加宽一点
+        infoFrame.Size = UDim2.new(1, -160, 1, -10)
         infoFrame.Position = UDim2.new(0, 60, 0, 5)
         infoFrame.BackgroundTransparency = 1
         infoFrame.Parent = entry
@@ -281,7 +303,7 @@ local function updateDisplay(actionsToShow)
 
         -- 按钮区域
         local buttonFrame = Instance.new("Frame")
-        buttonFrame.Size = UDim2.new(0, 150, 1, -10)  -- 加宽一点
+        buttonFrame.Size = UDim2.new(0, 150, 1, -10)
         buttonFrame.Position = UDim2.new(1, -155, 0, 5)
         buttonFrame.BackgroundTransparency = 1
         buttonFrame.Parent = entry
@@ -435,7 +457,15 @@ end)
 -- 关闭按钮功能
 closeButton.MouseButton1Click:Connect(function()
     screenGui:Destroy()
+    controlGui:Destroy() -- 关闭时连带控制按钮一起删
     print("🛑 动作库浏览器已关闭")
+end)
+
+-- ===================== 核心联动：收缩/展开切换逻辑 =====================
+toggleBtn.MouseButton1Click:Connect(function()
+    mainFrame.Visible = not mainFrame.Visible -- 切换显隐
+    -- 按钮文字切换，提示状态
+    toggleBtn.Text = mainFrame.Visible and "📎" or "📤"
 end)
 
 -- 初始扫描
@@ -450,5 +480,6 @@ task.spawn(function()
     print("  - 点击'📋 复制ID'复制数字ID")
     print("  - 点击'📋 完整ID'复制完整rbxassetid链接")
     print("  - 点击'▶️ 使用'尝试播放该动作")
+    print("  - 左侧📎/📤 按钮：收缩/展开界面")
     print("  - 右上角'✕ 关闭'按钮关闭界面")
 end)
