@@ -1,24 +1,24 @@
--- 左侧 收缩/展开 控制按钮 + 完整版动作库浏览器
--- 功能：点击隐藏界面 | 再次点击展开界面 | 保留原脚本所有功能
+-- 左侧 大尺寸收缩/展开 控制按钮 + 完整版动作库浏览器 + 一键关闭所有动作
+-- 功能：大按钮更好按压 | 点击隐藏/展开界面 | 一键停所有动作 | 保留全部原功能
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
--- ===================== 核心控制：左侧收缩/展开按钮 =====================
+-- ===================== 核心控制：左侧大尺寸收缩/展开按钮（重点修改尺寸） =====================
 local controlGui = Instance.new("ScreenGui")
 controlGui.Name = "AnimControlBtnGui"
 controlGui.ResetOnSpawn = false
 controlGui.Parent = playerGui
 
--- 左侧固定收缩/展开小按钮
+-- 左侧固定收缩/展开大按钮  【已放大：48x48 像素，更好按压】
 local toggleBtn = Instance.new("TextButton")
 toggleBtn.Text = "📎"
-toggleBtn.Size = UDim2.new(0, 32, 0, 32)
-toggleBtn.Position = UDim2.new(0, 8, 0.5, -16) -- 左侧垂直居中
+toggleBtn.Size = UDim2.new(0, 48, 0, 48)  -- 核心修改：放大按钮尺寸（原32x32 → 48x48）
+toggleBtn.Position = UDim2.new(0, 8, 0.5, -24)  -- 同步调整居中偏移，保证垂直居中
 toggleBtn.BackgroundColor3 = Color3.fromRGB(180, 90, 0)
 toggleBtn.TextColor3 = Color3.new(1, 1, 1)
 toggleBtn.Font = Enum.Font.GothamBold
-toggleBtn.TextSize = 16
+toggleBtn.TextSize = 22  -- 同步放大图标文字，视觉更协调
 toggleBtn.BorderSizePixel = 0
 toggleBtn.ZIndex = 9999 -- 置顶显示，永不被遮挡
 toggleBtn.Parent = controlGui
@@ -65,6 +65,49 @@ closeButton.TextColor3 = Color3.new(1, 1, 1)
 closeButton.Font = Enum.Font.GothamBold
 closeButton.TextSize = 14
 closeButton.Parent = titleBar
+
+-- ===================== 标题栏 一键关闭所有动作 按钮 =====================
+local stopAllBtn = Instance.new("TextButton")
+stopAllBtn.Text = "⏹️ 关闭所有动作"
+stopAllBtn.Size = UDim2.new(0, 130, 0, 28)
+stopAllBtn.Position = UDim2.new(0.5, -65, 0.5, -14)
+stopAllBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+stopAllBtn.TextColor3 = Color3.new(1, 1, 1)
+stopAllBtn.Font = Enum.Font.GothamBold
+stopAllBtn.TextSize = 11
+stopAllBtn.BorderSizePixel = 0
+stopAllBtn.ZIndex = 2
+stopAllBtn.Parent = titleBar
+
+-- 关闭所有动作 核心功能
+local function stopAllAnimations()
+    if not player.Character then
+        statusLabel.Text = "❌ 未找到角色"
+        task.wait(1.5)
+        statusLabel.Text = string.format("找到 %d 个动作", #allActions)
+        return
+    end
+
+    local closedCount = 0
+    -- 遍历角色所有Humanoid和Animator，停止全部播放动画
+    for _, humanoid in pairs(player.Character:GetDescendants()) do
+        if humanoid:IsA("Humanoid") then
+            local animator = humanoid:FindFirstChildOfClass("Animator")
+            if animator then
+                for _, track in pairs(animator:GetPlayingAnimationTracks()) do
+                    track:Stop()
+                    closedCount += 1
+                end
+            end
+        end
+    end
+
+    -- 状态栏反馈提示
+    statusLabel.Text = closedCount > 0 and string.format("✅ 关闭了 %d 个动作", closedCount) or "ℹ️ 无播放动作"
+    task.wait(1.5)
+    statusLabel.Text = string.format("找到 %d 个动作", #allActions)
+end
+stopAllBtn.MouseButton1Click:Connect(stopAllAnimations)
 
 -- 控制面板
 local controlPanel = Instance.new("Frame")
@@ -477,9 +520,9 @@ task.spawn(function()
     print("🎬 动作库浏览器已加载")
     print("📋 功能：")
     print("  - 显示游戏内所有动作")
-    print("  - 点击'📋 复制ID'复制数字ID")
-    print("  - 点击'📋 完整ID'复制完整rbxassetid链接")
+    print("  - 点击'📋 复制ID'复制数字ID | '📋 完整ID'复制链接")
     print("  - 点击'▶️ 使用'尝试播放该动作")
-    print("  - 左侧📎/📤 按钮：收缩/展开界面")
+    print("  - 左侧大按钮📎/📤 ：收缩/展开界面（更好按压）")
+    print("  - 顶部⏹️ 按钮：一键关闭所有正在播放的动作")
     print("  - 右上角'✕ 关闭'按钮关闭界面")
 end)
