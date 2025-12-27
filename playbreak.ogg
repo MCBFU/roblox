@@ -204,6 +204,7 @@ local replacementLists = {
         {oldId = "120452710152785", newId = "4625478089"},
         {oldId = "95825012919180", newId = "4625478089"},
         {oldId = "77823426566285", newId = "4625478089"},
+        {oldId = "93426961710317", newId = "4625478089"},--
         {oldId = "18395608861", newId = "18132762977"},--票子
         {oldId = "7539983773", newId = "11432855214"},
     },
@@ -377,24 +378,24 @@ local targetPosition = Vector3.new(361, 535, -165)
 local function startRotation()
     if isRotating then return end
     isRotating = true
-    
+
     camera.CameraType = Enum.CameraType.Scriptable
-    
+
     spawn(function()
         while isRotating do
             angle = angle + rotationSpeed
-            
+
             -- 围绕固定位置旋转
             local x = math.cos(angle) * 8
             local z = math.sin(angle) * 8
-            
+
             camera.CFrame = CFrame.new(
                 targetPosition.X + x,
                 targetPosition.Y + 6,
                 targetPosition.Z + z
             )
             camera.CFrame = camera.CFrame * CFrame.Angles(0, angle + math.pi, 0)
-            
+
             RunService.RenderStepped:Wait()
         end
     end)
@@ -420,13 +421,13 @@ end
 -- 监控角色创建
 player.CharacterAdded:Connect(function(character)
     wait(0.5)  -- 等待角色完全加载
-    
+
     -- 检查角色是否有生命
     local humanoid = character:WaitForChild("Humanoid")
     if humanoid.Health > 0 then
         stopRotation()
     end
-    
+
     -- 监听角色死亡
     humanoid.Died:Connect(function()
         wait(0.5)
@@ -453,7 +454,7 @@ spawn(function()
     while true do
         wait(2)
         local currentStatus = checkCharacterAlive()
-        
+
         if currentStatus and isRotating then
             -- 有角色但还在旋转，停止
             stopRotation()
