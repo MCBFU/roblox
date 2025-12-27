@@ -9,7 +9,6 @@ gui.ResetOnSpawn = false
 gui.IgnoreGuiInset = true
 gui.Parent = player:WaitForChild("PlayerGui")
 
--- 核心MCB水印文字（极小+高透+无任何多余框体）
 local mcbMark = Instance.new("TextLabel")
 mcbMark.Size = UDim2.new(0, 60, 0, 20)
 mcbMark.Position = UDim2.new(0.015, 0, 0.97, 0)
@@ -18,53 +17,47 @@ mcbMark.BackgroundTransparency = 1
 mcbMark.Text = "MCB材质GUI  BY  渔炒鱼"
 mcbMark.Font = Enum.Font.GothamBold
 mcbMark.TextSize = 10
-mcbMark.TextTransparency = 0.7 -- 高透明水印感
+mcbMark.TextTransparency = 0.7
 mcbMark.TextColor3 = Color3.fromRGB(255, 255, 255)
 mcbMark.TextStrokeTransparency = 0.9
 mcbMark.TextStrokeColor3 = Color3.fromRGB(0, 180, 255)
 mcbMark.TextXAlignment = Enum.TextXAlignment.Left
-mcbMark.ZIndex = 999 -- 置顶不被遮挡
+mcbMark.ZIndex = 999
 mcbMark.Parent = gui
 
--- 极淡呼吸特效（不晃眼，高级水印动态感）
 TweenService:Create(mcbMark,TweenInfo.new(6, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1),{TextTransparency = 0.85, TextStrokeTransparency = 0.95}):Play()
 
--- 高级加载界面 + 图片音效替换整合版
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "PremiumLoader"
 screenGui.ResetOnSpawn = false
 screenGui.IgnoreGuiInset = true
 screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
--- 主图片容器（绝对全屏）
 local imageContainer = Instance.new("Frame")
 imageContainer.Size = UDim2.new(1, 0, 1, 0)
 imageContainer.Position = UDim2.new(0, 0, 0, 0)
 imageContainer.BackgroundTransparency = 1
 imageContainer.ClipsDescendants = true
 
--- 主图片（完美填充）
 local mainImage = Instance.new("ImageLabel")
-mainImage.Size = UDim2.new(1.1, 0, 1.1, 0)  -- 稍微放大防止边缘缝隙
+mainImage.Size = UDim2.new(1.1, 0, 1.1, 0)
 mainImage.Position = UDim2.new(-0.05, 0, -0.05, 0)
 mainImage.BackgroundTransparency = 1
 mainImage.Image = "rbxassetid://111333374680640"
 mainImage.ScaleType = Enum.ScaleType.Crop
 mainImage.ImageColor3 = Color3.fromRGB(255, 255, 255)
-mainImage.ImageTransparency = 1  -- 初始透明，准备淡入
+mainImage.ImageTransparency = 1
 
--- 进度条容器（左下角超小超精致）
 local progressContainer = Instance.new("Frame")
-progressContainer.Size = UDim2.new(0.12, 0, 0, 4)  -- 超小超细
-progressContainer.Position = UDim2.new(0.02, 0, 0.96, 0)  -- 左下角
+progressContainer.Size = UDim2.new(0.12, 0, 0, 4)
+progressContainer.Position = UDim2.new(0.02, 0, 0.96, 0)
 progressContainer.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-progressContainer.BackgroundTransparency = 1  -- 初始透明
+progressContainer.BackgroundTransparency = 1
 progressContainer.AnchorPoint = Vector2.new(0, 1)
 
 local progressCorner = Instance.new("UICorner")
 progressCorner.CornerRadius = UDim.new(1, 0)
 
--- 进度条背景
 local progressBackground = Instance.new("Frame")
 progressBackground.Size = UDim2.new(1, -2, 1, -2)
 progressBackground.Position = UDim2.new(0, 1, 0, 1)
@@ -74,7 +67,6 @@ progressBackground.BackgroundTransparency = 0.7
 local bgCorner = Instance.new("UICorner")
 bgCorner.CornerRadius = UDim.new(1, 0)
 
--- 进度条前景（霓虹蓝色）
 local progressBar = Instance.new("Frame")
 progressBar.Size = UDim2.new(0, 0, 1, -2)
 progressBar.Position = UDim2.new(0, 1, 0, 1)
@@ -84,7 +76,6 @@ progressBar.BorderSizePixel = 0
 local barCorner = Instance.new("UICorner")
 barCorner.CornerRadius = UDim.new(1, 0)
 
--- 进度百分比（超小字体）
 local progressText = Instance.new("TextLabel")
 progressText.Text = "0"
 progressText.Size = UDim2.new(0, 30, 0, 20)
@@ -94,9 +85,8 @@ progressText.TextColor3 = Color3.fromRGB(0, 200, 255)
 progressText.Font = Enum.Font.GothamBold
 progressText.TextSize = 14
 progressText.TextXAlignment = Enum.TextXAlignment.Left
-progressText.TextTransparency = 1  -- 初始透明
+progressText.TextTransparency = 1
 
--- 组装UI
 progressCorner.Parent = progressContainer
 bgCorner.Parent = progressBackground
 barCorner.Parent = progressBar
@@ -108,58 +98,44 @@ progressContainer.Parent = imageContainer
 imageContainer.Parent = screenGui
 screenGui.Parent = player:WaitForChild("PlayerGui")
 
--- 淡入动画
 local fadeIn = TweenService:Create(mainImage,TweenInfo.new(0.8, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),{ImageTransparency = 0})
 local progressFadeIn = TweenService:Create(progressContainer,TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),{BackgroundTransparency = 0.8})
 local textFadeIn = TweenService:Create(progressText,TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),{TextTransparency = 0})
 
--- 执行淡入动画
 fadeIn:Play()
 task.wait(0.3)
 progressFadeIn:Play()
 textFadeIn:Play()
 
--- 进度条动画
 local progress = 0
 local function smoothProgress()
     local startTime = tick()
     while progress < 100 do
         local elapsed = tick() - startTime
-        progress = math.clamp((elapsed / 3) * 100, 0, 100) -- 3秒完成加载进度
-        -- 超丝滑的进度条动画
+        progress = math.clamp((elapsed / 3) * 100, 0, 100)
         TweenService:Create(progressBar,TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),{Size = UDim2.new(progress / 100, 0, 1, -2)}):Play()
-        -- 进度文本
         progressText.Text = string.format("%d", math.floor(progress))
         RunService.RenderStepped:Wait()
     end
 end
 
--- 启动进度条
 task.spawn(smoothProgress)
--- 等待完成
 repeat task.wait(0.1) until progress >= 100
--- 完成效果
 progressText.Text = "100"
 task.wait(0.3)
 
--- 淡出动画
 local fadeOutSequence = {
-    -- 进度条先淡出
     TweenService:Create(progressContainer,TweenInfo.new(0.5, Enum.EasingStyle.Cubic, Enum.EasingDirection.Out),{BackgroundTransparency = 1}),
     TweenService:Create(progressText,TweenInfo.new(0.5, Enum.EasingStyle.Cubic, Enum.EasingDirection.Out),{TextTransparency = 1}),
-    -- 主图片淡出
     TweenService:Create(mainImage,TweenInfo.new(1.2, Enum.EasingStyle.Cubic, Enum.EasingDirection.Out),{ImageTransparency = 1})
 }
 
--- 执行淡出动画
 for i, tween in ipairs(fadeOutSequence) do
     tween:Play()
     task.wait(0.2)
 end
 
--- ============== 第二部分：图片音效替换 ==============
 local replacementLists = {
-    -- 图片替换列表(注释不要去掉)
     Images = {
         {oldId = "9819025862", newId = "5887957252"},--机器人进度
         {oldId = "18983980709", newId = "1883128632"},--死亡人类
@@ -207,7 +183,7 @@ local replacementLists = {
         {oldId = "13050415802", newId = "11245756484"},--下蹲
         {oldId = "18318977415", newId = "86119075739911"},--发射手按钮
         {oldId = "18318988523", newId = "86119075739911"},
-        {oldId = "125028983718775", newId = "000"},--上方收集进度框框
+        {oldId = "125028983718775", newId = "11295287158"},--上方收集进度框框 修复无效ID 000
         {oldId = "71943104392583", newId = "11419666512"},--屏幕上方计时图案
         {oldId = "5887957252", newId = "11963364026"},--一个空心圆疑似准星
         {oldId = "5945121255", newId = "11963364026"},--追逐心跳特效
@@ -229,10 +205,8 @@ local replacementLists = {
         {oldId = "95825012919180", newId = "4625478089"},
         {oldId = "77823426566285", newId = "4625478089"},
         {oldId = "18395608861", newId = "18132762977"},--票子
-        {oldId = "7539983773", newId = "11432855214"},--
+        {oldId = "7539983773", newId = "11432855214"},
     },
-
-    -- 音效替换列表  
     Sounds = {        
         {old = "85947068032779", new = "11963364026"},--荡秋千
         {old = "17754462333", new = ""},--开启奔跑
@@ -312,62 +286,68 @@ local replacementLists = {
     }
 }
 
--- 单个图片替换逻辑（精准匹配 避免误改）
 local function replaceSingleImage(obj,item)
-    local targetId = "rbxassetid://"..item.oldId
-    if obj.Image == targetId then
-        obj.Image = "rbxassetid://"..item.newId
+    if item.newId == "000" then return end
+    local targetOld = "rbxassetid://" .. tostring(item.oldId)
+    local targetNew = "rbxassetid://" .. tostring(item.newId)
+    if obj:IsA("Decal") or obj:IsA("Texture") then
+        if obj.Texture == targetOld then obj.Texture = targetNew end
+    else
+        if obj.Image == targetOld then obj.Image = targetNew end
     end
 end
 
--- 单个音效替换逻辑（支持空值 不报错）
 local function replaceSingleSound(obj,item)
-    local targetId = "rbxassetid://"..item.old
-    if obj.SoundId == targetId then
-        obj.SoundId = item.new == "" and "" or "rbxassetid://"..item.new
+    local targetOld = "rbxassetid://" .. tostring(item.old)
+    if obj.SoundId == targetOld then
+        obj.SoundId = item.new == "" and "" or "rbxassetid://" .. tostring(item.new)
     end
 end
 
--- 批量替换+实时监控总逻辑
 local function replaceAll()
-    -- 批量替换现有资源 并行执行 不卡顿
     task.spawn(function()
+        local imageObjects = {}
+        for _,obj in pairs(game:GetDescendants()) do
+            if obj:IsA("ImageLabel") or obj:IsA("ImageButton") or obj:IsA("Decal") or obj:IsA("Texture") then
+                table.insert(imageObjects,obj)
+            end
+        end
         for _,item in ipairs(replacementLists.Images) do
-            if item.oldId ~= "" and item.newId ~= "" then
-                for _,obj in pairs(game:GetDescendants()) do
-                    if obj:IsA("ImageLabel") or obj:IsA("ImageButton") or obj:IsA("Decal") or obj:IsA("Texture") then
-                        replaceSingleImage(obj,item)
-                    end
+            if item.oldId and item.newId and item.oldId ~= "" and item.newId ~= "" then
+                for _,obj in ipairs(imageObjects) do
+                    replaceSingleImage(obj,item)
                 end
             end
         end
     end)
 
-    -- 音效批量替换 单独线程 互不干扰
     task.spawn(function()
+        local soundObjects = {}
+        for _,obj in pairs(game:GetDescendants()) do
+            if obj:IsA("Sound") then
+                table.insert(soundObjects,obj)
+            end
+        end
         for _,item in ipairs(replacementLists.Sounds) do
-            if item.old ~= "" then
-                for _,obj in pairs(game:GetDescendants()) do
-                    if obj:IsA("Sound") then
-                        replaceSingleSound(obj,item)
-                    end
+            if item.old and item.old ~= "" then
+                for _,obj in ipairs(soundObjects) do
+                    replaceSingleSound(obj,item)
                 end
             end
         end
     end)
 
-    -- 实时监控新创建的资源 无延迟替换
     game.DescendantAdded:Connect(function(obj)
         task.spawn(function()
             if obj:IsA("ImageLabel") or obj:IsA("ImageButton") or obj:IsA("Decal") or obj:IsA("Texture") then
                 for _,item in ipairs(replacementLists.Images) do
-                    if item.oldId ~= "" and item.newId ~= "" then
+                    if item.oldId and item.newId and item.oldId ~= "" and item.newId ~= "" then
                         replaceSingleImage(obj,item)
                     end
                 end
             elseif obj:IsA("Sound") then
                 for _,item in ipairs(replacementLists.Sounds) do
-                    if item.old ~= "" then
+                    if item.old and item.old ~= "" then
                         replaceSingleSound(obj,item)
                     end
                 end
@@ -376,9 +356,7 @@ local function replaceAll()
     end)
 end
 
--- 等待淡出动画结束 再执行替换 不冲突
 task.wait(1.5)
 replaceAll()
--- 延迟清理加载界面 防止资源残留
 task.wait(0.5)
 screenGui:Destroy()
