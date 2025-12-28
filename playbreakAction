@@ -1,0 +1,554 @@
+-- 动作工具箱（修复版 - 真正的动作执行）
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+
+-- 动作ID数据库（确保ID都是数字）
+local ActionDatabase = {
+	{Name = "趴着行走(以下内容仅供机器人和专家使用)", ID = 17831576933},
+	{Name = "蹲着走", ID = 106507840912725},
+	{Name = "遁地", ID = 17844403413},
+	{Name = "坠落", ID = 17873485539},
+	{Name = "荡秋千", ID = 15778110442},
+	{Name = "受到攻击", ID = 17753481871},
+	{Name = "腿瘸行走", ID = 70544076185126},
+	{Name = "被跳杀", ID = 115775718621189},
+	{Name = "落地", ID = 80339425536454},
+	{Name = "抱头", ID = 136904105579436},
+	{Name = "机器人举起玩家", ID = 84687585017584},
+	{Name = "怪物隐身(以下怪物内容机器人和专家均不可用)", ID = 135392429980132},
+	{Name = "怪物隐身2", ID = 86109702723649},
+	{Name = "哈吉站", ID = 13068559211},
+	{Name = "哈吉站2", ID = 137610829519848},
+	{Name = "哈吉狂暴", ID = 111268763265056},
+	{Name = "哈吉狂暴普攻", ID = 105957541008868},
+	{Name = "哈吉普攻", ID = 90277841872284},
+	{Name = "哈吉走", ID = 73116337474484},
+	{Name = "哈吉蹲走", ID = 86947765272915},
+	{Name = "哈吉抬手", ID = 86947765272915},  -- 注意：重复ID
+	{Name = "哈吉跳跃", ID = 129959586618668},
+	{Name = "哈吉抱抱", ID = 105996289017723},
+	{Name = "哈吉狂暴跑", ID = 116476862154793}
+}
+
+-- 创建主界面
+local ActionToolbox = Instance.new("ScreenGui")
+ActionToolbox.Name = "ActionToolbox"
+ActionToolbox.ResetOnSpawn = false
+ActionToolbox.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+-- 主窗口
+local MainWindow = Instance.new("Frame")
+MainWindow.Name = "MainWindow"
+MainWindow.Size = UDim2.new(0, 280, 0, 420)
+MainWindow.Position = UDim2.new(0.5, -140, 0.5, -210)
+MainWindow.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+MainWindow.BorderSizePixel = 0
+MainWindow.ClipsDescendants = true
+
+-- 圆角
+local UICorner = Instance.new("UICorner")
+UICorner.CornerRadius = UDim.new(0, 8)
+UICorner.Parent = MainWindow
+
+-- 阴影
+local UIStroke = Instance.new("UIStroke")
+UIStroke.Color = Color3.fromRGB(60, 60, 70)
+UIStroke.Thickness = 2
+UIStroke.Parent = MainWindow
+
+-- 标题栏
+local TitleBar = Instance.new("Frame")
+TitleBar.Name = "TitleBar"
+TitleBar.Size = UDim2.new(1, 0, 0, 40)
+TitleBar.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
+TitleBar.BorderSizePixel = 0
+
+local TitleCorner = Instance.new("UICorner")
+TitleCorner.CornerRadius = UDim.new(0, 8)
+TitleCorner.Parent = TitleBar
+
+local Title = Instance.new("TextLabel")
+Title.Name = "Title"
+Title.Size = UDim2.new(1, -120, 1, 0)
+Title.Position = UDim2.new(0, 10, 0, 0)
+Title.BackgroundTransparency = 1
+Title.Text = "动作工具箱"
+Title.TextColor3 = Color3.fromRGB(220, 220, 230)
+Title.Font = Enum.Font.GothamBold
+Title.TextSize = 16
+Title.TextXAlignment = Enum.TextXAlignment.Left
+
+-- 缩小按钮
+local MinimizeButton = Instance.new("TextButton")
+MinimizeButton.Name = "MinimizeButton"
+MinimizeButton.Size = UDim2.new(0, 30, 0, 30)
+MinimizeButton.Position = UDim2.new(1, -75, 0, 5)
+MinimizeButton.BackgroundColor3 = Color3.fromRGB(80, 130, 200)
+MinimizeButton.AutoButtonColor = false
+MinimizeButton.Text = "－"
+MinimizeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+MinimizeButton.Font = Enum.Font.GothamBold
+MinimizeButton.TextSize = 18
+
+local MinimizeCorner = Instance.new("UICorner")
+MinimizeCorner.CornerRadius = UDim.new(0, 6)
+MinimizeCorner.Parent = MinimizeButton
+
+-- 关闭按钮
+local CloseButton = Instance.new("TextButton")
+CloseButton.Name = "CloseButton"
+CloseButton.Size = UDim2.new(0, 30, 0, 30)
+CloseButton.Position = UDim2.new(1, -35, 0, 5)
+CloseButton.BackgroundColor3 = Color3.fromRGB(200, 70, 70)
+CloseButton.AutoButtonColor = false
+CloseButton.Text = "×"
+CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseButton.Font = Enum.Font.GothamBold
+CloseButton.TextSize = 18
+
+local CloseCorner = Instance.new("UICorner")
+CloseCorner.CornerRadius = UDim.new(0, 6)
+CloseCorner.Parent = CloseButton
+
+-- 清除所有动作按钮
+local ClearAllButton = Instance.new("TextButton")
+ClearAllButton.Name = "ClearAllButton"
+ClearAllButton.Size = UDim2.new(1, -20, 0, 40)
+ClearAllButton.Position = UDim2.new(0, 10, 0, 50)
+ClearAllButton.BackgroundColor3 = Color3.fromRGB(180, 70, 70)
+ClearAllButton.AutoButtonColor = true
+ClearAllButton.Text = "清除所有动作"
+ClearAllButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+ClearAllButton.Font = Enum.Font.GothamBold
+ClearAllButton.TextSize = 14
+ClearAllButton.TextWrapped = true
+
+local ClearCorner = Instance.new("UICorner")
+ClearCorner.CornerRadius = UDim.new(0, 6)
+ClearCorner.Parent = ClearAllButton
+
+local ClearStroke = Instance.new("UIStroke")
+ClearStroke.Color = Color3.fromRGB(200, 90, 90)
+ClearStroke.Thickness = 1
+ClearStroke.Parent = ClearAllButton
+
+-- 内容区域
+local Content = Instance.new("Frame")
+Content.Name = "Content"
+Content.Size = UDim2.new(1, -20, 1, -110)
+Content.Position = UDim2.new(0, 10, 0, 100)
+Content.BackgroundTransparency = 1
+
+-- 滚动框
+local ScrollingFrame = Instance.new("ScrollingFrame")
+ScrollingFrame.Name = "ScrollingFrame"
+ScrollingFrame.Size = UDim2.new(1, 0, 1, 0)
+ScrollingFrame.BackgroundTransparency = 1
+ScrollingFrame.BorderSizePixel = 0
+ScrollingFrame.ScrollBarThickness = 4
+ScrollingFrame.ScrollBarImageColor3 = Color3.fromRGB(80, 80, 90)
+ScrollingFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
+ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+
+-- 动作按钮容器
+local ActionsListLayout = Instance.new("UIListLayout")
+ActionsListLayout.Padding = UDim.new(0, 8)
+ActionsListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+
+-- 组装UI
+TitleBar.Parent = MainWindow
+Title.Parent = TitleBar
+MinimizeButton.Parent = TitleBar
+CloseButton.Parent = TitleBar
+ClearAllButton.Parent = MainWindow
+Content.Parent = MainWindow
+ScrollingFrame.Parent = Content
+ActionsListLayout.Parent = ScrollingFrame
+
+MainWindow.Parent = ActionToolbox
+ActionToolbox.Parent = player:WaitForChild("PlayerGui")
+
+-- 状态变量
+local isMinimized = false
+local originalSize = MainWindow.Size
+local originalPosition = MainWindow.Position
+local minimizedSize = UDim2.new(0, 200, 0, 40)
+local dragging = false
+local dragStart, startPos
+
+-- 当前正在播放的动画
+local currentAnimations = {}
+
+-- ========== 修复：动画播放系统 ==========
+local function getHumanoid()
+	-- 获取当前角色的Humanoid
+	if not character or not character.Parent then
+		character = player.Character
+	end
+	
+	if character then
+		local humanoid = character:FindFirstChild("Humanoid")
+		if humanoid then
+			return humanoid
+		end
+		
+		-- 等待Humanoid加载
+		local humanoidWait = character:WaitForChild("Humanoid", 3)
+		return humanoidWait
+	end
+	
+	return nil
+end
+
+local function playAnimation(animationId, animationName)
+	-- 获取Humanoid
+	local humanoid = getHumanoid()
+	if not humanoid then
+		warn("无法找到Humanoid！")
+		return
+	end
+	
+	-- 停止同名的动画
+	if currentAnimations[animationName] then
+		currentAnimations[animationName]:Stop()
+		currentAnimations[animationName] = nil
+	end
+	
+	-- 创建并加载动画
+	local success, result = pcall(function()
+		local animation = Instance.new("Animation")
+		-- 确保animationId是数字，转换为字符串格式
+		local animId = tonumber(animationId)
+		if animId then
+			animation.AnimationId = "rbxassetid://" .. animId
+		else
+			animation.AnimationId = animationId
+		end
+		
+		-- 加载动画
+		local animTrack = humanoid:LoadAnimation(animation)
+		animTrack:Play()
+		
+		-- 保存动画引用
+		currentAnimations[animationName] = animTrack
+		
+		-- 监听动画结束
+		animTrack.Stopped:Connect(function()
+			currentAnimations[animationName] = nil
+		end)
+		
+		print("✅ 正在播放: " .. animationName .. " (ID: " .. animationId .. ")")
+		
+		return animTrack
+	end)
+	
+	if not success then
+		warn("❌ 播放动画失败: " .. animationName)
+		warn("错误信息: " .. tostring(result))
+	end
+end
+
+-- 清除所有动画函数
+local function clearAllAnimations()
+	print("🔄 清除所有动作...")
+	
+	local count = 0
+	for animName, animTrack in pairs(currentAnimations) do
+		if animTrack then
+			animTrack:Stop()
+			count = count + 1
+		end
+	end
+	
+	-- 清空动画表
+	currentAnimations = {}
+	
+	-- 按钮反馈动画
+	local originalColor = ClearAllButton.BackgroundColor3
+	ClearAllButton.BackgroundColor3 = Color3.fromRGB(220, 90, 90)
+	ClearAllButton.Text = "已清除 (" .. count .. ")"
+	
+	-- 恢复按钮状态
+	task.wait(0.8)
+	ClearAllButton.BackgroundColor3 = originalColor
+	ClearAllButton.Text = "清除所有动作"
+	
+	print("✅ 已清除 " .. count .. " 个动作")
+end
+
+-- 创建动作按钮
+local actionButtons = {}
+
+local function createActionButton(actionData, index)
+	local button = Instance.new("TextButton")
+	button.Name = "Action_" .. index
+	button.Size = UDim2.new(1, 0, 0, 45)
+	button.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+	button.AutoButtonColor = true
+	button.Text = ""
+	button.LayoutOrder = index
+	button.Visible = not isMinimized
+	
+	local buttonCorner = Instance.new("UICorner")
+	buttonCorner.CornerRadius = UDim.new(0, 6)
+	buttonCorner.Parent = button
+	
+	local buttonStroke = Instance.new("UIStroke")
+	buttonStroke.Color = Color3.fromRGB(70, 70, 80)
+	buttonStroke.Thickness = 1
+	buttonStroke.Parent = button
+	
+	-- 动作名称
+	local actionName = Instance.new("TextLabel")
+	actionName.Name = "ActionName"
+	actionName.Size = UDim2.new(1, -20, 1, 0)
+	actionName.Position = UDim2.new(0, 10, 0, 0)
+	actionName.BackgroundTransparency = 1
+	actionName.Text = actionData.Name
+	actionName.TextColor3 = Color3.fromRGB(220, 220, 230)
+	actionName.Font = Enum.Font.GothamBold
+	actionName.TextSize = 14
+	actionName.TextXAlignment = Enum.TextXAlignment.Left
+	actionName.TextTruncate = Enum.TextTruncate.AtEnd
+	actionName.Parent = button
+	
+	-- 点击执行动作
+	button.MouseButton1Click:Connect(function()
+		local originalColor = button.BackgroundColor3
+		button.BackgroundColor3 = Color3.fromRGB(70, 120, 200)
+		
+		-- 播放动画
+		playAnimation(actionData.ID, actionData.Name)
+		
+		-- 恢复按钮颜色
+		task.wait(0.15)
+		button.BackgroundColor3 = originalColor
+	end)
+	
+	-- 悬停效果
+	button.MouseEnter:Connect(function()
+		if not isMinimized then
+			local tween = TweenService:Create(
+				button,
+				TweenInfo.new(0.2),
+				{BackgroundColor3 = Color3.fromRGB(60, 60, 70)}
+			)
+			tween:Play()
+		end
+	end)
+	
+	button.MouseLeave:Connect(function()
+		if not isMinimized then
+			local tween = TweenService:Create(
+				button,
+				TweenInfo.new(0.2),
+				{BackgroundColor3 = Color3.fromRGB(50, 50, 60)}
+			)
+			tween:Play()
+		end
+	end)
+	
+	table.insert(actionButtons, button)
+	return button
+end
+
+-- 生成所有动作按钮
+for i, actionData in ipairs(ActionDatabase) do
+	local button = createActionButton(actionData, i)
+	button.Parent = ScrollingFrame
+end
+
+-- 清除按钮点击事件
+ClearAllButton.MouseButton1Click:Connect(clearAllAnimations)
+
+-- 清除按钮悬停效果
+ClearAllButton.MouseEnter:Connect(function()
+	local tween = TweenService:Create(
+		ClearAllButton,
+		TweenInfo.new(0.2),
+		{BackgroundColor3 = Color3.fromRGB(200, 90, 90)}
+	)
+	tween:Play()
+end)
+
+ClearAllButton.MouseLeave:Connect(function()
+	local tween = TweenService:Create(
+		ClearAllButton,
+		TweenInfo.new(0.2),
+		{BackgroundColor3 = Color3.fromRGB(180, 70, 70)}
+	)
+	tween:Play()
+end)
+
+-- 拖动功能函数
+local function updateWindowPosition(input)
+	local delta = input.Position - dragStart
+	
+	MainWindow.Position = UDim2.new(
+		startPos.X.Scale,
+		startPos.X.Offset + delta.X,
+		startPos.Y.Scale,
+		startPos.Y.Offset + delta.Y
+	)
+end
+
+-- 通用拖动处理函数
+local function setupDrag(frame)
+	frame.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			dragging = true
+			dragStart = input.Position
+			startPos = MainWindow.Position
+			
+			input.Changed:Connect(function()
+				if input.UserInputState == Enum.UserInputState.End then
+					dragging = false
+				end
+			end)
+		end
+	end)
+end
+
+-- 设置拖动
+setupDrag(TitleBar)
+setupDrag(MainWindow)
+
+UserInputService.InputChanged:Connect(function(input)
+	if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+		updateWindowPosition(input)
+	end
+end)
+
+-- 最小化/最大化功能
+local function toggleMinimize()
+	isMinimized = not isMinimized
+	
+	if isMinimized then
+		-- 保存当前大小和位置
+		originalSize = MainWindow.Size
+		originalPosition = MainWindow.Position
+		
+		-- 隐藏内容
+		ClearAllButton.Visible = false
+		Content.Visible = false
+		MinimizeButton.Text = "＋"
+		Title.Text = "动作箱"
+		
+		-- 动画：缩小
+		local tween = TweenService:Create(
+			MainWindow,
+			TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+			{Size = minimizedSize}
+		)
+		tween:Play()
+		
+		-- 隐藏所有动作按钮
+		for _, button in ipairs(actionButtons) do
+			button.Visible = false
+		end
+		
+	else
+		-- 动画：展开
+		local tween = TweenService:Create(
+			MainWindow,
+			TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+			{
+				Size = originalSize,
+				Position = originalPosition
+			}
+		)
+		tween:Play()
+		
+		-- 稍后显示内容
+		task.wait(0.15)
+		ClearAllButton.Visible = true
+		Content.Visible = true
+		MinimizeButton.Text = "－"
+		Title.Text = "动作工具箱"
+		
+		-- 显示所有动作按钮
+		for _, button in ipairs(actionButtons) do
+			button.Visible = true
+		end
+	end
+end
+
+-- 最小化按钮点击
+MinimizeButton.MouseButton1Click:Connect(toggleMinimize)
+
+-- 按钮悬停效果
+setupButtonHover = function(button, normalColor, hoverColor)
+	button.MouseEnter:Connect(function()
+		local tween = TweenService:Create(
+			button,
+			TweenInfo.new(0.2),
+			{BackgroundColor3 = hoverColor}
+		)
+		tween:Play()
+	end)
+	
+	button.MouseLeave:Connect(function()
+		local tween = TweenService:Create(
+			button,
+			TweenInfo.new(0.2),
+			{BackgroundColor3 = normalColor}
+		)
+		tween:Play()
+	end)
+end
+
+setupButtonHover(MinimizeButton, Color3.fromRGB(80, 130, 200), Color3.fromRGB(100, 150, 220))
+setupButtonHover(CloseButton, Color3.fromRGB(200, 70, 70), Color3.fromRGB(220, 90, 90))
+
+-- 关闭功能
+CloseButton.MouseButton1Click:Connect(function()
+	clearAllAnimations()
+	ActionToolbox:Destroy()
+end)
+
+-- 窗口显示/隐藏功能
+local function toggleVisibility()
+	MainWindow.Visible = not MainWindow.Visible
+end
+
+-- 热键控制
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+	if not gameProcessed then
+		if input.KeyCode == Enum.KeyCode.F1 then
+			toggleVisibility()
+		elseif input.KeyCode == Enum.KeyCode.F2 then
+			toggleMinimize()
+		elseif input.KeyCode == Enum.KeyCode.F3 then
+			clearAllAnimations()
+		end
+	end
+end)
+
+-- 角色重生处理
+player.CharacterAdded:Connect(function(newCharacter)
+	character = newCharacter
+	-- 等待角色完全加载
+	task.wait(0.5)
+	clearAllAnimations()
+end)
+
+print("✅ 动作工具箱已加载 - 修复版")
+print("🎬 现在可以正常播放动画了！")
+print("📝 使用说明：")
+print("  • 点击动作按钮播放动画")
+print("  • 点击清除按钮停止所有动画")
+print("  • F1: 显示/隐藏 F2: 最小化 F3: 清除")
+
+-- 返回工具箱引用
+return {
+	Gui = ActionToolbox,
+	Window = MainWindow,
+	PlayAnimation = playAnimation,
+	ClearAllAnimations = clearAllAnimations,
+	ToggleVisibility = toggleVisibility,
+	ToggleMinimize = toggleMinimize
+}
