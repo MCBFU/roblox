@@ -117,15 +117,7 @@ Lighting.FogColor = Color3.fromRGB(190, 210, 250)
 Lighting.ShadowAtlasSize = 4096  -- 高清阴影
 Lighting.ShadowAtlasCount = 4
 
-print("🎬 电影级光影系统已激活")
-print("✨ 使用了您的天空图片ID: " .. SKY_ID)
-print("📊 启用效果:")
-print("   • 动态体积光")
-print("   • 电影级颜色分级")
-print("   • 景深效果")
-print("   • 环境光遮蔽")
-print("   • 大气散射")
-print("   • 实时光影变化")
+
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
