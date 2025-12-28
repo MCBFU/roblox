@@ -1,260 +1,4 @@
-local Lighting = game:GetService("Lighting")
-
--- 您的天空图片ID
-local SKY_ID = "98410293253259"
-
--- 首先清理所有现有效果
-for _, child in pairs(Lighting:GetChildren()) do
-    if child:IsA("PostEffect") or child:IsA("Sky") then
-        child:Destroy()
-    end
-end
-
--- 1. 创建电影级天空盒
-local sky = Instance.new("Sky")
-sky.SkyboxBk = "rbxassetid://" .. SKY_ID
-sky.SkyboxDn = "rbxassetid://" .. SKY_ID
-sky.SkyboxFt = "rbxassetid://" .. SKY_ID
-sky.SkyboxLf = "rbxassetid://" .. SKY_ID
-sky.SkyboxRt = "rbxassetid://" .. SKY_ID
-sky.SkyboxUp = "rbxassetid://" .. SKY_ID
-sky.StarCount = 3000
-sky.Parent = Lighting
-
--- 2. 设置基础光照环境
-Lighting.Brightness = 2.8
-Lighting.ClockTime = 16.5  -- 黄金时刻（日落前）
-Lighting.GeographicLatitude = 35  -- 温暖纬度
-Lighting.OutdoorAmbient = Color3.fromRGB(115, 130, 155)
-Lighting.GlobalShadows = true
-Lighting.ShadowSoftness = 0.4
-Lighting.EnvironmentDiffuseScale = 0.8
-Lighting.EnvironmentSpecularScale = 0.9
-
--- 3. 电影级后期处理效果栈
--- 辉光效果（真实光线散射）
-local bloom = Instance.new("BloomEffect")
-bloom.Name = "CinematicBloom"
-bloom.Intensity = 0.45
-bloom.Size = 32
-bloom.Threshold = 0.85
-bloom.Parent = Lighting
-
--- 太阳光轴（上帝光效果）
-local sunRays = Instance.new("SunRaysEffect")
-sunRays.Name = "VolumetricSunRays"
-sunRays.Intensity = 0.18
-sunRays.Spread = 0.9
-sunRays.MaxDistance = 200
-sunRays.Parent = Lighting
-
--- 颜色分级（电影感调色）
-local colorCorrection = Instance.new("ColorCorrectionEffect")
-colorCorrection.Name = "ColorGrading"
-colorCorrection.Brightness = 0.06
-colorCorrection.Contrast = 0.15
-colorCorrection.Saturation = 0.08
-colorCorrection.TintColor = Color3.fromRGB(255, 240, 225)  -- 暖金色调
-colorCorrection.Parent = Lighting
-
--- 景深效果（视觉焦点）
-local depthOfField = Instance.new("DepthOfFieldEffect")
-depthOfField.Name = "CinematicDOF"
-depthOfField.FarIntensity = 0.6
-depthOfField.FocusDistance = 50
-depthOfField.InFocusRadius = 30
-depthOfField.NearIntensity = 0.4
-depthOfField.Parent = Lighting
-
--- 环境光遮蔽（增强立体感）
-local ssaosettings = Instance.new("SSAOSettings")
-ssaosettings.Name = "EnhancedSSAO"
-ssaosettings.Radius = 1.2
-ssaosettings.Bias = 0.1
-ssaosettings.Intensity = 0.6
-ssaosettings.Parent = Lighting
-
--- 4. 动态大气效果
-local atmosphere = Instance.new("Atmosphere")
-atmosphere.Name = "DynamicAtmosphere"
-atmosphere.Density = 0.35
-atmosphere.Offset = 0.25
-atmosphere.Color = Color3.fromRGB(180, 200, 255)
-atmosphere.Decay = Color3.fromRGB(140, 160, 220)
-atmosphere.Glare = 0.1
-atmosphere.Haze = 0.2
-atmosphere.Parent = Lighting
-
--- 5. 动态光影变化系统（可选）
-local function setupDynamicLighting()
-    while true do
-        task.wait(5)
-        
-        -- 轻微的光影动画
-        local timeVariation = math.sin(os.clock() * 0.2) * 0.5 + 0.5
-        
-        -- 动态调整光晕强度
-        bloom.Intensity = 0.35 + timeVariation * 0.1
-        
-        -- 动态调整太阳光
-        sunRays.Intensity = 0.15 + timeVariation * 0.05
-        
-        -- 轻微的颜色温度变化
-        local temp = 220 + timeVariation * 35
-        colorCorrection.TintColor = Color3.fromRGB(255, 240 - timeVariation * 10, 225 - timeVariation * 20)
-    end
-end
-
--- 在协程中运行动态效果
-coroutine.wrap(setupDynamicLighting)()
-
--- 6. 雾效增强深度感
-Lighting.FogStart = 60
-Lighting.FogEnd = 1500
-Lighting.FogColor = Color3.fromRGB(190, 210, 250)
-
--- 7. 阴影优化
-Lighting.ShadowAtlasSize = 4096  -- 高清阴影
-Lighting.ShadowAtlasCount = 4
-
-
-local Players = game:GetService("Players")
-local TweenService = game:GetService("TweenService")
-local RunService = game:GetService("RunService")
-
-local player = Players.LocalPlayer
-local gui = Instance.new("ScreenGui")
-gui.Name = "MCBWatermark"
-gui.ResetOnSpawn = false
-gui.IgnoreGuiInset = true
-gui.Parent = player:WaitForChild("PlayerGui")
-
-local mcbMark = Instance.new("TextLabel")
-mcbMark.Size = UDim2.new(0, 60, 0, 20)
-mcbMark.Position = UDim2.new(0.015, 0, 0.97, 0)
-mcbMark.AnchorPoint = Vector2.new(0, 1)
-mcbMark.BackgroundTransparency = 1
-mcbMark.Text = "MCB材质GUI  BY  渔炒鱼"
-mcbMark.Font = Enum.Font.GothamBold
-mcbMark.TextSize = 10
-mcbMark.TextTransparency = 0.7
-mcbMark.TextColor3 = Color3.fromRGB(255, 255, 255)
-mcbMark.TextStrokeTransparency = 0.9
-mcbMark.TextStrokeColor3 = Color3.fromRGB(0, 180, 255)
-mcbMark.TextXAlignment = Enum.TextXAlignment.Left
-mcbMark.ZIndex = 999
-mcbMark.Parent = gui
-
-TweenService:Create(mcbMark,TweenInfo.new(6, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1),{TextTransparency = 0.85, TextStrokeTransparency = 0.95}):Play()
-
-local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "PremiumLoader"
-screenGui.ResetOnSpawn = false
-screenGui.IgnoreGuiInset = true
-screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-
-local imageContainer = Instance.new("Frame")
-imageContainer.Size = UDim2.new(1, 0, 1, 0)
-imageContainer.Position = UDim2.new(0, 0, 0, 0)
-imageContainer.BackgroundTransparency = 1
-imageContainer.ClipsDescendants = true
-
-local mainImage = Instance.new("ImageLabel")
-mainImage.Size = UDim2.new(1.1, 0, 1.1, 0)
-mainImage.Position = UDim2.new(-0.05, 0, -0.05, 0)
-mainImage.BackgroundTransparency = 1
-mainImage.Image = "rbxassetid://111333374680640"
-mainImage.ScaleType = Enum.ScaleType.Crop
-mainImage.ImageColor3 = Color3.fromRGB(255, 255, 255)
-mainImage.ImageTransparency = 1
-
-local progressContainer = Instance.new("Frame")
-progressContainer.Size = UDim2.new(0.12, 0, 0, 4)
-progressContainer.Position = UDim2.new(0.02, 0, 0.96, 0)
-progressContainer.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-progressContainer.BackgroundTransparency = 1
-progressContainer.AnchorPoint = Vector2.new(0, 1)
-
-local progressCorner = Instance.new("UICorner")
-progressCorner.CornerRadius = UDim.new(1, 0)
-
-local progressBackground = Instance.new("Frame")
-progressBackground.Size = UDim2.new(1, -2, 1, -2)
-progressBackground.Position = UDim2.new(0, 1, 0, 1)
-progressBackground.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-progressBackground.BackgroundTransparency = 0.7
-
-local bgCorner = Instance.new("UICorner")
-bgCorner.CornerRadius = UDim.new(1, 0)
-
-local progressBar = Instance.new("Frame")
-progressBar.Size = UDim2.new(0, 0, 1, -2)
-progressBar.Position = UDim2.new(0, 1, 0, 1)
-progressBar.BackgroundColor3 = Color3.fromRGB(0, 200, 255)
-progressBar.BorderSizePixel = 0
-
-local barCorner = Instance.new("UICorner")
-barCorner.CornerRadius = UDim.new(1, 0)
-
-local progressText = Instance.new("TextLabel")
-progressText.Text = "0"
-progressText.Size = UDim2.new(0, 30, 0, 20)
-progressText.Position = UDim2.new(1, 5, 0, -8)
-progressText.BackgroundTransparency = 1
-progressText.TextColor3 = Color3.fromRGB(0, 200, 255)
-progressText.Font = Enum.Font.GothamBold
-progressText.TextSize = 14
-progressText.TextXAlignment = Enum.TextXAlignment.Left
-progressText.TextTransparency = 1
-
-progressCorner.Parent = progressContainer
-bgCorner.Parent = progressBackground
-barCorner.Parent = progressBar
-progressBackground.Parent = progressContainer
-progressBar.Parent = progressBackground
-progressText.Parent = progressContainer
-mainImage.Parent = imageContainer
-progressContainer.Parent = imageContainer
-imageContainer.Parent = screenGui
-screenGui.Parent = player:WaitForChild("PlayerGui")
-
-local fadeIn = TweenService:Create(mainImage,TweenInfo.new(0.8, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),{ImageTransparency = 0})
-local progressFadeIn = TweenService:Create(progressContainer,TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),{BackgroundTransparency = 0.8})
-local textFadeIn = TweenService:Create(progressText,TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),{TextTransparency = 0})
-
-fadeIn:Play()
-task.wait(0.3)
-progressFadeIn:Play()
-textFadeIn:Play()
-
-local progress = 0
-local function smoothProgress()
-    local startTime = tick()
-    while progress < 100 do
-        local elapsed = tick() - startTime
-        progress = math.clamp((elapsed / 3) * 100, 0, 100)
-        TweenService:Create(progressBar,TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),{Size = UDim2.new(progress / 100, 0, 1, -2)}):Play()
-        progressText.Text = string.format("%d", math.floor(progress))
-        RunService.RenderStepped:Wait()
-    end
-end
-
-task.spawn(smoothProgress)
-repeat task.wait(0.1) until progress >= 100
-progressText.Text = "100"
-task.wait(0.3)
-
-local fadeOutSequence = {
-    TweenService:Create(progressContainer,TweenInfo.new(0.5, Enum.EasingStyle.Cubic, Enum.EasingDirection.Out),{BackgroundTransparency = 1}),
-    TweenService:Create(progressText,TweenInfo.new(0.5, Enum.EasingStyle.Cubic, Enum.EasingDirection.Out),{TextTransparency = 1}),
-    TweenService:Create(mainImage,TweenInfo.new(1.2, Enum.EasingStyle.Cubic, Enum.EasingDirection.Out),{ImageTransparency = 1})
-}
-
-for i, tween in ipairs(fadeOutSequence) do
-    tween:Play()
-    task.wait(0.2)
-end
-
+-- 【修复核心】贴图+音频批量替换模块 | 即时生效+动态监听+无遗漏
 local replacementLists = {
     Images = {
         {oldId = "9819025862", newId = "5887957252"},--机器人进度
@@ -304,7 +48,7 @@ local replacementLists = {
         {oldId = "18318977415", newId = "86119075739911"},--发射手按钮
         {oldId = "18318988523", newId = "86119075739911"},
         {oldId = "125028983718775", newId = "11295287158"},--上方收集进度框框 修复无效ID 000
-        {oldId = "71943104392583", newId = "11419666512"},--屏幕上方计时图案
+        {oldId = "71943104392583", newId = "11419666512"},--爆米花机图案
         {oldId = "5887957252", newId = "11963364026"},--一个空心圆疑似准星
         {oldId = "5945121255", newId = "11963364026"},--追逐心跳特效
         {oldId = "11901680822", newId = "11963364026"},
@@ -374,7 +118,7 @@ local replacementLists = {
         {old = "103208711906653", new = "15183765436"},--休闲时刻背景音乐
         {old = "125643578367125", new = "8400918001"},--你买不起
         {old = "130307677976118", new = "166047422"},--加载画面
-        {old = "139792801528961", new = "90645451074699"},--举起玩家
+        {old = "130307677976118", new = "166047422"},--举起玩家
         {old = "89226672351498", new = "93411834929338"},--妈咪突脸
         {old = "81665056647548", new = "93411834929338"},--盒子突脸
         {old = "5312518467", new = "70406650561771"},--下水道背景音
@@ -389,9 +133,8 @@ local replacementLists = {
         {old = "9116698830", new = "79486256972927"},
         {old = "9116684733", new = "79130056188513"},--机器人空刀
         {old = "3521543186", new = "79130056188513"},
-        {old = "147722227", new = "79130056188513"},
-        {old = "125677551407985", new = "4685847723"},--专家机子故障
-        {old = "4681189157", new = "5694665239"},--机器人打到人
+        {old = "125677551407985", new = "4685847723"},--机器人打到人
+        {old = "4681189157", new = "5694665239"},
         {old = "4678745096", new = "5694665239"},
         {old = "4681189562", new = "5694665239"},
         {old = "112282490730834", new = ""},--发射手
@@ -407,180 +150,95 @@ local replacementLists = {
     }
 }
 
-local function replaceSingleImage(obj,item)
-    if item.newId == "000" then return end
+-- 修复点1：严谨的单个贴图替换（兼容所有图像类实例，强制匹配）
+local function replaceSingleImage(obj, item)
+    if not obj or not item or item.newId == "000" then return end
     local targetOld = "rbxassetid://" .. tostring(item.oldId)
     local targetNew = "rbxassetid://" .. tostring(item.newId)
-    if obj:IsA("Decal") or obj:IsA("Texture") then
-        if obj.Texture == targetOld then obj.Texture = targetNew end
-    else
-        if obj.Image == targetOld then obj.Image = targetNew end
-    end
+
+    -- 覆盖所有图像相关属性，无遗漏
+    pcall(function()
+        if obj:IsA("ImageLabel") or obj:IsA("ImageButton") then
+            if obj.Image == targetOld then obj.Image = targetNew end
+        elseif obj:IsA("Decal") or obj:IsA("Texture") then
+            if obj.Texture == targetOld then obj.Texture = targetNew end
+        elseif obj:IsA("Sky") then
+            if obj.SkyboxFt == targetOld then obj.SkyboxFt = targetNew end
+            if obj.SkyboxBk == targetOld then obj.SkyboxBk = targetNew end
+            if obj.SkyboxLf == targetOld then obj.SkyboxLf = targetNew end
+            if obj.SkyboxRt == targetOld then obj.SkyboxRt = targetNew end
+            if obj.SkyboxUp == targetOld then obj.SkyboxUp = targetNew end
+            if obj.SkyboxDn == targetOld then obj.SkyboxDn = targetNew end
+        end
+    end)
 end
 
-local function replaceSingleSound(obj,item)
+-- 修复点2：严谨的单个音频替换（处理空ID场景，避免报错）
+local function replaceSingleSound(obj, item)
+    if not obj or not item or item.old == "" then return end
     local targetOld = "rbxassetid://" .. tostring(item.old)
-    if obj.SoundId == targetOld then
-        obj.SoundId = item.new == "" and "" or "rbxassetid://" .. tostring(item.new)
-    end
+    local targetNew = item.new == "" and "" or "rbxassetid://" .. tostring(item.new)
+
+    pcall(function()
+        if obj.SoundId == targetOld then
+            obj.SoundId = targetNew
+        end
+    end)
 end
 
-local function replaceAll()
-    task.spawn(function()
-        local imageObjects = {}
-        for _,obj in pairs(game:GetDescendants()) do
-            if obj:IsA("ImageLabel") or obj:IsA("ImageButton") or obj:IsA("Decal") or obj:IsA("Texture") then
-                table.insert(imageObjects,obj)
+-- 修复点3：批量替换现有对象（同步执行，优先覆盖，不丢对象）
+local function replaceExistingObjects()
+    -- 批量替换贴图
+    for _, obj in pairs(game:GetDescendants()) do
+        if obj:IsA("ImageLabel") or obj:IsA("ImageButton") or obj:IsA("Decal") or obj:IsA("Texture") or obj:IsA("Sky") then
+            for _, item in ipairs(replacementLists.Images) do
+                replaceSingleImage(obj, item)
             end
         end
-        for _,item in ipairs(replacementLists.Images) do
-            if item.oldId and item.newId and item.oldId ~= "" and item.newId ~= "" then
-                for _,obj in ipairs(imageObjects) do
-                    replaceSingleImage(obj,item)
-                end
-            end
-        end
-    end)
+    end
 
-    task.spawn(function()
-        local soundObjects = {}
-        for _,obj in pairs(game:GetDescendants()) do
-            if obj:IsA("Sound") then
-                table.insert(soundObjects,obj)
+    -- 批量替换音频
+    for _, obj in pairs(game:GetDescendants()) do
+        if obj:IsA("Sound") then
+            for _, item in ipairs(replacementLists.Sounds) do
+                replaceSingleSound(obj, item)
             end
         end
-        for _,item in ipairs(replacementLists.Sounds) do
-            if item.old and item.old ~= "" then
-                for _,obj in ipairs(soundObjects) do
-                    replaceSingleSound(obj,item)
-                end
-            end
-        end
-    end)
+    end
+    print("✅ 现有贴图+音频替换完成！")
+end
 
+-- 修复点4：监听动态生成对象（实时拦截，新对象立即替换）
+local function listenDynamicObjects()
     game.DescendantAdded:Connect(function(obj)
-        task.spawn(function()
-            if obj:IsA("ImageLabel") or obj:IsA("ImageButton") or obj:IsA("Decal") or obj:IsA("Texture") then
-                for _,item in ipairs(replacementLists.Images) do
-                    if item.oldId and item.newId and item.oldId ~= "" and item.newId ~= "" then
-                        replaceSingleImage(obj,item)
-                    end
+        task.spawn(function() -- 异步不阻塞主线程
+            -- 动态贴图替换
+            if obj:IsA("ImageLabel") or obj:IsA("ImageButton") or obj:IsA("Decal") or obj:IsA("Texture") or obj:IsA("Sky") then
+                task.wait(0.01) -- 等待对象属性加载完整
+                for _, item in ipairs(replacementLists.Images) do
+                    replaceSingleImage(obj, item)
                 end
-            elseif obj:IsA("Sound") then
-                for _,item in ipairs(replacementLists.Sounds) do
-                    if item.old and item.old ~= "" then
-                        replaceSingleSound(obj,item)
-                    end
+            end
+            -- 动态音频替换
+            if obj:IsA("Sound") then
+                task.wait(0.01)
+                for _, item in ipairs(replacementLists.Sounds) do
+                    replaceSingleSound(obj, item)
                 end
             end
         end)
     end)
+    print("✅ 动态对象监听已开启！后续生成的贴图/音频自动替换")
 end
 
+-- 修复点5：优化执行顺序+延迟适配，确保加载完成再替换
+local function replaceAll()
+    replaceExistingObjects() -- 先替换已有的
+    listenDynamicObjects()   -- 再监听新生成的
+end
+
+-- 调整延迟，适配加载界面消失节奏，确保替换不被覆盖
 task.wait(1.5)
 replaceAll()
 task.wait(0.5)
 screenGui:Destroy()
--- 在指定位置进行屏幕旋转，角色创建后停止
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local player = Players.LocalPlayer
-local camera = workspace.CurrentCamera
-
-local isRotating = false
-local angle = 0
-local rotationSpeed = 0.01
-
--- 目标位置
-local targetPosition = Vector3.new(361, 535, -165)
-
--- 旋转函数（固定在指定位置）
-local function startRotation()
-    if isRotating then return end
-    isRotating = true
-
-    camera.CameraType = Enum.CameraType.Scriptable
-
-    spawn(function()
-        while isRotating do
-            angle = angle + rotationSpeed
-
-            -- 围绕固定位置旋转
-            local x = math.cos(angle) * 8
-            local z = math.sin(angle) * 8
-
-            camera.CFrame = CFrame.new(
-                targetPosition.X + x,
-                targetPosition.Y + 6,
-                targetPosition.Z + z
-            )
-            camera.CFrame = camera.CFrame * CFrame.Angles(0, angle + math.pi, 0)
-
-            RunService.RenderStepped:Wait()
-        end
-    end)
-end
-
--- 停止旋转
-local function stopRotation()
-    isRotating = false
-    camera.CameraType = Enum.CameraType.Custom
-end
-
--- 检查角色是否创建且有生命
-local function checkCharacterAlive()
-    if player.Character then
-        local humanoid = player.Character:FindFirstChild("Humanoid")
-        if humanoid and humanoid.Health > 0 then
-            return true
-        end
-    end
-    return false
-end
-
--- 监控角色创建
-player.CharacterAdded:Connect(function(character)
-    wait(0.5)  -- 等待角色完全加载
-
-    -- 检查角色是否有生命
-    local humanoid = character:WaitForChild("Humanoid")
-    if humanoid.Health > 0 then
-        stopRotation()
-    end
-
-    -- 监听角色死亡
-    humanoid.Died:Connect(function()
-        wait(0.5)
-        -- 角色死亡时重新开始旋转
-        startRotation()
-    end)
-end)
-
--- 监听角色移除（比如被删除时）
-player.CharacterRemoving:Connect(function()
-    -- 角色被移除时开始旋转
-    startRotation()
-end)
-
--- 初始检查
-if not checkCharacterAlive() then
-    startRotation()
-else
-    stopRotation()
-end
-
--- 定期检查（安全备份）
-spawn(function()
-    while true do
-        wait(2)
-        local currentStatus = checkCharacterAlive()
-
-        if currentStatus and isRotating then
-            -- 有角色但还在旋转，停止
-            stopRotation()
-        elseif not currentStatus and not isRotating then
-            -- 没角色但没在旋转，开始
-            startRotation()
-        end
-    end
-end)
