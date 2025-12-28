@@ -1,3 +1,131 @@
+local Lighting = game:GetService("Lighting")
+
+-- 您的天空图片ID
+local SKY_ID = "98410293253259"
+
+-- 首先清理所有现有效果
+for _, child in pairs(Lighting:GetChildren()) do
+    if child:IsA("PostEffect") or child:IsA("Sky") then
+        child:Destroy()
+    end
+end
+
+-- 1. 创建电影级天空盒
+local sky = Instance.new("Sky")
+sky.SkyboxBk = "rbxassetid://" .. SKY_ID
+sky.SkyboxDn = "rbxassetid://" .. SKY_ID
+sky.SkyboxFt = "rbxassetid://" .. SKY_ID
+sky.SkyboxLf = "rbxassetid://" .. SKY_ID
+sky.SkyboxRt = "rbxassetid://" .. SKY_ID
+sky.SkyboxUp = "rbxassetid://" .. SKY_ID
+sky.StarCount = 3000
+sky.Parent = Lighting
+
+-- 2. 设置基础光照环境
+Lighting.Brightness = 2.8
+Lighting.ClockTime = 16.5  -- 黄金时刻（日落前）
+Lighting.GeographicLatitude = 35  -- 温暖纬度
+Lighting.OutdoorAmbient = Color3.fromRGB(115, 130, 155)
+Lighting.GlobalShadows = true
+Lighting.ShadowSoftness = 0.4
+Lighting.EnvironmentDiffuseScale = 0.8
+Lighting.EnvironmentSpecularScale = 0.9
+
+-- 3. 电影级后期处理效果栈
+-- 辉光效果（真实光线散射）
+local bloom = Instance.new("BloomEffect")
+bloom.Name = "CinematicBloom"
+bloom.Intensity = 0.45
+bloom.Size = 32
+bloom.Threshold = 0.85
+bloom.Parent = Lighting
+
+-- 太阳光轴（上帝光效果）
+local sunRays = Instance.new("SunRaysEffect")
+sunRays.Name = "VolumetricSunRays"
+sunRays.Intensity = 0.18
+sunRays.Spread = 0.9
+sunRays.MaxDistance = 200
+sunRays.Parent = Lighting
+
+-- 颜色分级（电影感调色）
+local colorCorrection = Instance.new("ColorCorrectionEffect")
+colorCorrection.Name = "ColorGrading"
+colorCorrection.Brightness = 0.06
+colorCorrection.Contrast = 0.15
+colorCorrection.Saturation = 0.08
+colorCorrection.TintColor = Color3.fromRGB(255, 240, 225)  -- 暖金色调
+colorCorrection.Parent = Lighting
+
+-- 景深效果（视觉焦点）
+local depthOfField = Instance.new("DepthOfFieldEffect")
+depthOfField.Name = "CinematicDOF"
+depthOfField.FarIntensity = 0.6
+depthOfField.FocusDistance = 50
+depthOfField.InFocusRadius = 30
+depthOfField.NearIntensity = 0.4
+depthOfField.Parent = Lighting
+
+-- 环境光遮蔽（增强立体感）
+local ssaosettings = Instance.new("SSAOSettings")
+ssaosettings.Name = "EnhancedSSAO"
+ssaosettings.Radius = 1.2
+ssaosettings.Bias = 0.1
+ssaosettings.Intensity = 0.6
+ssaosettings.Parent = Lighting
+
+-- 4. 动态大气效果
+local atmosphere = Instance.new("Atmosphere")
+atmosphere.Name = "DynamicAtmosphere"
+atmosphere.Density = 0.35
+atmosphere.Offset = 0.25
+atmosphere.Color = Color3.fromRGB(180, 200, 255)
+atmosphere.Decay = Color3.fromRGB(140, 160, 220)
+atmosphere.Glare = 0.1
+atmosphere.Haze = 0.2
+atmosphere.Parent = Lighting
+
+-- 5. 动态光影变化系统（可选）
+local function setupDynamicLighting()
+    while true do
+        task.wait(5)
+        
+        -- 轻微的光影动画
+        local timeVariation = math.sin(os.clock() * 0.2) * 0.5 + 0.5
+        
+        -- 动态调整光晕强度
+        bloom.Intensity = 0.35 + timeVariation * 0.1
+        
+        -- 动态调整太阳光
+        sunRays.Intensity = 0.15 + timeVariation * 0.05
+        
+        -- 轻微的颜色温度变化
+        local temp = 220 + timeVariation * 35
+        colorCorrection.TintColor = Color3.fromRGB(255, 240 - timeVariation * 10, 225 - timeVariation * 20)
+    end
+end
+
+-- 在协程中运行动态效果
+coroutine.wrap(setupDynamicLighting)()
+
+-- 6. 雾效增强深度感
+Lighting.FogStart = 60
+Lighting.FogEnd = 1500
+Lighting.FogColor = Color3.fromRGB(190, 210, 250)
+
+-- 7. 阴影优化
+Lighting.ShadowAtlasSize = 4096  -- 高清阴影
+Lighting.ShadowAtlasCount = 4
+
+print("🎬 电影级光影系统已激活")
+print("✨ 使用了您的天空图片ID: " .. SKY_ID)
+print("📊 启用效果:")
+print("   • 动态体积光")
+print("   • 电影级颜色分级")
+print("   • 景深效果")
+print("   • 环境光遮蔽")
+print("   • 大气散射")
+print("   • 实时光影变化")
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
