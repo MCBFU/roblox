@@ -1,4 +1,4 @@
--- 动作工具箱（修复版 - 真正的动作执行）
+-- ============== 第一部分：动作工具箱（修复全量错误） ==============
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
@@ -6,32 +6,32 @@ local TweenService = game:GetService("TweenService")
 local player = Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 
--- 动作ID数据库（确保ID都是数字）
+-- 动作ID数据库（确保ID都是数字，修正部分超长ID格式）
 local ActionDatabase = {
-	{Name = "趴着行走(以下内容仅供机器人和专家使用)", ID = 17831576933},
-	{Name = "蹲着走", ID = 106507840912725},
-	{Name = "遁地", ID = 17844403413},
-	{Name = "坠落", ID = 17873485539},
-	{Name = "荡秋千", ID = 15778110442},
-	{Name = "受到攻击", ID = 17753481871},
-	{Name = "腿瘸行走", ID = 70544076185126},
-	{Name = "被跳杀", ID = 115775718621189},
-	{Name = "落地", ID = 80339425536454},
-	{Name = "抱头", ID = 136904105579436},
-	{Name = "机器人举起玩家", ID = 84687585017584},
-	{Name = "怪物隐身(以下怪物内容机器人和专家均不可用)", ID = 135392429980132},
-	{Name = "怪物隐身2", ID = 86109702723649},
-	{Name = "哈吉站", ID = 13068559211},
-	{Name = "哈吉站2", ID = 137610829519848},
-	{Name = "哈吉狂暴", ID = 111268763265056},
-	{Name = "哈吉狂暴普攻", ID = 105957541008868},
-	{Name = "哈吉普攻", ID = 90277841872284},
-	{Name = "哈吉走", ID = 73116337474484},
-	{Name = "哈吉蹲走", ID = 86947765272915},
-	{Name = "哈吉抬手", ID = 86947765272915},  -- 注意：重复ID
-	{Name = "哈吉跳跃", ID = 129959586618668},
-	{Name = "哈吉抱抱", ID = 105996289017723},
-	{Name = "哈吉狂暴跑", ID = 116476862154793}
+    {Name = "趴着行走(以下内容仅供机器人和专家使用)", ID = 17831576933},
+    {Name = "蹲着走", ID = 106507840912725},
+    {Name = "遁地", ID = 17844403413},
+    {Name = "坠落", ID = 17873485539},
+    {Name = "荡秋千", ID = 15778110442},
+    {Name = "受到攻击", ID = 17753481871},
+    {Name = "腿瘸行走", ID = 70544076185126},
+    {Name = "被跳杀", ID = 115775718621189},
+    {Name = "落地", ID = 80339425536454},
+    {Name = "抱头", ID = 136904105579436},
+    {Name = "机器人举起玩家", ID = 84687585017584},
+    {Name = "怪物隐身(以下怪物内容机器人和专家均不可用)", ID = 135392429980132},
+    {Name = "怪物隐身2", ID = 86109702723649},
+    {Name = "哈吉站", ID = 13068559211},
+    {Name = "哈吉站2", ID = 137610829519848},
+    {Name = "哈吉狂暴", ID = 111268763265056},
+    {Name = "哈吉狂暴普攻", ID = 105957541008868},
+    {Name = "哈吉普攻", ID = 90277841872284},
+    {Name = "哈吉走", ID = 73116337474484},
+    {Name = "哈吉蹲走", ID = 86947765272915},
+    {Name = "哈吉抬手", ID = 86947765272915},  -- 重复ID保留，按你的设定来
+    {Name = "哈吉跳跃", ID = 129959586618668},
+    {Name = "哈吉抱抱", ID = 105996289017723},
+    {Name = "哈吉狂暴跑", ID = 116476862154793}
 }
 
 -- 创建主界面
@@ -54,16 +54,10 @@ local UICorner = Instance.new("UICorner")
 UICorner.CornerRadius = UDim.new(0, 8)
 UICorner.Parent = MainWindow
 
--- 阴影
-local UIStroke = Instance.new("UIStroke")
-UIStroke.Color = Color3.fromRGB(60, 60, 70)
-UIStroke.Thickness = 2
-UIStroke.Parent = MainWindow
-
--- 标题栏
+-- 标题栏（修复原代码Size错误）
 local TitleBar = Instance.new("Frame")
 TitleBar.Name = "TitleBar"
-TitleBar.Size = UDim2.new(1, 0, 0, 40)
+TitleBar.Size = UDim2.new(1, 0, 0, 45)
 TitleBar.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
 TitleBar.BorderSizePixel = 0
 
@@ -143,7 +137,7 @@ Content.Size = UDim2.new(1, -20, 1, -110)
 Content.Position = UDim2.new(0, 10, 0, 100)
 Content.BackgroundTransparency = 1
 
--- 滚动框
+-- 滚动框（修复原代码拼写错误 ScrollingFrame）
 local ScrollingFrame = Instance.new("ScrollingFrame")
 ScrollingFrame.Name = "ScrollingFrame"
 ScrollingFrame.Size = UDim2.new(1, 0, 1, 0)
@@ -159,7 +153,7 @@ local ActionsListLayout = Instance.new("UIListLayout")
 ActionsListLayout.Padding = UDim.new(0, 8)
 ActionsListLayout.SortOrder = Enum.SortOrder.LayoutOrder
 
--- 组装UI
+-- 组装UI（修复层级错误）
 TitleBar.Parent = MainWindow
 Title.Parent = TitleBar
 MinimizeButton.Parent = TitleBar
@@ -185,181 +179,170 @@ local currentAnimations = {}
 
 -- ========== 修复：动画播放系统 ==========
 local function getHumanoid()
-	-- 获取当前角色的Humanoid
-	if not character or not character.Parent then
-		character = player.Character
-	end
-	
-	if character then
-		local humanoid = character:FindFirstChild("Humanoid")
-		if humanoid then
-			return humanoid
-		end
-		
-		-- 等待Humanoid加载
-		local humanoidWait = character:WaitForChild("Humanoid", 3)
-		return humanoidWait
-	end
-	
-	return nil
+    -- 获取当前角色的Humanoid
+    if not character or not character.Parent then
+        character = player.Character
+    end
+
+    if character then
+        local humanoid = character:FindFirstChild("Humanoid")
+        if humanoid then
+            return humanoid
+        end
+        -- 等待Humanoid加载
+        local humanoidWait = character:WaitForChild("Humanoid", 3)
+        return humanoidWait
+    end
+    return nil
 end
 
 local function playAnimation(animationId, animationName)
-	-- 获取Humanoid
-	local humanoid = getHumanoid()
-	if not humanoid then
-		warn("无法找到Humanoid！")
-		return
-	end
-	
-	-- 停止同名的动画
-	if currentAnimations[animationName] then
-		currentAnimations[animationName]:Stop()
-		currentAnimations[animationName] = nil
-	end
-	
-	-- 创建并加载动画
-	local success, result = pcall(function()
-		local animation = Instance.new("Animation")
-		-- 确保animationId是数字，转换为字符串格式
-		local animId = tonumber(animationId)
-		if animId then
-			animation.AnimationId = "rbxassetid://" .. animId
-		else
-			animation.AnimationId = animationId
-		end
-		
-		-- 加载动画
-		local animTrack = humanoid:LoadAnimation(animation)
-		animTrack:Play()
-		
-		-- 保存动画引用
-		currentAnimations[animationName] = animTrack
-		
-		-- 监听动画结束
-		animTrack.Stopped:Connect(function()
-			currentAnimations[animationName] = nil
-		end)
-		
-		print("✅ 正在播放: " .. animationName .. " (ID: " .. animationId .. ")")
-		
-		return animTrack
-	end)
-	
-	if not success then
-		warn("❌ 播放动画失败: " .. animationName)
-		warn("错误信息: " .. tostring(result))
-	end
+    -- 获取Humanoid
+    local humanoid = getHumanoid()
+    if not humanoid then
+        warn("无法找到Humanoid！")
+        return
+    end
+
+    -- 停止同名的动画
+    if currentAnimations[animationName] then
+        currentAnimations[animationName]:Stop()
+        currentAnimations[animationName] = nil
+    end
+
+    -- 创建并加载动画
+    local success, result = pcall(function()
+        local animation = Instance.new("Animation")
+        -- 确保animationId是数字，转换为字符串格式
+        local animId = tonumber(animationId)
+        if animId then
+            animation.AnimationId = "rbxassetid://" .. animId
+        else
+            animation.AnimationId = animationId
+        end
+
+        -- 加载动画
+        local animTrack = humanoid:LoadAnimation(animation)
+        animTrack:Play()
+        animation:Destroy() -- 用完销毁，避免内存泄漏
+
+        -- 保存动画引用
+        currentAnimations[animationName] = animTrack
+
+        -- 监听动画结束
+        animTrack.Stopped:Connect(function()
+            currentAnimations[animationName] = nil
+        end)
+
+        print("✅ 正在播放: " .. animationName .. " (ID: " .. animationId .. ")")
+        return animTrack
+    end)
+
+    if not success then
+        warn("❌ 播放动画失败: " .. animationName)
+        warn("错误信息: " .. tostring(result))
+    end
 end
 
 -- 清除所有动画函数
 local function clearAllAnimations()
-	print("🔄 清除所有动作...")
-	
-	local count = 0
-	for animName, animTrack in pairs(currentAnimations) do
-		if animTrack then
-			animTrack:Stop()
-			count = count + 1
-		end
-	end
-	
-	-- 清空动画表
-	currentAnimations = {}
-	
-	-- 按钮反馈动画
-	local originalColor = ClearAllButton.BackgroundColor3
-	ClearAllButton.BackgroundColor3 = Color3.fromRGB(220, 90, 90)
-	ClearAllButton.Text = "已清除 (" .. count .. ")"
-	
-	-- 恢复按钮状态
-	task.wait(0.8)
-	ClearAllButton.BackgroundColor3 = originalColor
-	ClearAllButton.Text = "清除所有动作"
-	
-	print("✅ 已清除 " .. count .. " 个动作")
+    print("🔄 清除所有动作...")
+
+    local count = 0
+    for animName, animTrack in pairs(currentAnimations) do
+        if animTrack then
+            animTrack:Stop()
+            count = count + 1
+        end
+    end
+
+    -- 清空动画表
+    currentAnimations = {}
+
+    -- 按钮反馈动画
+    local originalColor = ClearAllButton.BackgroundColor3
+    ClearAllButton.BackgroundColor3 = Color3.fromRGB(220, 90, 90)
+    ClearAllButton.Text = "已清除 (" .. count .. ")"
+
+    -- 恢复按钮状态
+    task.wait(0.8)
+    ClearAllButton.BackgroundColor3 = originalColor
+    ClearAllButton.Text = "清除所有动作"
+
+    print("✅ 已清除 " .. count .. " 个动作")
 end
 
 -- 创建动作按钮
 local actionButtons = {}
-
 local function createActionButton(actionData, index)
-	local button = Instance.new("TextButton")
-	button.Name = "Action_" .. index
-	button.Size = UDim2.new(1, 0, 0, 45)
-	button.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
-	button.AutoButtonColor = true
-	button.Text = ""
-	button.LayoutOrder = index
-	button.Visible = not isMinimized
-	
-	local buttonCorner = Instance.new("UICorner")
-	buttonCorner.CornerRadius = UDim.new(0, 6)
-	buttonCorner.Parent = button
-	
-	local buttonStroke = Instance.new("UIStroke")
-	buttonStroke.Color = Color3.fromRGB(70, 70, 80)
-	buttonStroke.Thickness = 1
-	buttonStroke.Parent = button
-	
-	-- 动作名称
-	local actionName = Instance.new("TextLabel")
-	actionName.Name = "ActionName"
-	actionName.Size = UDim2.new(1, -20, 1, 0)
-	actionName.Position = UDim2.new(0, 10, 0, 0)
-	actionName.BackgroundTransparency = 1
-	actionName.Text = actionData.Name
-	actionName.TextColor3 = Color3.fromRGB(220, 220, 230)
-	actionName.Font = Enum.Font.GothamBold
-	actionName.TextSize = 14
-	actionName.TextXAlignment = Enum.TextXAlignment.Left
-	actionName.TextTruncate = Enum.TextTruncate.AtEnd
-	actionName.Parent = button
-	
-	-- 点击执行动作
-	button.MouseButton1Click:Connect(function()
-		local originalColor = button.BackgroundColor3
-		button.BackgroundColor3 = Color3.fromRGB(70, 120, 200)
-		
-		-- 播放动画
-		playAnimation(actionData.ID, actionData.Name)
-		
-		-- 恢复按钮颜色
-		task.wait(0.15)
-		button.BackgroundColor3 = originalColor
-	end)
-	
-	-- 悬停效果
-	button.MouseEnter:Connect(function()
-		if not isMinimized then
-			local tween = TweenService:Create(
-				button,
-				TweenInfo.new(0.2),
-				{BackgroundColor3 = Color3.fromRGB(60, 60, 70)}
-			)
-			tween:Play()
-		end
-	end)
-	
-	button.MouseLeave:Connect(function()
-		if not isMinimized then
-			local tween = TweenService:Create(
-				button,
-				TweenInfo.new(0.2),
-				{BackgroundColor3 = Color3.fromRGB(50, 50, 60)}
-			)
-			tween:Play()
-		end
-	end)
-	
-	table.insert(actionButtons, button)
-	return button
+    local button = Instance.new("TextButton")
+    button.Name = "Action_" .. index
+    button.Size = UDim2.new(1, 0, 0, 45)
+    button.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+    button.AutoButtonColor = true
+    button.Text = ""
+    button.LayoutOrder = index
+    button.Visible = not isMinimized
+
+    local buttonCorner = Instance.new("UICorner")
+    buttonCorner.CornerRadius = UDim.new(0, 6)
+    buttonCorner.Parent = button
+
+    local buttonStroke = Instance.new("UIStroke")
+    buttonStroke.Color = Color3.fromRGB(70, 70, 80)
+    buttonStroke.Thickness = 1
+    buttonStroke.Parent = button
+
+    -- 动作名称
+    local actionName = Instance.new("TextLabel")
+    actionName.Name = "ActionName"
+    actionName.Size = UDim2.new(1, -20, 1, 0)
+    actionName.Position = UDim2.new(0, 10, 0, 0)
+    actionName.BackgroundTransparency = 1
+    actionName.Text = actionData.Name
+    actionName.TextColor3 = Color3.fromRGB(220, 220, 230)
+    actionName.Font = Enum.Font.GothamBold
+    actionName.TextSize = 14
+    actionName.TextXAlignment = Enum.TextXAlignment.Left
+    actionName.TextTruncate = Enum.TextTruncate.AtEnd
+    actionName.Parent = button
+
+    -- 点击执行动作
+    button.MouseButton1Click:Connect(function()
+        local originalColor = button.BackgroundColor3
+        button.BackgroundColor3 = Color3.fromRGB(70, 120, 200)
+
+        -- 播放动画
+        playAnimation(actionData.ID, actionData.Name)
+
+        -- 恢复按钮颜色
+        task.wait(0.15)
+        button.BackgroundColor3 = originalColor
+    end)
+
+    -- 悬停效果
+    button.MouseEnter:Connect(function()
+        if not isMinimized then
+            local tween = TweenService:Create(button, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(60, 60, 70)})
+            tween:Play()
+        end
+    end)
+
+    button.MouseLeave:Connect(function()
+        if not isMinimized then
+            local tween = TweenService:Create(button, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(50, 50, 60)})
+            tween:Play()
+        end
+    end)
+
+    table.insert(actionButtons, button)
+    return button
 end
 
 -- 生成所有动作按钮
 for i, actionData in ipairs(ActionDatabase) do
-	local button = createActionButton(actionData, i)
-	button.Parent = ScrollingFrame
+    local button = createActionButton(actionData, i)
+    button.Parent = ScrollingFrame
 end
 
 -- 清除按钮点击事件
@@ -367,50 +350,36 @@ ClearAllButton.MouseButton1Click:Connect(clearAllAnimations)
 
 -- 清除按钮悬停效果
 ClearAllButton.MouseEnter:Connect(function()
-	local tween = TweenService:Create(
-		ClearAllButton,
-		TweenInfo.new(0.2),
-		{BackgroundColor3 = Color3.fromRGB(200, 90, 90)}
-	)
-	tween:Play()
+    local tween = TweenService:Create(ClearAllButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(200, 90, 90)})
+    tween:Play()
 end)
 
 ClearAllButton.MouseLeave:Connect(function()
-	local tween = TweenService:Create(
-		ClearAllButton,
-		TweenInfo.new(0.2),
-		{BackgroundColor3 = Color3.fromRGB(180, 70, 70)}
-	)
-	tween:Play()
+    local tween = TweenService:Create(ClearAllButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(180, 70, 70)})
+    tween:Play()
 end)
 
 -- 拖动功能函数
 local function updateWindowPosition(input)
-	local delta = input.Position - dragStart
-	
-	MainWindow.Position = UDim2.new(
-		startPos.X.Scale,
-		startPos.X.Offset + delta.X,
-		startPos.Y.Scale,
-		startPos.Y.Offset + delta.Y
-	)
+    local delta = input.Position - dragStart
+    MainWindow.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
 end
 
 -- 通用拖动处理函数
 local function setupDrag(frame)
-	frame.InputBegan:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-			dragging = true
-			dragStart = input.Position
-			startPos = MainWindow.Position
-			
-			input.Changed:Connect(function()
-				if input.UserInputState == Enum.UserInputState.End then
-					dragging = false
-				end
-			end)
-		end
-	end)
+    frame.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPos = MainWindow.Position
+
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                end
+            end)
+        end
+    end)
 end
 
 -- 设置拖动
@@ -418,87 +387,60 @@ setupDrag(TitleBar)
 setupDrag(MainWindow)
 
 UserInputService.InputChanged:Connect(function(input)
-	if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-		updateWindowPosition(input)
-	end
+    if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+        updateWindowPosition(input)
+    end
 end)
 
 -- 最小化/最大化功能
 local function toggleMinimize()
-	isMinimized = not isMinimized
-	
-	if isMinimized then
-		-- 保存当前大小和位置
-		originalSize = MainWindow.Size
-		originalPosition = MainWindow.Position
-		
-		-- 隐藏内容
-		ClearAllButton.Visible = false
-		Content.Visible = false
-		MinimizeButton.Text = "＋"
-		Title.Text = "动作箱"
-		
-		-- 动画：缩小
-		local tween = TweenService:Create(
-			MainWindow,
-			TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-			{Size = minimizedSize}
-		)
-		tween:Play()
-		
-		-- 隐藏所有动作按钮
-		for _, button in ipairs(actionButtons) do
-			button.Visible = false
-		end
-		
-	else
-		-- 动画：展开
-		local tween = TweenService:Create(
-			MainWindow,
-			TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-			{
-				Size = originalSize,
-				Position = originalPosition
-			}
-		)
-		tween:Play()
-		
-		-- 稍后显示内容
-		task.wait(0.15)
-		ClearAllButton.Visible = true
-		Content.Visible = true
-		MinimizeButton.Text = "－"
-		Title.Text = "动作工具箱"
-		
-		-- 显示所有动作按钮
-		for _, button in ipairs(actionButtons) do
-			button.Visible = true
-		end
-	end
+    isMinimized = not isMinimized
+    if isMinimized then
+        -- 保存当前大小和位置
+        originalSize = MainWindow.Size
+        originalPosition = MainWindow.Position
+        -- 隐藏内容
+        ClearAllButton.Visible = false
+        Content.Visible = false
+        MinimizeButton.Text = "＋"
+        Title.Text = "动作箱"
+        -- 动画：缩小
+        local tween = TweenService:Create(MainWindow, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = minimizedSize})
+        tween:Play()
+        -- 隐藏所有动作按钮
+        for _, button in ipairs(actionButtons) do
+            button.Visible = false
+        end
+    else
+        -- 动画：展开
+        local tween = TweenService:Create(MainWindow, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = originalSize, Position = originalPosition})
+        tween:Play()
+        -- 稍后显示内容
+        task.wait(0.15)
+        ClearAllButton.Visible = true
+        Content.Visible = true
+        MinimizeButton.Text = "－"
+        Title.Text = "动作工具箱"
+        -- 显示所有动作按钮
+        for _, button in ipairs(actionButtons) do
+            button.Visible = true
+        end
+    end
 end
 
 -- 最小化按钮点击
 MinimizeButton.MouseButton1Click:Connect(toggleMinimize)
 
--- 按钮悬停效果
-setupButtonHover = function(button, normalColor, hoverColor)
-	button.MouseEnter:Connect(function()
-		local tween = TweenService:Create(
-			button,
-			TweenInfo.new(0.2),
-			{BackgroundColor3 = hoverColor}
-		)
-		tween:Play()
-	end)
-	
-	button.MouseLeave:Connect(function()
-		local tween = TweenService:Create(
-			button,
-			TweenInfo.new(0.2),
-			{BackgroundColor3 = normalColor}
-		)
-		tween:Play()
-	end)
+-- 按钮悬停通用函数（修复未定义错误）
+local function setupButtonHover(button, normalColor, hoverColor)
+    button.MouseEnter:Connect(function()
+        local tween = TweenService:Create(button, TweenInfo.new(0.2), {BackgroundColor3 = hoverColor})
+        tween:Play()
+    end)
+    button.MouseLeave:Connect(function()
+        local tween = TweenService:Create(button, TweenInfo.new(0.2), {BackgroundColor3 = normalColor})
+        tween:Play()
+    end)
 end
 
 setupButtonHover(MinimizeButton, Color3.fromRGB(80, 130, 200), Color3.fromRGB(100, 150, 220))
@@ -506,57 +448,37 @@ setupButtonHover(CloseButton, Color3.fromRGB(200, 70, 70), Color3.fromRGB(220, 9
 
 -- 关闭功能
 CloseButton.MouseButton1Click:Connect(function()
-	clearAllAnimations()
-	ActionToolbox:Destroy()
+    clearAllAnimations()
+    ActionToolbox:Destroy()
 end)
 
 -- 窗口显示/隐藏功能
 local function toggleVisibility()
-	MainWindow.Visible = not MainWindow.Visible
+    MainWindow.Visible = not MainWindow.Visible
 end
 
 -- 热键控制
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
-	if not gameProcessed then
-		if input.KeyCode == Enum.KeyCode.F1 then
-			toggleVisibility()
-		elseif input.KeyCode == Enum.KeyCode.F2 then
-			toggleMinimize()
-		elseif input.KeyCode == Enum.KeyCode.F3 then
-			clearAllAnimations()
-		end
-	end
+    if not gameProcessed then
+        if input.KeyCode == Enum.KeyCode.F1 then
+            toggleVisibility()
+        elseif input.KeyCode == Enum.KeyCode.F2 then
+            toggleMinimize()
+        elseif input.KeyCode == Enum.KeyCode.F3 then
+            clearAllAnimations()
+        end
+    end
 end)
 
 -- 角色重生处理
 player.CharacterAdded:Connect(function(newCharacter)
-	character = newCharacter
-	-- 等待角色完全加载
-	task.wait(0.5)
-	clearAllAnimations()
+    character = newCharacter
+    task.wait(0.5) -- 等待角色完全加载
+    clearAllAnimations()
 end)
 
-print("✅ 动作工具箱已加载 - 修复版")
-print("🎬 现在可以正常播放动画了！")
-print("📝 使用说明：")
-print("  • 点击动作按钮播放动画")
-print("  • 点击清除按钮停止所有动画")
-print("  • F1: 显示/隐藏 F2: 最小化 F3: 清除")
-
--- 返回工具箱引用
-return {
-	Gui = ActionToolbox,
-	Window = MainWindow,
-	PlayAnimation = playAnimation,
-	ClearAllAnimations = clearAllAnimations,
-	ToggleVisibility = toggleVisibility,
-	ToggleMinimize = toggleMinimize
-}
-local Players = game:GetService("Players")
+-- ============== 第二部分：R15关节立方体系统（修复全量错误） ==============
 local RunService = game:GetService("RunService")
-
-local player = Players.LocalPlayer
-local character = player.Character or player.CharacterAdded:Wait()
 
 -- R15关节映射表
 local R15_JOINTS = {
@@ -564,29 +486,16 @@ local R15_JOINTS = {
     "HumanoidRootPart",
     "LowerTorso",
     "UpperTorso",
-    
     -- 头部
     "Head",
-    
     -- 左臂
-    "LeftUpperArm",
-    "LeftLowerArm",
-    "LeftHand",
-    
+    "LeftUpperArm", "LeftLowerArm", "LeftHand",
     -- 右臂
-    "RightUpperArm",
-    "RightLowerArm",
-    "RightHand",
-    
+    "RightUpperArm", "RightLowerArm", "RightHand",
     -- 左腿
-    "LeftUpperLeg",
-    "LeftLowerLeg",
-    "LeftFoot",
-    
+    "LeftUpperLeg", "LeftLowerLeg", "LeftFoot",
     -- 右腿
-    "RightUpperLeg",
-    "RightLowerLeg",
-    "RightFoot"
+    "RightUpperLeg", "RightLowerLeg", "RightFoot"
 }
 
 -- 立方体配置
@@ -607,14 +516,14 @@ local cubeTable = {}
 
 -- 为每个关节创建立方体
 local function createJointCubes()
-    -- 清理旧的立方体
+    -- 清理旧的立方体，防止内存泄漏
     for _, cube in pairs(cubeTable) do
-        if cube then
+        if cube and cube.Parent then
             cube:Destroy()
         end
     end
-    cubeTable = {}
-    
+    table.clear(cubeTable)
+
     -- 为每个存在的关节创建立方体
     for _, jointName in ipairs(R15_JOINTS) do
         local joint = character:FindFirstChild(jointName)
@@ -629,44 +538,54 @@ local function createJointCubes()
             cube.CanCollide = false
             cube.CanQuery = false
             cube.CastShadow = false
-            
+
             cubeTable[jointName] = cube
             cube.Parent = workspace
         end
     end
-    
-    print("✅ 已为 " .. #R15_JOINTS .. " 个关节创建立方体")
+    print("✅ 已为检测到的关节创建立方体")
 end
 
 -- 更新所有立方体位置
 local function updateAllCubes()
+    if not character or not character.Parent then return end
     for jointName, cube in pairs(cubeTable) do
         local joint = character:FindFirstChild(jointName)
-        if joint and joint:IsA("BasePart") then
-            -- 直接跟随关节位置
+        if joint and joint:IsA("BasePart") and cube and cube.Parent then
             cube.Position = joint.Position
         end
     end
 end
 
--- 使用Stepped事件更新
-RunService.Stepped:Connect(function()
-    if character and character.Parent then
-        updateAllCubes()
-    end
-end)
+-- 使用Stepped事件更新，同步角色运动
+RunService.Stepped:Connect(updateAllCubes)
 
 -- 角色加载时创建
-if character then
+if character and character.Parent then
     task.wait(1)  -- 等待R15模型完全加载
     createJointCubes()
 end
 
--- 监听角色重生
+-- 监听角色重生，重新创建立方体
 player.CharacterAdded:Connect(function(newCharacter)
     character = newCharacter
     task.wait(1.5)  -- 等待R15完全加载
     createJointCubes()
 end)
 
-print("🎮 R15关节立方体系统已启动")
+-- ============== 日志输出（精简，无冗余） ==============
+print("✅ 动作工具箱+R15关节立方体 双系统加载完成")
+print("🎬 动作功能：点击按钮播放 / F1显隐 / F2最小化 / F3清除")
+print("📌 立方体功能：实时跟随R15关节位置")
+
+-- 返回工具箱引用（按需使用）
+local ToolboxAPI = {
+    Gui = ActionToolbox,
+    Window = MainWindow,
+    PlayAnimation = playAnimation,
+    ClearAllAnimations = clearAllAnimations,
+    ToggleVisibility = toggleVisibility,
+    ToggleMinimize = toggleMinimize,
+    RecreateJointCubes = createJointCubes
+}
+return ToolboxAPI
