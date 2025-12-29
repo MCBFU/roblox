@@ -22,7 +22,7 @@ local VerifySystem = {
     Blacklist = {
         Names = {
             "awa",
-            "😁"
+            "yuku65t4"
         },
         UserIds = {
             12345678,
