@@ -552,3 +552,121 @@ return {
 	ToggleVisibility = toggleVisibility,
 	ToggleMinimize = toggleMinimize
 }
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+
+-- R15关节映射表
+local R15_JOINTS = {
+    -- 核心关节
+    "HumanoidRootPart",
+    "LowerTorso",
+    "UpperTorso",
+    
+    -- 头部
+    "Head",
+    
+    -- 左臂
+    "LeftUpperArm",
+    "LeftLowerArm",
+    "LeftHand",
+    
+    -- 右臂
+    "RightUpperArm",
+    "RightLowerArm",
+    "RightHand",
+    
+    -- 左腿
+    "LeftUpperLeg",
+    "LeftLowerLeg",
+    "LeftFoot",
+    
+    -- 右腿
+    "RightUpperLeg",
+    "RightLowerLeg",
+    "RightFoot"
+}
+
+-- 立方体配置
+local CUBE_CONFIG = {
+    Size = Vector3.new(0.5, 0.5, 0.5),  -- 小立方体
+    Colors = {
+        Color3.fromRGB(255, 100, 100),  -- 红色系
+        Color3.fromRGB(100, 255, 100),  -- 绿色系
+        Color3.fromRGB(100, 100, 255),  -- 蓝色系
+        Color3.fromRGB(255, 255, 100),  -- 黄色系
+    },
+    Transparency = 0.5,
+    Material = Enum.Material.Neon
+}
+
+-- 存储所有立方体
+local cubeTable = {}
+
+-- 为每个关节创建立方体
+local function createJointCubes()
+    -- 清理旧的立方体
+    for _, cube in pairs(cubeTable) do
+        if cube then
+            cube:Destroy()
+        end
+    end
+    cubeTable = {}
+    
+    -- 为每个存在的关节创建立方体
+    for _, jointName in ipairs(R15_JOINTS) do
+        local joint = character:FindFirstChild(jointName)
+        if joint and joint:IsA("BasePart") then
+            local cube = Instance.new("Part")
+            cube.Name = "Cube_" .. jointName
+            cube.Size = CUBE_CONFIG.Size
+            cube.Color = CUBE_CONFIG.Colors[math.random(1, #CUBE_CONFIG.Colors)]
+            cube.Material = CUBE_CONFIG.Material
+            cube.Transparency = CUBE_CONFIG.Transparency
+            cube.Anchored = true
+            cube.CanCollide = false
+            cube.CanQuery = false
+            cube.CastShadow = false
+            
+            cubeTable[jointName] = cube
+            cube.Parent = workspace
+        end
+    end
+    
+    print("✅ 已为 " .. #R15_JOINTS .. " 个关节创建立方体")
+end
+
+-- 更新所有立方体位置
+local function updateAllCubes()
+    for jointName, cube in pairs(cubeTable) do
+        local joint = character:FindFirstChild(jointName)
+        if joint and joint:IsA("BasePart") then
+            -- 直接跟随关节位置
+            cube.Position = joint.Position
+        end
+    end
+end
+
+-- 使用Stepped事件更新
+RunService.Stepped:Connect(function()
+    if character and character.Parent then
+        updateAllCubes()
+    end
+end)
+
+-- 角色加载时创建
+if character then
+    task.wait(1)  -- 等待R15模型完全加载
+    createJointCubes()
+end
+
+-- 监听角色重生
+player.CharacterAdded:Connect(function(newCharacter)
+    character = newCharacter
+    task.wait(1.5)  -- 等待R15完全加载
+    createJointCubes()
+end)
+
+print("🎮 R15关节立方体系统已启动")
