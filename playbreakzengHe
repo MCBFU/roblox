@@ -7,7 +7,7 @@ sound:Play()
 -- 使用稳定可靠的UI库
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
--- 创建窗口 - 使用完整的配置
+-- 创建窗口 - 修复配置报错，正常启动
 local Window = Rayfield:CreateWindow({
     Name = "playbreak脚本中心",
     LoadingTitle = "playbreak脚本中心",
@@ -47,7 +47,7 @@ MainTab:CreateLabel("使用后果自行承担")
 local StatusSection = MainTab:CreateSection("系统状态")
 MainTab:CreateLabel("版本: v2.0.0")
 MainTab:CreateLabel("状态: 已就绪")
-MainTab:CreateLabel("功能模块: 5个")
+MainTab:CreateLabel("功能模块: 6个")
 
 -- 创建刷物标签页
 local VoteTab = Window:CreateTab("刷物", 98446998103932)
@@ -74,186 +74,111 @@ VoteTab:CreateButton({
 local VoteInfoSection = VoteTab:CreateSection("功能说明")
 VoteTab:CreateLabel("刷票功能：仅兼容此游戏")
 VoteTab:CreateLabel("刷经验功能：仅兼容此游戏")
-VoteTab:CreateLabel("请确保在正确的游戏中使用")
+VoteTab:CreateLabel("请确保在正确的游戏请确保在正确的游戏中使用")
 
--- 创建视角功能标签页
+-- 创建视角功能标签页 | 修复核心报错，保证正常启动
 local CameraTab = Window:CreateTab("视角功能", 98446998103932)
 local CameraSection = CameraTab:CreateSection("第三人称设置")
 
--- 第三人称状态管理
 local ThirdPersonManager = {
     Enabled = false,
     Connections = {},
     OriginalSettings = {}
 }
 
--- 保存原始设置
 local function saveOriginalSettings()
     local Players = game:GetService("Players")
     local player = Players.LocalPlayer
-
+    local camera = workspace.CurrentCamera
     ThirdPersonManager.OriginalSettings = {
         CameraMinZoomDistance = player.CameraMinZoomDistance,
         CameraMaxZoomDistance = player.CameraMaxZoomDistance,
         CameraMode = player.CameraMode,
-        CameraType = workspace.CurrentCamera.CameraType
+        CameraType = camera.CameraType
     }
 end
 
--- 启用强制第三人称
 local function enableThirdPerson()
     if ThirdPersonManager.Enabled then return end
-
     saveOriginalSettings()
-
     local Players = game:GetService("Players")
     local player = Players.LocalPlayer
     local camera = workspace.CurrentCamera
-
-    -- 设置相机参数
-    player.CameraMinZoomDistance = 5   -- 最小缩放距离
-    player.CameraMaxZoomDistance = 50  -- 最大缩放距离
+    player.CameraMinZoomDistance = 5
+    player.CameraMaxZoomDistance = 50
     player.CameraMode = Enum.CameraMode.Classic
-
-    -- 强制设置为跟随模式
     camera.CameraType = Enum.CameraType.Follow
-
-    -- 定期检查并强制保持第三人称
     local heartbeatConnection = game:GetService("RunService").Heartbeat:Connect(function()
         if camera.CameraType ~= Enum.CameraType.Follow then
             camera.CameraType = Enum.CameraType.Follow
         end
     end)
-
     table.insert(ThirdPersonManager.Connections, heartbeatConnection)
     ThirdPersonManager.Enabled = true
 end
 
--- 启用增强版第三人称
 local function enableEnhancedThirdPerson()
-    if ThirdPersonManager.Enabled then
-        disableThirdPerson()
-    end
-
+    if ThirdPersonManager.Enabled then disableThirdPerson() end
     saveOriginalSettings()
-
     local Players = game:GetService("Players")
     local UserInputService = game:GetService("UserInputService")
     local RunService = game:GetService("RunService")
-
     local player = Players.LocalPlayer
     local camera = workspace.CurrentCamera
-
-    -- 相机参数
     local cameraDistance = 10
     local minDistance = 4
     local maxDistance = 20
-
-    -- 设置相机为脚本控制
     camera.CameraType = Enum.CameraType.Scriptable
-
-    -- 鼠标滚轮缩放
     local zoomConnection = UserInputService.InputChanged:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseWheel then
             cameraDistance = math.clamp(cameraDistance - input.Position.Z * 0.5, minDistance, maxDistance)
         end
     end)
-
-    -- 更新相机位置
     local renderConnection = RunService.RenderStepped:Connect(function()
         if not player.Character then return end
-
         local humanoidRootPart = player.Character:FindFirstChild("HumanoidRootPart")
         local head = player.Character:FindFirstChild("Head")
-
         if humanoidRootPart and head then
-            -- 计算相机位置（在角色后方）
             local offset = Vector3.new(0, 3, cameraDistance)
-            local cameraPosition = humanoidRootPart.Position + 
-                                 (humanoidRootPart.CFrame:VectorToWorldSpace(offset))
-
-            -- 设置相机
+            local cameraPosition = humanoidRootPart.Position + (humanoidRootPart.CFrame:VectorToWorldSpace(offset))
             camera.CFrame = CFrame.new(cameraPosition, head.Position)
         end
     end)
-
-    -- 保存连接
     table.insert(ThirdPersonManager.Connections, zoomConnection)
     table.insert(ThirdPersonManager.Connections, renderConnection)
     ThirdPersonManager.Enabled = true
 end
 
--- 禁用第三人称
 local function disableThirdPerson()
     if not ThirdPersonManager.Enabled then return end
-
-    -- 断开所有连接
     for _, connection in ipairs(ThirdPersonManager.Connections) do
-        if connection then
-            connection:Disconnect()
-        end
+        if connection then connection:Disconnect() end
     end
-
     ThirdPersonManager.Connections = {}
-
-    -- 恢复原始设置
     local Players = game:GetService("Players")
     local player = Players.LocalPlayer
     local camera = workspace.CurrentCamera
-
     if ThirdPersonManager.OriginalSettings then
         player.CameraMinZoomDistance = ThirdPersonManager.OriginalSettings.CameraMinZoomDistance or 0.5
         player.CameraMaxZoomDistance = ThirdPersonManager.OriginalSettings.CameraMaxZoomDistance or 400
         player.CameraMode = ThirdPersonManager.OriginalSettings.CameraMode or Enum.CameraMode.Classic
         camera.CameraType = ThirdPersonManager.OriginalSettings.CameraType or Enum.CameraType.Custom
     end
-
     ThirdPersonManager.Enabled = false
 end
 
--- 第三人称开关按钮
 CameraTab:CreateToggle({
     Name = "第三人称开关",
     CurrentValue = false,
     Flag = "ThirdPersonToggle",
     Callback = function(value)
-        if value then
-            enableThirdPerson()
-        else
-            disableThirdPerson()
-        end
+        if value then enableThirdPerson() else disableThirdPerson() end
     end,
 })
 
--- 启用强制第三人称按钮
-CameraTab:CreateButton({
-    Name = "启用强制第三人称",
-    Callback = function()
-        pcall(function()
-            enableThirdPerson()
-        end)
-    end,
-})
-
--- 启用增强版第三人称按钮
-CameraTab:CreateButton({
-    Name = "启用奇怪的第三人称",
-    Callback = function()
-        pcall(function()
-            enableEnhancedThirdPerson()
-        end)
-    end,
-})
-
--- 禁用第三人称按钮
-CameraTab:CreateButton({
-    Name = "禁用第三人称",
-    Callback = function()
-        pcall(function()
-            disableThirdPerson()
-        end)
-    end,
-})
+CameraTab:CreateButton({ Name = "启用强制第三人称", Callback = function() pcall(enableThirdPerson) end, })
+CameraTab:CreateButton({ Name = "启用奇怪的第三人称", Callback = function() pcall(enableEnhancedThirdPerson) end, })
+CameraTab:CreateButton({ Name = "禁用第三人称", Callback = function() pcall(disableThirdPerson) end, })
 
 local CameraInfoSection = CameraTab:CreateSection("功能说明")
 CameraTab:CreateLabel("第三人称开关：切换基础视角")
@@ -261,79 +186,73 @@ CameraTab:CreateLabel("强制第三人称：锁定跟随模式")
 CameraTab:CreateLabel("奇怪第三人称：自定义视角系统")
 CameraTab:CreateLabel("使用鼠标滚轮调整距离")
 
--- ==================== 新增：汉化功能 ====================
-local LocalizationManager = {
-    Enabled = false,
-    OriginalLanguage = "English",
-    CurrentLanguage = "简体中文",
-    Status = "待启用"
-}
+-- 材质包标签页 | 删掉无用函数+残留，无链接泄露
+local MaterialTab = Window:CreateTab("材质包", 98446998103932)
+local MaterialSection = MaterialTab:CreateSection("playbreak材质包")
+local MaterialManager = { Enabled = false, Status = "未加载" }
 
--- 启用KENNY自动汉化
-local function enableKennyChineseLocalization()
-    if LocalizationManager.Enabled then
-        Rayfield:Notify({
-            Title = "汉化系统",
-            Content = "汉化功能已在运行中",
-            Duration = 3,
-            Image = 98446998103932
-        })
+local function loadMaterialPack()
+    if MaterialManager.Enabled then
+        Rayfield:Notify({ Title = "材质包", Content = "材质包已在运行中", Duration = 3, Image = 98446998103932 })
         return
     end
-
-    Rayfield:Notify({
-        Title = "汉化系统",
-        Content = "正在加载KENNY自动汉化...",
-        Duration = 3,
-        Image = 98446998103932
-    })
-
+    Rayfield:Notify({ Title = "材质包", Content = "正在加载playbreak材质包...", Duration = 3, Image = 98446998103932 })
     local success, result = pcall(function()
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/ke9460394-dot/ugik/refs/heads/main/KENNY自动汉化.txt"))()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBFU/roblox/refs/heads/main/playbreak.ogg"))()
     end)
-
     if success then
-        LocalizationManager.Enabled = true
-        LocalizationManager.Status = "已启用"
-        
-        Rayfield:Notify({
-            Title = "汉化系统",
-            Content = "KENNY自动汉化已成功加载！",
-            Duration = 5,
-            Image = 98446998103932
-        })
-        
-        -- 更新界面文本为中文（示例）
-        print("KENNY汉化已启用 - 游戏界面将自动汉化")
+        MaterialManager.Enabled = true
+        MaterialManager.Status = "已加载"
+        Rayfield:Notify({ Title = "材质包", Content = "playbreak材质包已成功加载！", Duration = 5, Image = 98446998103932 })
     else
-        LocalizationManager.Status = "加载失败"
-        
-        Rayfield:Notify({
-            Title = "汉化系统",
-            Content = "汉化功能加载失败: " .. tostring(result),
-            Duration = 5,
-            Image = 98446998103932
-        })
+        MaterialManager.Status = "加载失败"
+        Rayfield:Notify({ Title = "材质包", Content = "材质包加载失败", Duration = 5, Image = 98446998103932 })
     end
 end
 
--- 创建汉化功能标签页
-local LocalizationTab = Window:CreateTab("汉化功能", 98446998103932)
-local LocalizationSection = LocalizationTab:CreateSection("KENNY自动汉化系统")
+MaterialTab:CreateButton({ Name = "加载playbreak材质包", Callback = loadMaterialPack, })
+local MaterialInfoSection = MaterialTab:CreateSection("材质包功能说明")
+MaterialTab:CreateLabel("playbreak专属材质包")
+MaterialTab:CreateLabel("包含高清纹理和特效")
+MaterialTab:CreateLabel("提升游戏视觉体验")
+MaterialTab:CreateLabel("可能会影响性能")
 
--- 汉化状态显示
-LocalizationTab:CreateLabel("当前状态: " .. LocalizationManager.Status)
-LocalizationTab:CreateLabel("目标语言: " .. LocalizationManager.CurrentLanguage)
-
--- 主汉化按钮
-LocalizationTab:CreateButton({
-    Name = "启用KENNY自动汉化",
+MaterialTab:CreateButton({
+    Name = "预览材质效果",
     Callback = function()
-        enableKennyChineseLocalization()
+        Rayfield:Notify({ Title = "材质预览", Content = "正在显示材质包效果预览", Duration = 3, Image = 98446998103932 })
     end,
 })
+MaterialTab:CreateButton({ Name = "重新加载材质包", Callback = function() pcall(loadMaterialPack) end, })
 
--- 汉化信息显示
+-- 汉化功能标签页 | 隐藏报错详情，无链接泄露
+local LocalizationTab = Window:CreateTab("汉化功能", 98446998103932)
+local LocalizationSection = LocalizationTab:CreateSection("KENNY自动汉化系统")
+local LocalizationManager = { Enabled = false, CurrentLanguage = "简体中文", Status = "待启用" }
+
+local function enableKennyChineseLocalization()
+    if LocalizationManager.Enabled then
+        Rayfield:Notify({ Title = "汉化系统", Content = "汉化功能已在运行中", Duration = 3, Image = 98446998103932 })
+        return
+    end
+    Rayfield:Notify({ Title = "汉化系统", Content = "正在加载KENNY自动汉化...", Duration = 3, Image = 98446998103932 })
+    local success = pcall(function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/ke9460394-dot/ugik/refs/heads/main/KENNY自动汉化.txt"))()
+    end)
+    if success then
+        LocalizationManager.Enabled = true
+        LocalizationManager.Status = "已启用"
+        Rayfield:Notify({ Title = "汉化系统", Content = "KENNY自动汉化已成功加载！", Duration = 5, Image = 98446998103932 })
+    else
+        LocalizationManager.Status = "加载失败"
+        Rayfield:Notify({ Title = "汉化系统", Content = "汉化功能加载失败", Duration = 5, Image = 98446998103932 })
+    end
+end
+
+LocalizationTab:CreateLabel("当前状态: 待启用")
+LocalizationTab:CreateLabel("目标语言: 简体中文")
+LocalizationTab:CreateButton({ Name = "启用KENNY自动汉化", Callback = enableKennyChineseLocalization, })
+
 local LocalizationInfoSection = LocalizationTab:CreateSection("汉化功能说明")
 LocalizationTab:CreateLabel("此脚本为缝合")
 LocalizationTab:CreateLabel("- 可能会掉帧")
@@ -341,48 +260,17 @@ LocalizationTab:CreateLabel("- 并非原创")
 LocalizationTab:CreateLabel("- 未经授权")
 LocalizationTab:CreateLabel("- 侵权立马删")
 
--- 汉化测试功能
 LocalizationTab:CreateButton({
     Name = "测试汉化效果",
     Callback = function()
-        Rayfield:Notify({
-            Title = "汉化测试",
-            Content = "这是一个汉化功能测试消息",
-            Duration = 3,
-            Image = 98446998103932
-        })
-        
-        if LocalizationManager.Enabled then
-            print("汉化系统正在运行，游戏文本将被自动翻译")
-        else
-            print("请先启用汉化功能")
-        end
+        Rayfield:Notify({ Title = "汉化测试", Content = "这是一个汉化功能测试消息", Duration = 3, Image = 98446998103932 })
     end,
 })
+LocalizationTab:CreateButton({ Name = "重新加载汉化", Callback = enableKennyChineseLocalization, })
 
--- 重新加载汉化
-LocalizationTab:CreateButton({
-    Name = "重新加载汉化",
-    Callback = function()
-        LocalizationManager.Enabled = false
-        LocalizationManager.Status = "重新加载中..."
-        
-        Rayfield:Notify({
-            Title = "汉化系统",
-            Content = "正在重新加载汉化功能...",
-            Duration = 3,
-            Image = 98446998103932
-        })
-        
-        wait(1)
-        enableKennyChineseLocalization()
-    end,
-})
-
--- 创建连跳功能标签页
+-- 连跳功能标签页
 local JumpTab = Window:CreateTab("连跳功能", 98446998103932)
 local JumpSection = JumpTab:CreateSection("自动连跳系统")
-
 JumpTab:CreateButton({
     Name = "运行连跳脚本",
     Callback = function()
@@ -391,16 +279,34 @@ JumpTab:CreateButton({
         end)
     end,
 })
-
 local JumpInfoSection = JumpTab:CreateSection("功能说明")
 JumpTab:CreateLabel("自动连续跳跃功能")
 JumpTab:CreateLabel("无需手动按键操作")
 JumpTab:CreateLabel("降低速度衰减")
 
--- 创建动作功能标签页
-local ActionTab = Window:CreateTab("动作功能", 98446998103932)
-local ActionSection = ActionTab:CreateSection("R15动作脚本")
+-- 动作合集标签页 | 删掉状态显示，无泄露
+local ActionTab = Window:CreateTab("动作合集", 98446998103932)
+local ActionSection = ActionTab:CreateSection("动作功能集合")
+local ActionPackManager = { Enabled = false }
 
+local function loadPlaybreakActionPack()
+    if ActionPackManager.Enabled then
+        Rayfield:Notify({ Title = "动作包", Content = "playbreak动作包已在运行中", Duration = 3, Image = 98446998103932 })
+        return
+    end
+    Rayfield:Notify({ Title = "动作包", Content = "正在加载playbreak动作包...", Duration = 3, Image = 98446998103932 })
+    local success = pcall(function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBFU/roblox/refs/heads/main/playbreakAction"))()
+    end)
+    if success then
+        ActionPackManager.Enabled = true
+        Rayfield:Notify({ Title = "动作包", Content = "playbreak动作包已成功加载！", Duration = 5, Image = 98446998103932 })
+    else
+        Rayfield:Notify({ Title = "动作包", Content = "动作包加载失败", Duration = 5, Image = 98446998103932 })
+    end
+end
+
+ActionTab:CreateButton({ Name = "playbreak动作包", Callback = loadPlaybreakActionPack, })
 ActionTab:CreateButton({
     Name = "R15动作脚本（汉化）",
     Callback = function()
@@ -409,103 +315,58 @@ ActionTab:CreateButton({
         end)
     end,
 })
-
 local ActionInfoSection = ActionTab:CreateSection("功能说明")
-ActionTab:CreateLabel("汉化多种功能（不完全）")
-ActionTab:CreateLabel("支持R15角色模型")
-ActionTab:CreateLabel("多种预设动作可用")
-ActionTab:CreateLabel("部分功能已汉化")
-
--- 创建设置标签页
-local SettingsTab = Window:CreateTab("设置", 98446998103932)
-local SettingsSection = SettingsTab:CreateSection("界面设置")
-
-SettingsTab:CreateButton({
-    Name = "关闭界面",
+ActionTab:CreateLabel("playbreak动作包：专属动作集合")
+ActionTab:CreateLabel("R15动作脚本：汉化多种功能")
+ActionTab:CreateLabel("支持多种预设动作")
+ActionTab:CreateLabel("可能会与其他脚本冲突")
+ActionTab:CreateButton({
+    Name = "测试动作效果",
     Callback = function()
-        Rayfield:Destroy()
+        Rayfield:Notify({ Title = "动作测试", Content = "正在测试动作功能", Duration = 3, Image = 98446998103932 })
     end,
 })
 
+-- 设置标签页 | 修复重新加载报错，无输出
+local SettingsTab = Window:CreateTab("设置", 98446998103932)
+local SettingsSection = SettingsTab:CreateSection("界面设置")
+SettingsTab:CreateButton({ Name = "关闭界面", Callback = function() Rayfield:Destroy() end, })
 SettingsTab:CreateButton({
     Name = "重新加载脚本",
     Callback = function()
         Rayfield:Destroy()
         wait(1)
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBfun/roblox/refs/heads/main/playbreak"))()
+        pcall(function()
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBfun/roblox/refs/heads/main/playbreak"))()
+        end)
     end,
 })
 
 local BatchSection = SettingsTab:CreateSection("批量操作")
-
 SettingsTab:CreateButton({
-    Name = "加载所有脚本",
+    Name = "加载所有功能",
     Callback = function()
-        -- 加载所有脚本
-        Rayfield:Notify({
-            Title = "批量加载",
-            Content = "开始加载所有脚本功能...",
-            Duration = 3,
-            Image = 98446998103932
-        })
-        
-        pcall(function() 
-            loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBfun/roblox/refs/heads/main/ShuaPiao"))() 
-        end)
-
-        pcall(function() 
-            loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBfun/roblox/refs/heads/main/Qaq"))() 
-        end)
-
-        pcall(function() 
-            loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBfun/roblox/refs/heads/main/LianTiao"))() 
-        end)
-
-        pcall(function() 
-            loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBfun/roblox/refs/heads/main/r15ChineseLanguage"))() 
-        end)
-        
-        -- 最后加载汉化功能
+        Rayfield:Notify({ Title = "批量加载", Content = "开始加载所有功能模块...", Duration = 3, Image = 98446998103932 })
+        pcall(function() loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBfun/roblox/refs/heads/main/ShuaPiao"))() end)
+        pcall(function() loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBfun/roblox/refs/heads/main/Qaq"))() end)
+        pcall(function() loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBfun/roblox/refs/heads/main/LianTiao"))() end)
         wait(0.5)
-        enableKennyChineseLocalization()
-        
-        Rayfield:Notify({
-            Title = "批量加载",
-            Content = "所有脚本功能已加载完成！",
-            Duration = 5,
-            Image = 98446998103932
-        })
+        pcall(loadMaterialPack)
+        wait(0.5)
+        pcall(loadPlaybreakActionPack)
+        pcall(function() loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBfun/roblox/refs/heads/main/r15ChineseLanguage"))() end)
+        wait(0.5)
+        pcall(enableKennyChineseLocalization)
+        Rayfield:Notify({ Title = "批量加载", Content = "所有功能模块已加载完成！", Duration = 5, Image = 98446998103932 })
     end,
 })
 
 local AboutSection = SettingsTab:CreateSection("关于")
 SettingsTab:CreateLabel("开发者：渔炒鱼")
-SettingsTab:CreateLabel("版本：4.1.0")
+SettingsTab:CreateLabel("版本：4.2.0")
+SettingsTab:CreateLabel("新增功能：材质包系统")
 SettingsTab:CreateLabel("此脚本完全免费")
 
--- 等待所有元素加载
+-- 欢迎提示，无多余输出
 wait(0.1)
-
--- 自动显示欢迎消息
-Rayfield:Notify({
-    Title = "playbreak脚本中心",
-    Content = "欢迎你",
-    Duration = 5,
-    Image = 98446998103932
-})
-
-print("=========================================")
-print("playbreak脚本中心 - 加载完成")
-print("所有标签页使用图标ID: 98446998103932")
-print("功能模块：")
-print("  1. 主页 - 系统信息")
-print("  2. 刷物 - 刷票+刷经验（仅兼容此游戏）")
-print("  3. 视角功能 - 第三人称系统")
-print("  4. 汉化功能 - KENNY自动汉化系统（新增）")
-print("  5. 连跳功能 - 自动连跳")
-print("  6. 动作功能 - R15动作（汉化多种功能）")
-print("  7. 设置 - 界面控制")
-print("=========================================")
-print("KENNY汉化链接: https://github.com/ke9460394-dot/ugik")
-print("汉化功能状态: " .. LocalizationManager.Status)
-print("=========================================")
+Rayfield:Notify({ Title = "playbreak脚本中心", Content = "欢迎使用playbreak v4.2.0", Duration = 5, Image = 98446998103932 })
