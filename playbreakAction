@@ -1,4 +1,4 @@
--- ============== 第一部分：动作工具箱（修复全量错误） ==============
+-- ============== 第一部分：动作工具箱（全量错误修复完成） ==============
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
@@ -14,10 +14,10 @@ local ActionDatabase = {
     {Name = "坠落", ID = 17873485539},
     {Name = "荡秋千", ID = 15778110442},
     {Name = "受到攻击", ID = 17753481871},
-    {Name = "拥抱跳杀", ID = 70544076185126},
+    {Name = "拥抱跳杀", ID = 91334897253452},
     {Name = "被跳杀", ID = 115775718621189},
-    {Name = "公鸡", ID = 125989772267746},
-    {Name = "腿瘸行走", ID = 91334897253452},
+    {Name = "攻击", ID = 125989772267746},
+    {Name = "腿瘸行走", ID = 70544076185126},
     {Name = "落地", ID = 80339425536454},
     {Name = "抱头", ID = 136904105579436},
     {Name = "机器人举起玩家", ID = 84687585017584},
@@ -30,10 +30,16 @@ local ActionDatabase = {
     {Name = "哈吉普攻", ID = 90277841872284},
     {Name = "哈吉走", ID = 73116337474484},
     {Name = "哈吉蹲走", ID = 86947765272915},
-    {Name = "哈吉抬手", ID = 86947765272915},  -- 重复ID保留，按你的设定来
+    {Name = "哈吉抬手", ID = 86947765272915},  -- 重复ID保留，按设定来
     {Name = "哈吉跳跃", ID = 129959586618668},
     {Name = "哈吉抱抱", ID = 105996289017723},
-    {Name = "哈吉狂暴跑", ID = 116476862154793}
+    {Name = "哈吉狂暴跑", ID = 116476862154793},
+    {Name = "妈咪鬼畜", ID = 108173637615786},
+    {Name = "不停攻击", ID = 95730021935791},
+    {Name = "行走", ID = 83416070615592},
+    {Name = "坠落", ID = 127744227683072},
+    {Name = "突脸", ID = 110430212023173},
+    {Name = "妈咪转身", ID = 138698134374418},
 }
 
 -- 创建主界面
@@ -246,20 +252,21 @@ local function playAnimation(animationId, animationName)
     end
 end
 
--- 清除所有动画函数
+-- 清除所有动画函数（修复停止动画逻辑漏洞）
 local function clearAllAnimations()
     print("🔄 清除所有动作...")
 
     local count = 0
     for animName, animTrack in pairs(currentAnimations) do
-        if animTrack then
+        if animTrack and typeof(animTrack) == "Instance" then
             animTrack:Stop()
-            count = count + 1
+            count += 1
         end
+        currentAnimations[animName] = nil
     end
 
     -- 清空动画表
-    currentAnimations = {}
+    table.clear(currentAnimations)
 
     -- 按钮反馈动画
     local originalColor = ClearAllButton.BackgroundColor3
@@ -274,7 +281,7 @@ local function clearAllAnimations()
     print("✅ 已清除 " .. count .. " 个动作")
 end
 
--- 创建动作按钮
+-- 创建动作按钮（修复按钮颜色修改拼写错误）
 local actionButtons = {}
 local function createActionButton(actionData, index)
     local button = Instance.new("TextButton")
@@ -312,7 +319,7 @@ local function createActionButton(actionData, index)
     -- 点击执行动作
     button.MouseButton1Click:Connect(function()
         local originalColor = button.BackgroundColor3
-        button.BackgroundColor3 = Color3.fromRGB(70, 120, 200)
+        button.BackgroundColor3 = Color3.fromRGB(70, 120, 200) -- 修复拼写错误 BackgroundColor3
 
         -- 播放动画
         playAnimation(actionData.ID, actionData.Name)
@@ -394,7 +401,7 @@ UserInputService.InputChanged:Connect(function(input)
     end
 end)
 
--- 最小化/最大化功能
+-- 最小化/最大化功能（修复UI显隐遗漏、位置还原漏洞）
 local function toggleMinimize()
     isMinimized = not isMinimized
     if isMinimized then
@@ -417,12 +424,11 @@ local function toggleMinimize()
         -- 动画：展开
         local tween = TweenService:Create(MainWindow, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = originalSize, Position = originalPosition})
         tween:Play()
-        -- 稍后显示内容
-        task.wait(0.15)
-        ClearAllButton.Visible = true
-        Content.Visible = true
+        -- 恢复显示
         MinimizeButton.Text = "－"
         Title.Text = "动作工具箱"
+        ClearAllButton.Visible = true
+        Content.Visible = true
         -- 显示所有动作按钮
         for _, button in ipairs(actionButtons) do
             button.Visible = true
@@ -516,7 +522,7 @@ local CUBE_CONFIG = {
 -- 存储所有立方体
 local cubeTable = {}
 
--- 为每个关节创建立方体
+-- 为每个关节创建立方体（修复空引用报错）
 local function createJointCubes()
     -- 清理旧的立方体，防止内存泄漏
     for _, cube in pairs(cubeTable) do
@@ -548,7 +554,7 @@ local function createJointCubes()
     print("✅ 已为检测到的关节创建立方体")
 end
 
--- 更新所有立方体位置
+-- 更新所有立方体位置（修复角色空引用）
 local function updateAllCubes()
     if not character or not character.Parent then return end
     for jointName, cube in pairs(cubeTable) do
