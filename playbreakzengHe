@@ -47,7 +47,27 @@ MainTab:CreateLabel("使用后果自行承担")
 local StatusSection = MainTab:CreateSection("系统状态")
 MainTab:CreateLabel("版本: v2.0.0")
 MainTab:CreateLabel("状态: 已就绪")
-MainTab:CreateLabel("功能模块: 6个")
+MainTab:CreateLabel("功能模块: 7个")
+
+-- 创建炸麦脚步标签页
+local SoundTab = Window:CreateTab("炸麦脚步", 98446998103932)
+local SoundSection = SoundTab:CreateSection("脚步声音放大")
+
+-- 打开第二个选项后即可解锁炸麦脚步，字面意思，脚步声音特别大
+-- 此功能为缝合
+SoundTab:CreateButton({
+    Name = "启动炸麦脚步",
+    Callback = function()
+        pcall(function()
+            loadstring(game:HttpGet([[https://raw.githubusercontent.com/0Ben1/fe/main/obf_rf6iQURzu1fqrytcnLBAvW34C9N55kS9g9G3CKz086rC47M6632sEd4ZZYB0AYgV.lua.txt]]))()
+        end)
+    end,
+})
+
+local SoundInfoSection = SoundTab:CreateSection("功能说明")
+SoundTab:CreateLabel("脚步声音特别大")
+SoundTab:CreateLabel("点击按钮即可启动")
+SoundTab:CreateLabel("此功能为缝合脚本")
 
 -- 创建刷物标签页
 local VoteTab = Window:CreateTab("刷物", 98446998103932)
@@ -167,12 +187,14 @@ local function disableThirdPerson()
     ThirdPersonManager.Enabled = false
 end
 
-CameraTab:CreateToggle({
+CameraTab:CreateButton({
     Name = "第三人称开关",
-    CurrentValue = false,
-    Flag = "ThirdPersonToggle",
-    Callback = function(value)
-        if value then enableThirdPerson() else disableThirdPerson() end
+    Callback = function()
+        if not ThirdPersonManager.Enabled then
+            enableThirdPerson()
+        else
+            disableThirdPerson()
+        end
     end,
 })
 
@@ -249,8 +271,6 @@ local function enableKennyChineseLocalization()
     end
 end
 
-LocalizationTab:CreateLabel("当前状态: 待启用")
-LocalizationTab:CreateLabel("目标语言: 简体中文")
 LocalizationTab:CreateButton({ Name = "启用KENNY自动汉化", Callback = enableKennyChineseLocalization, })
 
 local LocalizationInfoSection = LocalizationTab:CreateSection("汉化功能说明")
@@ -363,10 +383,10 @@ SettingsTab:CreateButton({
 
 local AboutSection = SettingsTab:CreateSection("关于")
 SettingsTab:CreateLabel("开发者：渔炒鱼")
-SettingsTab:CreateLabel("版本：4.2.0")
-SettingsTab:CreateLabel("新增功能：材质包系统")
+SettingsTab:CreateLabel("版本：4.3.0")
+SettingsTab:CreateLabel("新增功能：炸麦脚步")
 SettingsTab:CreateLabel("此脚本完全免费")
 
 -- 欢迎提示，无多余输出
 wait(0.1)
-Rayfield:Notify({ Title = "playbreak脚本中心", Content = "欢迎使用playbreak v4.2.0", Duration = 5, Image = 98446998103932 })
+Rayfield:Notify({ Title = "playbreak脚本中心", Content = "欢迎使用playbreak v4.3.0", Duration = 5, Image = 98446998103932 })
