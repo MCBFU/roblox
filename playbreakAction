@@ -194,7 +194,7 @@ local currentAnimations = {}
 local function getHumanoid()
     -- 获取当前角色的Humanoid
     if not character or not character.Parent then
-        character = player.Character
+        character = player.Character or player.CharacterAdded:Wait()
     end
 
     if character then
@@ -601,4 +601,17 @@ local ToolboxAPI = {
     ToggleMinimize = toggleMinimize,
     RecreateJointCubes = createJointCubes
 }
+
+-- 修复通知无效果+脚本末尾执行顺序问题
+local StarterGui = game:GetService("StarterGui")
+pcall(function()
+    StarterGui:SetCore("SendNotification", {
+        Title = "公告",
+        Text = "熬夜加班适配所有怪物",
+        Icon = "rbxassetid://75412502671766",
+        Duration = 8,
+        Position = UDim2.new(0, 20, 1, -50)
+    })
+end)
+
 return ToolboxAPI
