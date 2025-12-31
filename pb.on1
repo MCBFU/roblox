@@ -22,7 +22,7 @@ sound.Parent = SoundService
 
 -- 播放音频
 sound:Play()
--- MCB 双功能加载器（可重复加载）
+-- MCB 双功能加载器（可重复加载） 已合并Monster&Expert按钮
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
@@ -37,7 +37,7 @@ screenGui.Parent = player:WaitForChild("PlayerGui")
 
 local mainFrame = Instance.new("Frame")
 mainFrame.Name = "MainFrame"
-mainFrame.Size = UDim2.new(0, 120, 0, 245)  -- 增加高度容纳Beta按钮
+mainFrame.Size = UDim2.new(0, 120, 0, 195)  -- 适配合并后高度
 mainFrame.Position = UDim2.new(0.02, 0, 0.3, 0)
 mainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 30)  -- 深蓝黑背景
 mainFrame.BackgroundTransparency = 0.1  -- 更透明
@@ -124,58 +124,35 @@ local closeCorner = Instance.new("UICorner")
 closeCorner.CornerRadius = UDim.new(0, 6)
 closeCorner.Parent = closeBtn
 
--- ==================== 怪物按钮 ====================
-local monsterButton = Instance.new("TextButton")
-monsterButton.Name = "MonsterButton"
-monsterButton.Size = UDim2.new(1, -20, 0, 50)
-monsterButton.Position = UDim2.new(0, 10, 0, 35)
-monsterButton.Text = "MONSTER"
-monsterButton.BackgroundColor3 = Color3.fromRGB(220, 60, 80)  -- 亮红色
-monsterButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-monsterButton.Font = Enum.Font.GothamSemibold
-monsterButton.TextSize = 13
-monsterButton.TextWrapped = true
-monsterButton.AutoButtonColor = false
-monsterButton.Parent = mainFrame
+-- ==================== 合并按钮：MONSTER & EXPERT  ====================
+local comboButton = Instance.new("TextButton")
+comboButton.Name = "ComboButton"
+comboButton.Size = UDim2.new(1, -20, 0, 50)
+comboButton.Position = UDim2.new(0, 10, 0, 35)
+comboButton.Text = "Stop updating!"
+comboButton.BackgroundColor3 = Color3.fromRGB(90, 100, 200)  -- 蓝紫复合色
+comboButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+comboButton.Font = Enum.Font.GothamSemibold
+comboButton.TextSize = 11
+comboButton.TextWrapped = true
+comboButton.AutoButtonColor = false
+comboButton.Parent = mainFrame
 
-local monsterCorner = Instance.new("UICorner")
-monsterCorner.CornerRadius = UDim.new(0, 8)
-monsterCorner.Parent = monsterButton
+local comboCorner = Instance.new("UICorner")
+comboCorner.CornerRadius = UDim.new(0, 8)
+comboCorner.Parent = comboButton
 
-local monsterStroke = Instance.new("UIStroke")
-monsterStroke.Color = Color3.fromRGB(255, 100, 120)  -- 亮红色边框
-monsterStroke.Thickness = 1.5
-monsterStroke.Parent = monsterButton
+local comboStroke = Instance.new("UIStroke")
+comboStroke.Color = Color3.fromRGB(120, 130, 255)  -- 复合色边框
+comboStroke.Thickness = 1.5
+comboStroke.Parent = comboButton
 
--- ==================== 专家按钮 ====================
-local expertButton = Instance.new("TextButton")
-expertButton.Name = "ExpertButton"
-expertButton.Size = UDim2.new(1, -20, 0, 50)
-expertButton.Position = UDim2.new(0, 10, 0, 90)
-expertButton.Text = "EXPERT"
-expertButton.BackgroundColor3 = Color3.fromRGB(60, 140, 220)  -- 亮蓝色
-expertButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-expertButton.Font = Enum.Font.GothamSemibold
-expertButton.TextSize = 13
-expertButton.TextWrapped = true
-expertButton.AutoButtonColor = false
-expertButton.Parent = mainFrame
-
-local expertCorner = Instance.new("UICorner")
-expertCorner.CornerRadius = UDim.new(0, 8)
-expertCorner.Parent = expertButton
-
-local expertStroke = Instance.new("UIStroke")
-expertStroke.Color = Color3.fromRGB(100, 180, 255)  -- 亮蓝色边框
-expertStroke.Thickness = 1.5
-expertStroke.Parent = expertButton
-
--- ==================== Beta按钮 ====================
+-- ==================== Beta按钮 (调整位置适配布局) ====================
 local betaButton = Instance.new("TextButton")
 betaButton.Name = "BetaButton"
 betaButton.Size = UDim2.new(1, -20, 0, 50)
-betaButton.Position = UDim2.new(0, 10, 0, 145)
-betaButton.Text = "BETA v2.0新版"
+betaButton.Position = UDim2.new(0, 10, 0, 90)
+betaButton.Text = "BETA v2.0 NEW！"
 betaButton.BackgroundColor3 = Color3.fromRGB(140, 70, 180)  -- 紫色
 betaButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 betaButton.Font = Enum.Font.GothamSemibold
@@ -239,79 +216,67 @@ local function setupButtonHover(button)
 end
 
 -- 应用悬停效果
-setupButtonHover(monsterButton)
-setupButtonHover(expertButton)
+setupButtonHover(comboButton)
 setupButtonHover(betaButton)
 setupButtonHover(minimizeBtn)
 setupButtonHover(closeBtn)
 
--- ==================== 按钮功能 ====================
--- 加载怪物脚本（可重复加载）
+-- ==================== 按钮功能 （合并双脚本加载） ====================
+-- 加载怪物脚本
 local function loadMonsterScript()
-    local originalText = monsterButton.Text
-
-    monsterButton.Text = "LOADING..."
-    monsterButton.BackgroundColor3 = Color3.fromRGB(255, 165, 0)  -- 橙色
-
     local success, errorMsg = pcall(function()
         loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBfun/roblox/refs/heads/main/KILLaura%20"))()
     end)
-
-    if success then
-        monsterButton.Text = "✓ LOADED"
-        monsterButton.BackgroundColor3 = Color3.fromRGB(60, 200, 100)  -- 绿色
-
-        if isMinimized then
-            statusLabel.Text = "MCB加载器"
-        end
-
-        task.wait(1.5)
-        monsterButton.Text = "MONSTER"
-        monsterButton.BackgroundColor3 = Color3.fromRGB(220, 60, 80)
-    else
-        monsterButton.Text = "✗ ERROR"
-        monsterButton.BackgroundColor3 = Color3.fromRGB(200, 80, 80)  -- 暗红色
-
+    if not success then
         warn("[MCB] 怪物脚本加载失败: " .. tostring(errorMsg))
-
-        task.wait(1.5)
-        monsterButton.Text = "MONSTER"
-        monsterButton.BackgroundColor3 = Color3.fromRGB(220, 60, 80)
+        return false
     end
+    return true
 end
 
--- 加载专家脚本（可重复加载）
+-- 加载专家脚本
 local function loadExpertScript()
-    local originalText = expertButton.Text
-
-    expertButton.Text = "LOADING..."
-    expertButton.BackgroundColor3 = Color3.fromRGB(255, 165, 0)  -- 橙色
-
     local success, errorMsg = pcall(function()
         loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBfun/roblox/refs/heads/main/Expert"))()
     end)
-
-    if success then
-        expertButton.Text = "✓ LOADED"
-        expertButton.BackgroundColor3 = Color3.fromRGB(60, 200, 100)  -- 绿色
-
-        if isMinimized then
-            statusLabel.Text = "MCB加载器"
-        end
-
-        task.wait(1.5)
-        expertButton.Text = "EXPERT"
-        expertButton.BackgroundColor3 = Color3.fromRGB(60, 140, 220)
-    else
-        expertButton.Text = "✗ ERROR"
-        expertButton.BackgroundColor3 = Color3.fromRGB(200, 80, 80)  -- 暗红色
-
+    if not success then
         warn("[MCB] 专家脚本加载失败: " .. tostring(errorMsg))
-
-        task.wait(1.5)
-        expertButton.Text = "EXPERT"
-        expertButton.BackgroundColor3 = Color3.fromRGB(60, 140, 220)
+        return false
     end
+    return true
+end
+
+-- 复合按钮：同时加载Monster + Expert
+local function loadComboScripts()
+    local originalText = comboButton.Text
+    local originalColor = comboButton.BackgroundColor3
+
+    comboButton.Text = "LOADING..."
+    comboButton.BackgroundColor3 = Color3.fromRGB(255, 165, 0)  -- 橙色
+
+    -- 并行加载两个脚本
+    local monsterOk = loadMonsterScript()
+    local expertOk = loadExpertScript()
+
+    -- 反馈加载结果
+    if monsterOk and expertOk then
+        comboButton.Text = "✓ ALL LOADED"
+        comboButton.BackgroundColor3 = Color3.fromRGB(60, 200, 100)
+    elseif monsterOk or expertOk then
+        comboButton.Text = "! PART LOADED"
+        comboButton.BackgroundColor3 = Color3.fromRGB(255, 180, 0)
+    else
+        comboButton.Text = "✗ ALL ERROR"
+        comboButton.BackgroundColor3 = Color3.fromRGB(200, 80, 80)
+    end
+
+    if isMinimized then
+        statusLabel.Text = "MCB加载器"
+    end
+
+    task.wait(1.5)
+    comboButton.Text = originalText
+    comboButton.BackgroundColor3 = originalColor
 end
 
 -- 加载Beta新版本脚本
@@ -349,12 +314,8 @@ local function loadBetaScript()
 end
 
 -- 按钮点击事件
-monsterButton.MouseButton1Click:Connect(function()
-    loadMonsterScript()
-end)
-
-expertButton.MouseButton1Click:Connect(function()
-    loadExpertScript()
+comboButton.MouseButton1Click:Connect(function()
+    loadComboScripts()
 end)
 
 betaButton.MouseButton1Click:Connect(function()
@@ -375,8 +336,7 @@ minimizeBtn.MouseButton1Click:Connect(function()
 
         tween.Completed:Wait()
 
-        monsterButton.Visible = false
-        expertButton.Visible = false
+        comboButton.Visible = false
         betaButton.Visible = false
         statusLabel.Visible = true
         minimizeBtn.Text = "+"
@@ -385,8 +345,7 @@ minimizeBtn.MouseButton1Click:Connect(function()
         statusLabel.Text = "MCB加载器"
 
     else
-        monsterButton.Visible = true
-        expertButton.Visible = true
+        comboButton.Visible = true
         betaButton.Visible = true
         statusLabel.Visible = false
         minimizeBtn.Text = "_"
@@ -417,14 +376,9 @@ end)
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
 
-    -- K键：加载怪物脚本
+    -- K键：加载复合脚本(Monster+Expert)
     if input.KeyCode == Enum.KeyCode.K then
-        loadMonsterScript()
-    end
-
-    -- E键：加载专家脚本
-    if input.KeyCode == Enum.KeyCode.E then
-        loadExpertScript()
+        loadComboScripts()
     end
 
     -- B键：加载Beta脚本
@@ -446,8 +400,7 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
 
             tween.Completed:Wait()
 
-            monsterButton.Visible = false
-            expertButton.Visible = false
+            comboButton.Visible = false
             betaButton.Visible = false
             statusLabel.Visible = true
             minimizeBtn.Text = "+"
@@ -456,8 +409,7 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
             statusLabel.Text = "MCB加载器"
 
         else
-            monsterButton.Visible = true
-            expertButton.Visible = true
+            comboButton.Visible = true
             betaButton.Visible = true
             statusLabel.Visible = false
             minimizeBtn.Text = "_"
