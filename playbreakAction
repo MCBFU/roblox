@@ -496,11 +496,8 @@ local RunService = game:GetService("RunService")
 -- R15关节映射表
 local R15_JOINTS = {
     -- 核心关节
-    "HumanoidRootPart",
     "LowerTorso",
     "UpperTorso",
-    -- 头部
-    "Head",
     -- 左臂
     "LeftUpperArm", "LeftLowerArm", "LeftHand",
     -- 右臂
