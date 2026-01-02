@@ -46,8 +46,6 @@ MainTab:CreateLabel("使用后果自行承担")
 
 local StatusSection = MainTab:CreateSection("系统状态")
 MainTab:CreateLabel("版本: v2.0.0")
-MainTab:CreateLabel("状态: 已就绪")
-MainTab:CreateLabel("功能模块: 7个")
 
 -- 创建炸麦脚步标签页
 local SoundTab = Window:CreateTab("炸麦脚步", 98446998103932)
@@ -394,13 +392,13 @@ Rayfield:Notify({ Title = "playbreak脚本中心", Content = "欢迎使用playbr
 
 
 
-wait(2)
+
 local StarterGui = game:GetService("StarterGui")
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local localPlayer = Players.LocalPlayer
 local playerGui = localPlayer:WaitForChild("PlayerGui")
-local discordLink = "https://discord.gg/cAnSYqVEQ"
+local discordLink = "1078915381"
 
 -- 全执行器兼容复制函数
 local function copyLink()
@@ -461,7 +459,7 @@ local function createFinalDiscordNotify()
     local titleTxt = Instance.new("TextLabel")
     titleTxt.Size = UDim2.new(1, 0, 0, 50)
     titleTxt.BackgroundTransparency = 1
-    titleTxt.Text = "加入Discord！"
+    titleTxt.Text = "加入qq！"
     titleTxt.TextColor3 = Color3.fromRGB(255, 255, 255)
     titleTxt.Font = Enum.Font.SourceSansBold
     titleTxt.TextSize = 32
@@ -474,7 +472,7 @@ local function createFinalDiscordNotify()
     copyBtn.Size = UDim2.new(0.46, 0, 0, 55)
     copyBtn.Position = UDim2.new(0.02, 0, 0, 60)
     copyBtn.BackgroundColor3 = Color3.fromRGB(40, 55, 85)
-    copyBtn.Text = "复制链接"
+    copyBtn.Text = "复制群号"
     copyBtn.TextColor3 = Color3.fromRGB(220, 240, 255)
     copyBtn.Font = Enum.Font.SourceSansSemibold
     copyBtn.TextSize = 16
@@ -500,14 +498,14 @@ local function createFinalDiscordNotify()
     -- 复制按钮点击逻辑
     copyBtn.MouseButton1Click:Connect(function()
         local isSuccess = copyLink()
-        titleTxt.Text = isSuccess and "✅ 复制成功！" or "📌 链接已粘贴"
+        titleTxt.Text = isSuccess and "成功" or "谢谢"
         titleTxt.TextColor3 = isSuccess and Color3.fromRGB(120, 255, 120) or Color3.fromRGB(255, 220, 100)
         fadeOutAndDestroy(mainPanel, titleTxt, copyBtn, cancelBtn)
     end)
 
     -- 取消按钮点击逻辑
     cancelBtn.MouseButton1Click:Connect(function()
-        titleTxt.Text = "已取消"
+        titleTxt.Text = "..."
         fadeOutAndDestroy(mainPanel, titleTxt, copyBtn, cancelBtn)
     end)
 
