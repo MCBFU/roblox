@@ -398,7 +398,7 @@ local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local localPlayer = Players.LocalPlayer
 local playerGui = localPlayer:WaitForChild("PlayerGui")
-local discordLink = "1078915381"
+local discordLink = ""
 
 -- 全执行器兼容复制函数
 local function copyLink()
@@ -459,7 +459,7 @@ local function createFinalDiscordNotify()
     local titleTxt = Instance.new("TextLabel")
     titleTxt.Size = UDim2.new(1, 0, 0, 50)
     titleTxt.BackgroundTransparency = 1
-    titleTxt.Text = "加入qq！"
+    titleTxt.Text = "目前不准备搭建群聊"
     titleTxt.TextColor3 = Color3.fromRGB(255, 255, 255)
     titleTxt.Font = Enum.Font.SourceSansBold
     titleTxt.TextSize = 32
@@ -472,7 +472,7 @@ local function createFinalDiscordNotify()
     copyBtn.Size = UDim2.new(0.46, 0, 0, 55)
     copyBtn.Position = UDim2.new(0.02, 0, 0, 60)
     copyBtn.BackgroundColor3 = Color3.fromRGB(40, 55, 85)
-    copyBtn.Text = "复制群号"
+    copyBtn.Text = "和异味"
     copyBtn.TextColor3 = Color3.fromRGB(220, 240, 255)
     copyBtn.Font = Enum.Font.SourceSansSemibold
     copyBtn.TextSize = 16
@@ -486,7 +486,7 @@ local function createFinalDiscordNotify()
     cancelBtn.Size = UDim2.new(0.46, 0, 0, 55)
     cancelBtn.Position = UDim2.new(0.52, 0, 0, 60)
     cancelBtn.BackgroundColor3 = Color3.fromRGB(70, 40, 45)
-    cancelBtn.Text = "谢谢，不了"
+    cancelBtn.Text = "发生了什么事？"
     cancelBtn.TextColor3 = Color3.fromRGB(255, 220, 220)
     cancelBtn.Font = Enum.Font.SourceSansSemibold
     cancelBtn.TextSize = 16
@@ -498,7 +498,7 @@ local function createFinalDiscordNotify()
     -- 复制按钮点击逻辑
     copyBtn.MouseButton1Click:Connect(function()
         local isSuccess = copyLink()
-        titleTxt.Text = isSuccess and "成功" or "谢谢"
+        titleTxt.Text = isSuccess and "qaq" or "awa"
         titleTxt.TextColor3 = isSuccess and Color3.fromRGB(120, 255, 120) or Color3.fromRGB(255, 220, 100)
         fadeOutAndDestroy(mainPanel, titleTxt, copyBtn, cancelBtn)
     end)
