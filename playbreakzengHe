@@ -486,7 +486,7 @@ local function createFinalDiscordNotify()
     cancelBtn.Size = UDim2.new(0.46, 0, 0, 55)
     cancelBtn.Position = UDim2.new(0.52, 0, 0, 60)
     cancelBtn.BackgroundColor3 = Color3.fromRGB(70, 40, 45)
-    cancelBtn.Text = "发生了什么事？"
+    cancelBtn.Text = "？"
     cancelBtn.TextColor3 = Color3.fromRGB(255, 220, 220)
     cancelBtn.Font = Enum.Font.SourceSansSemibold
     cancelBtn.TextSize = 16
