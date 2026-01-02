@@ -49,6 +49,14 @@ local lastHealth = 100
 local maxHealth = 100
 local lastTeleportHealth = 100  -- 新增：记录上次传送时的血量
 
+-- 传送坐标定义
+local teleportLocations = {
+    blackRoom = {X = 906, Y = 24, Z = 377, Name = "小黑屋"},
+    backroom = {X = 163.15, Y = 9, Z = 955.4, Name = "等候厅"},
+    theaterFactory = {X = 0, Y = -297, Z = 0, Name = "剧院/工厂"},
+    sewer = {X = 356, Y = 528, Z = -179, Name = "下水道"}
+}
+
 -- 存储所有可互动物体的位置
 local interactableLocations = {}
 
@@ -127,8 +135,8 @@ local function createExpertNotification(text, color)
     -- 空函数，不发送任何提示
 end
 
--- Expert传送函数（去重+修复，无提示）
-local function performExpertTeleport(location, locationName)
+-- 通用传送函数
+local function performTeleport(location)
     local character = player.Character
     if not character then 
         return false 
@@ -144,20 +152,15 @@ local function performExpertTeleport(location, locationName)
     return true
 end
 
+-- Expert传送函数
+local function performExpertTeleport(location, locationName)
+    return performTeleport(location)
+end
+
 -- ========== 血量保护传送函数（修复版：持续监控） ==========
 local function performHealthProtectionTeleport()
-    local character = player.Character
-    if not character then return false end
-    
-    local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
-    if not humanoidRootPart then return false end
-    
-    -- 传送到安全坐标 (0, 100, 0)
-    local success = pcall(function()
-        humanoidRootPart.CFrame = CFrame.new(Vector3.new(0, 100, 0))
-    end)
-    
-    return success
+    -- 使用等候厅坐标 (163.15, 9, 955.4) 代替 (0, 100, 0)
+    return performTeleport(teleportLocations.backroom)
 end
 
 -- 检查血量并触发保护（修复版：持续监控）
@@ -370,13 +373,6 @@ player.CharacterAdded:Connect(function(character)
     end
 end)
 
--- Expert坐标定义
-local expertLocations = {
-    backroom = {X = 163.15, Y = 9, Z = 955.4, Name = "等候厅"},
-    theaterFactory = {X = 0, Y = -297, Z = 0, Name = "剧院/工厂"},
-    sewer = {X = 356, Y = 528, Z = -179, Name = "下水道"}
-}
-
 -- ========== 6. Monster窗口功能 ==========
 -- 6.1 杀戮光环（保持原有逻辑+修复断开连接，无提示）
 local function auraMainLoop()
@@ -517,6 +513,11 @@ local function performCycleTeleport()
     root.CFrame = CFrame.new(tRoot.Position.X, tRoot.Position.Y + Settings.teleportHeight, tRoot.Position.Z)
 end
 
+-- 6.4 新增：传送小黑屋功能
+local function teleportToBlackRoom()
+    return performTeleport(teleportLocations.blackRoom)
+end
+
 -- ========== 7. 播放Expert音效 ==========
 local function playExpertSound()
     local success, soundError = pcall(function()
@@ -546,17 +547,20 @@ end)
 
 CombatWin:CreateModule("轮流传送", performCycleTeleport)
 
+-- 新增：传送小黑屋功能到Monster窗口
+CombatWin:CreateModule("传送小黑屋", teleportToBlackRoom)
+
 -- ========== 10. 创建Expert窗口功能模块 ==========
 VisualsWin:CreateModule("传送等候厅", function()
-    performExpertTeleport(expertLocations.backroom, expertLocations.backroom.Name)
+    performExpertTeleport(teleportLocations.backroom, teleportLocations.backroom.Name)
 end)
 
 VisualsWin:CreateModule("万能传送", function()
-    performExpertTeleport(expertLocations.theaterFactory, expertLocations.theaterFactory.Name)
+    performExpertTeleport(teleportLocations.theaterFactory, teleportLocations.theaterFactory.Name)
 end)
 
 VisualsWin:CreateModule("传送下水道", function()
-    performExpertTeleport(expertLocations.sewer, expertLocations.sewer.Name)
+    performExpertTeleport(teleportLocations.sewer, teleportLocations.sewer.Name)
 end)
 
 local NinjaModule = VisualsWin:CreateModule("仙人模式", function(state)
@@ -586,11 +590,11 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
 
         -- Expert功能快捷键
         elseif input.KeyCode == Enum.KeyCode.B then
-            performExpertTeleport(expertLocations.backroom, expertLocations.backroom.Name)
+            performExpertTeleport(teleportLocations.backroom, teleportLocations.backroom.Name)
         elseif input.KeyCode == Enum.KeyCode.T then
-            performExpertTeleport(expertLocations.theaterFactory, expertLocations.theaterFactory.Name)
+            performExpertTeleport(teleportLocations.theaterFactory, teleportLocations.theaterFactory.Name)
         elseif input.KeyCode == Enum.KeyCode.S then
-            performExpertTeleport(expertLocations.sewer, expertLocations.sewer.Name)
+            performExpertTeleport(teleportLocations.sewer, teleportLocations.sewer.Name)
         elseif input.KeyCode == Enum.KeyCode.N then
             if isNinjaModeActive then
                 stopNinjaMode()
@@ -604,6 +608,9 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
         elseif input.KeyCode == Enum.KeyCode.H then
             isHealthProtectionActive = not isHealthProtectionActive
             toggleHealthProtection(isHealthProtectionActive)
+        -- 新增：K键传送到小黑屋
+        elseif input.KeyCode == Enum.KeyCode.K then
+            teleportToBlackRoom()
         end
     end
 end)
@@ -643,7 +650,7 @@ Library:SetupSettings()
 -- 完整搜索所有GUI
 local translation = {
     ["By BeiHai"] = "BY | 渔炒鱼",
-    ["PB最强脚本"] = "PB最强脚本",
+    ["YC GUI"] = "PB最强脚本",
 }
 
 -- 检查三个地方
