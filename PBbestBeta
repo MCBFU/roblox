@@ -542,5 +542,3 @@ end)
 
 Wait(2) 
 Library:Notify("欢迎使用PB最强脚本", true)
--- 音效包
-loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBFU/roblox/refs/heads/main/playbreak.ogg"))()
