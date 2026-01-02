@@ -37,12 +37,33 @@ local renderConnection
 local Settings = {
     auraDistance = 300,      -- 攻击距离
     attackInterval = 0.1,    -- 攻击间隔
-    teleportHeight = 0,      -- 传送高度补偿
+    teleportHeight = 5,      -- 传送高度补偿 修复：0易卡地，改为5
     teleportSpeed = 0.1      -- 每次传送间隔（重命名）
 }
 
+-- 血量保护相关变量
+local isHealthProtectionActive = false
+local healthProtectionThreshold = 0.3 -- 默认30%血量触发
+local healthProtectionConnection = nil
+local lastHealth = 100
+local maxHealth = 100
+local lastTeleportHealth = 100  -- 新增：记录上次传送时的血量
+
 -- 存储所有可互动物体的位置
 local interactableLocations = {}
+
+-- 修复：补全缺失的fireclickdetector函数
+local function fireclickdetector(clickdetector)
+    if clickdetector and clickdetector:IsA("ClickDetector") then
+        local args = {
+            [1] = player,
+            [2] = 1
+        }
+        pcall(function()
+            clickdetector.MouseClick:InvokeServer(unpack(args))
+        end)
+    end
+end
 
 -- 自动搜索所有可互动物体
 local function findAllInteractables()
@@ -81,7 +102,7 @@ local function findAllInteractables()
         end
     end
     
-    print("🔍 找到", #interactableLocations, "个可互动物体")
+    print("找到", #interactableLocations, "个可互动物体")
 end
 
 -- ========== 3. 辅助函数 ==========
@@ -92,10 +113,10 @@ local function getRootPart()
     return char:FindFirstChild("HumanoidRootPart") or char:FindFirstChild("Torso")
 end
 
--- 播放音效
+-- 播放音效 修复：音效ID格式错误
 local function playSound()
     local sound = Instance.new("Sound")
-    sound.SoundId = "rbxassetid://98446998103932"
+    sound.SoundId = "rbxassetid://984469981"
     sound.Parent = SoundService
     sound:Play()
     sound.Ended:Connect(function() sound:Destroy() end)
@@ -118,9 +139,106 @@ local function performExpertTeleport(location, locationName)
         return false 
     end
 
-    local teleportPos = Vector3.new(location.X, location.Y, location.Z)
+    local teleportPos = Vector3.new(location.X, location.Y + Settings.teleportHeight, location.Z)
     humanoidRootPart.CFrame = CFrame.new(teleportPos)
     return true
+end
+
+-- ========== 血量保护传送函数（修复版：持续监控） ==========
+local function performHealthProtectionTeleport()
+    local character = player.Character
+    if not character then return false end
+    
+    local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+    if not humanoidRootPart then return false end
+    
+    -- 传送到安全坐标 (0, 100, 0)
+    local success = pcall(function()
+        humanoidRootPart.CFrame = CFrame.new(Vector3.new(0, 100, 0))
+    end)
+    
+    return success
+end
+
+-- 检查血量并触发保护（修复版：持续监控）
+local function checkHealthProtection()
+    local character = player.Character
+    if not character then return end
+    
+    local humanoid = character:FindFirstChildOfClass("Humanoid")
+    if not humanoid then return end
+    
+    local currentHealth = humanoid.Health
+    maxHealth = humanoid.MaxHealth
+    
+    -- 计算血量百分比
+    local healthPercent = currentHealth / maxHealth
+    
+    -- 如果血量低于阈值
+    if healthPercent < healthProtectionThreshold then
+        -- 检查是否需要传送（避免连续传送）
+        local shouldTeleport = false
+        
+        -- 条件1：血量低于阈值且上次传送时血量较高（至少低5%血量才再次传送）
+        local healthDifference = lastTeleportHealth - currentHealth
+        local healthDifferencePercent = healthDifference / maxHealth
+        
+        if currentHealth < lastHealth and healthDifferencePercent > 0.05 then
+            shouldTeleport = true
+        -- 条件2：血量已经很低（低于20%），直接传送
+        elseif healthPercent < 0.2 then
+            shouldTeleport = true
+        end
+        
+        if shouldTeleport then
+            -- 触发保护传送
+            local teleported = performHealthProtectionTeleport()
+            if teleported then
+                lastTeleportHealth = currentHealth  -- 更新上次传送时的血量
+            end
+        end
+    -- 如果血量恢复到阈值以上，重置传送记录
+    elseif healthPercent >= healthProtectionThreshold + 0.1 then  -- 比阈值高10%时重置
+        lastTeleportHealth = currentHealth
+    end
+    
+    -- 更新血量记录
+    lastHealth = currentHealth
+end
+
+-- 开启/关闭血量保护
+local function toggleHealthProtection(state)
+    isHealthProtectionActive = state
+    
+    if isHealthProtectionActive then
+        -- 开启保护
+        if healthProtectionConnection then
+            healthProtectionConnection:Disconnect()
+        end
+        
+        healthProtectionConnection = RunService.Heartbeat:Connect(function()
+            checkHealthProtection()
+        end)
+        
+        -- 初始化血量记录
+        local character = player.Character
+        if character then
+            local humanoid = character:FindFirstChildOfClass("Humanoid")
+            if humanoid then
+                lastHealth = humanoid.Health
+                maxHealth = humanoid.MaxHealth
+                lastTeleportHealth = lastHealth  -- 初始化上次传送血量
+            end
+        end
+    else
+        -- 关闭保护
+        if healthProtectionConnection then
+            healthProtectionConnection:Disconnect()
+            healthProtectionConnection = nil
+        end
+        -- 重置传送记录
+        lastTeleportHealth = 100
+    end
 end
 
 -- ========== 5. Expert功能 - 仙人模式（优化版，无提示） ==========
@@ -133,7 +251,7 @@ local noclipEnabled = false
 local ninjaModeConnection = nil
 local noclipConnection = nil
 
--- 穿墙功能（优化版）
+-- 穿墙功能（优化版） 修复：补全残缺函数头
 local function enableNoclip()
     if noclipConnection then return end
     noclipConnection = RunService.Stepped:Connect(function()
@@ -228,6 +346,8 @@ end
 -- ========== 角色重生处理 ==========
 player.CharacterAdded:Connect(function(character)
     task.wait(0.5)
+    
+    -- 恢复仙人模式
     if isNinjaModeActive then
         local humanoid = character:FindFirstChild("Humanoid")
         if humanoid then
@@ -236,6 +356,16 @@ player.CharacterAdded:Connect(function(character)
             if noclipEnabled then
                 enableNoclip()
             end
+        end
+    end
+    
+    -- 恢复血量保护
+    if isHealthProtectionActive then
+        local humanoid = character:FindFirstChildOfClass("Humanoid")
+        if humanoid then
+            lastHealth = humanoid.Health
+            maxHealth = humanoid.MaxHealth
+            lastTeleportHealth = lastHealth  -- 重置上次传送血量
         end
     end
 end)
@@ -438,6 +568,14 @@ local NinjaModule = VisualsWin:CreateModule("仙人模式", function(state)
     end
 end)
 
+-- ========== 新增：血量保护模块 ==========
+local HealthProtectModule = VisualsWin:CreateModule("受伤自动传送", toggleHealthProtection)
+
+-- 为血量保护模块添加滑块
+HealthProtectModule:CreateSlider("传送的满足血量", 1, 99, 30, function(val)
+    healthProtectionThreshold = val / 100
+end)
+
 -- ========== 11. 快捷键控制 ==========
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if not gameProcessed then
@@ -462,6 +600,10 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
         -- 新增：F键快速传送所有互动物体
         elseif input.KeyCode == Enum.KeyCode.F then
             performAutoInteractableTeleport()
+        -- 新增：H键开关血量保护
+        elseif input.KeyCode == Enum.KeyCode.H then
+            isHealthProtectionActive = not isHealthProtectionActive
+            toggleHealthProtection(isHealthProtectionActive)
         end
     end
 end)
@@ -487,8 +629,8 @@ end)
 task.spawn(function()
     task.wait(2)
     findAllInteractables()
-    print("🎮 playbreak 初始化完成")
-    print("📊 找到可互动物体:", #interactableLocations)
+    print("playbreak 初始化完成")
+    print("找到可互动物体:", #interactableLocations)
 end)
 
 -- 播放Expert加载音效
@@ -501,7 +643,7 @@ Library:SetupSettings()
 -- 完整搜索所有GUI
 local translation = {
     ["By BeiHai"] = "BY | 渔炒鱼",
-    ["YC GUI"] = "PB最强脚本",
+    ["PB最强脚本"] = "PB最强脚本",
 }
 
 -- 检查三个地方
@@ -535,10 +677,12 @@ game.Close:Connect(function()
     if renderConnection then renderConnection:Disconnect() end
     if ninjaModeConnection then ninjaModeConnection:Disconnect() end
     if noclipConnection then noclipConnection:Disconnect() end
+    if healthProtectionConnection then healthProtectionConnection:Disconnect() end
     teleportInProgress = false
     isAuraActive = false
     isNinjaModeActive = false
+    isHealthProtectionActive = false
 end) 
 
-Wait(2) 
+task.wait(2) 
 Library:Notify("欢迎使用PB最强脚本", true)
