@@ -76,7 +76,7 @@ end
 -- 自动搜索所有可互动物体
 local function findAllInteractables()
     table.clear(interactableLocations)
-    
+
     -- 搜索 ClickDetector
     for _, obj in pairs(Workspace:GetDescendants()) do
         if obj:IsA("ClickDetector") then
@@ -86,7 +86,7 @@ local function findAllInteractables()
             end
         end
     end
-    
+
     -- 搜索 ProximityPrompt
     for _, obj in pairs(Workspace:GetDescendants()) do
         if obj:IsA("ProximityPrompt") then
@@ -96,7 +96,7 @@ local function findAllInteractables()
             end
         end
     end
-    
+
     -- 搜索可互动的按钮
     for _, obj in pairs(Workspace:GetDescendants()) do
         if obj:IsA("TextButton") or obj:IsA("ImageButton") then
@@ -109,7 +109,7 @@ local function findAllInteractables()
             end
         end
     end
-    
+
     print("找到", #interactableLocations, "个可互动物体")
 end
 
@@ -167,32 +167,36 @@ end
 local function checkHealthProtection()
     local character = player.Character
     if not character then return end
-    
+
     local humanoid = character:FindFirstChildOfClass("Humanoid")
     if not humanoid then return end
-    
+
     local currentHealth = humanoid.Health
     maxHealth = humanoid.MaxHealth
-    
+
     -- 计算血量百分比
     local healthPercent = currentHealth / maxHealth
-    
+
     -- 如果血量低于阈值
     if healthPercent < healthProtectionThreshold then
         -- 检查是否需要传送（避免连续传送）
         local shouldTeleport = false
-        
+
         -- 条件1：血量低于阈值且上次传送时血量较高（至少低5%血量才再次传送）
         local healthDifference = lastTeleportHealth - currentHealth
         local healthDifferencePercent = healthDifference / maxHealth
-        
+
         if currentHealth < lastHealth and healthDifferencePercent > 0.05 then
             shouldTeleport = true
+            Library:Notify("已传送", true)
+            Library:Notify("不客气", true)
         -- 条件2：血量已经很低（低于20%），直接传送
         elseif healthPercent < 0.2 then
             shouldTeleport = true
+            Library:Notify("已传送！", true)
+            Library:Notify("感谢使用", true)
         end
-        
+
         if shouldTeleport then
             -- 触发保护传送
             local teleported = performHealthProtectionTeleport()
@@ -204,7 +208,7 @@ local function checkHealthProtection()
     elseif healthPercent >= healthProtectionThreshold + 0.1 then  -- 比阈值高10%时重置
         lastTeleportHealth = currentHealth
     end
-    
+
     -- 更新血量记录
     lastHealth = currentHealth
 end
@@ -212,17 +216,17 @@ end
 -- 开启/关闭血量保护
 local function toggleHealthProtection(state)
     isHealthProtectionActive = state
-    
+
     if isHealthProtectionActive then
         -- 开启保护
         if healthProtectionConnection then
             healthProtectionConnection:Disconnect()
         end
-        
+
         healthProtectionConnection = RunService.Heartbeat:Connect(function()
             checkHealthProtection()
         end)
-        
+
         -- 初始化血量记录
         local character = player.Character
         if character then
@@ -349,7 +353,7 @@ end
 -- ========== 角色重生处理 ==========
 player.CharacterAdded:Connect(function(character)
     task.wait(0.5)
-    
+
     -- 恢复仙人模式
     if isNinjaModeActive then
         local humanoid = character:FindFirstChild("Humanoid")
@@ -361,7 +365,7 @@ player.CharacterAdded:Connect(function(character)
             end
         end
     end
-    
+
     -- 恢复血量保护
     if isHealthProtectionActive then
         local humanoid = character:FindFirstChildOfClass("Humanoid")
@@ -432,10 +436,10 @@ local function performAutoInteractableTeleport()
     end
 
     local originalCFrame = root.CFrame
-    
+
     -- 先搜索所有可互动物体
     findAllInteractables()
-    
+
     if #interactableLocations == 0 then
         teleportInProgress = false
         return
@@ -445,10 +449,10 @@ local function performAutoInteractableTeleport()
         for i, pos in ipairs(interactableLocations) do
             local r = getRootPart()
             if not r or not teleportInProgress then break end
-            
+
             -- 传送并互动
             r.CFrame = CFrame.new(pos.X, pos.Y + Settings.teleportHeight, pos.Z)
-            
+
             -- 尝试互动
             -- 查找该位置的互动物体
             for _, obj in pairs(Workspace:GetDescendants()) do
@@ -457,7 +461,7 @@ local function performAutoInteractableTeleport()
                     if clicker then
                         fireclickdetector(clicker)
                     end
-                    
+
                     local prompt = obj:FindFirstChildOfClass("ProximityPrompt")
                     if prompt then
                         pcall(function()
@@ -469,14 +473,14 @@ local function performAutoInteractableTeleport()
                     end
                 end
             end
-            
+
             task.wait(Settings.teleportSpeed)
         end
-        
+
         -- 传送回原位置
         local r = getRootPart()
         if r then r.CFrame = originalCFrame end
-        
+
         teleportInProgress = false
     end)
 end
