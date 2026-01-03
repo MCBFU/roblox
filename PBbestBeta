@@ -37,7 +37,7 @@ local renderConnection
 local Settings = {
     auraDistance = 300,      -- 攻击距离
     attackInterval = 0.1,    -- 攻击间隔
-    teleportHeight = 5,      -- 传送高度补偿 修复：0易卡地，改为5
+    teleportHeight = 0.5,      -- 传送高度补偿 修复：0易卡地，改为5
     teleportSpeed = 0.1      -- 每次传送间隔（重命名）
 }
 
