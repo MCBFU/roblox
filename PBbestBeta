@@ -697,3 +697,7 @@ end)
 
 task.wait(2) 
 Library:Notify("欢迎使用PB最强脚本", true)
+Wait(2)
+Library:Notify("滥用后果严重", true)
+Library:Notify("本人概不负责", true)
+Library:Notify("只提供使用,不提供保障", true)
