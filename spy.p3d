@@ -1,5 +1,5 @@
 -- 左侧大尺寸收缩/展开按钮 + 右侧贴边窄版动作库浏览器 + 一键关闭所有动作
--- 核心优化：弹窗靠最右+收窄宽度，完全不遮挡人物，操作无影响
+-- 核心优化：弹窗靠最右+进一步收窄宽度高度，完全不遮挡人物，操作无影响
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
@@ -22,16 +22,16 @@ toggleBtn.BorderSizePixel = 0
 toggleBtn.ZIndex = 9999
 toggleBtn.Parent = controlGui
 
--- ===================== 原动作库浏览器（核心修改：贴最右+收窄宽度，不挡人物） =====================
+-- ===================== 原动作库浏览器（核心修改：贴最右+大幅收窄宽高，不挡人） =====================
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "AnimationSnifferUI"
 screenGui.ResetOnSpawn = false
 screenGui.Parent = playerGui
 
--- 主窗口 核心修改：1.右贴边 2.收窄宽度 3.保留高度，不影响查看动作
+-- 主窗口 核心修改：1.右贴边 2.宽度从420→320 高度从600→450 大幅缩小
 local mainFrame = Instance.new("Frame")
-mainFrame.Size = UDim2.new(0, 420, 0, 600) -- 宽度从500→420，收窄不挡人
-mainFrame.Position = UDim2.new(1, -430, 0.5, -300) -- 1,-430 贴最右侧，留10像素边距
+mainFrame.Size = UDim2.new(0, 320, 0, 450)
+mainFrame.Position = UDim2.new(1, -330, 0.5, -225) -- 匹配新宽度，留10像素边距
 mainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
 mainFrame.BorderSizePixel = 0
 mainFrame.Parent = screenGui
@@ -275,7 +275,8 @@ local function updateDisplay(actionsToShow)
 
     for i, actionData in ipairs(actionsToShow or allActions) do
         local entry = Instance.new("Frame")
-        entry.Size = UDim2.new(1, 0, 0, 80)
+        -- 适配窄窗口：条目高度从80→60
+        entry.Size = UDim2.new(1, 0, 0, 60)
         entry.BackgroundColor3 = i % 2 == 0 and Color3.fromRGB(35, 35, 35) or Color3.fromRGB(40, 40, 40)
         entry.BorderSizePixel = 1
         entry.BorderColor3 = Color3.fromRGB(60, 60, 60)
@@ -283,8 +284,8 @@ local function updateDisplay(actionsToShow)
 
         -- 动作图标
         local iconFrame = Instance.new("Frame")
-        iconFrame.Size = UDim2.new(0, 50, 0, 50)
-        iconFrame.Position = UDim2.new(0, 5, 0.5, -25)
+        iconFrame.Size = UDim2.new(0, 40, 0, 40)
+        iconFrame.Position = UDim2.new(0, 5, 0.5, -20)
         iconFrame.BackgroundColor3 = Color3.fromRGB(30, 60, 120)
         iconFrame.Parent = entry
 
@@ -294,25 +295,25 @@ local function updateDisplay(actionsToShow)
         iconLabel.BackgroundTransparency = 1
         iconLabel.TextColor3 = Color3.new(1, 1, 1)
         iconLabel.Font = Enum.Font.GothamBold
-        iconLabel.TextSize = 20
+        iconLabel.TextSize = 16
         iconLabel.Parent = iconFrame
 
-        -- 信息区域
+        -- 信息区域：适配窄窗口，缩减右侧边距
         local infoFrame = Instance.new("Frame")
-        infoFrame.Size = UDim2.new(1, -160, 1, -10)
-        infoFrame.Position = UDim2.new(0, 60, 0, 5)
+        infoFrame.Size = UDim2.new(1, -140, 1, -10)
+        infoFrame.Position = UDim2.new(0, 50, 0, 5)
         infoFrame.BackgroundTransparency = 1
         infoFrame.Parent = entry
 
         -- 动作名称
         local nameLabel = Instance.new("TextLabel")
         nameLabel.Text = actionData.name
-        nameLabel.Size = UDim2.new(1, 0, 0, 20)
+        nameLabel.Size = UDim2.new(1, 0, 0, 16)
         nameLabel.Position = UDim2.new(0, 0, 0, 0)
         nameLabel.BackgroundTransparency = 1
         nameLabel.TextColor3 = Color3.fromRGB(0, 200, 255)
         nameLabel.Font = Enum.Font.GothamBold
-        nameLabel.TextSize = 14
+        nameLabel.TextSize = 12
         nameLabel.TextXAlignment = Enum.TextXAlignment.Left
         nameLabel.TextTruncate = Enum.TextTruncate.AtEnd
         nameLabel.Parent = infoFrame
@@ -320,43 +321,43 @@ local function updateDisplay(actionsToShow)
         -- ID显示
         local idLabel = Instance.new("TextLabel")
         idLabel.Text = "ID: " .. actionData.id
-        idLabel.Size = UDim2.new(1, 0, 0, 18)
-        idLabel.Position = UDim2.new(0, 0, 0, 22)
+        idLabel.Size = UDim2.new(1, 0, 0, 14)
+        idLabel.Position = UDim2.new(0, 0, 0, 18)
         idLabel.BackgroundTransparency = 1
         idLabel.TextColor3 = Color3.fromRGB(150, 255, 150)
         idLabel.Font = Enum.Font.Gotham
-        idLabel.TextSize = 12
+        idLabel.TextSize = 10
         idLabel.TextXAlignment = Enum.TextXAlignment.Left
         idLabel.Parent = infoFrame
 
-        -- 路径
+        -- 路径：适配窄窗口，缩短显示长度
         local pathLabel = Instance.new("TextLabel")
-        pathLabel.Text = "位置: " .. (actionData.path:sub(1, 50) .. (actionData.path:len() > 50 and "..." or ""))
-        pathLabel.Size = UDim2.new(1, 0, 0, 15)
-        pathLabel.Position = UDim2.new(0, 0, 0, 42)
+        pathLabel.Text = "位置: " .. (actionData.path:sub(1, 35) .. (actionData.path:len() > 35 and "..." or ""))
+        pathLabel.Size = UDim2.new(1, 0, 0, 12)
+        pathLabel.Position = UDim2.new(0, 0, 0, 34)
         pathLabel.BackgroundTransparency = 1
         pathLabel.TextColor3 = Color3.fromRGB(255, 200, 0)
         pathLabel.Font = Enum.Font.Gotham
-        pathLabel.TextSize = 10
+        pathLabel.TextSize = 8
         pathLabel.TextXAlignment = Enum.TextXAlignment.Left
         pathLabel.Parent = infoFrame
 
-        -- 按钮区域
+        -- 按钮区域：适配窄窗口，宽度从150→130
         local buttonFrame = Instance.new("Frame")
-        buttonFrame.Size = UDim2.new(0, 150, 1, -10)
-        buttonFrame.Position = UDim2.new(1, -155, 0, 5)
+        buttonFrame.Size = UDim2.new(0, 130, 1, -10)
+        buttonFrame.Position = UDim2.new(1, -135, 0, 5)
         buttonFrame.BackgroundTransparency = 1
         buttonFrame.Parent = entry
 
         -- 复制ID按钮
         local copyBtn = Instance.new("TextButton")
         copyBtn.Text = "📋 复制ID"
-        copyBtn.Size = UDim2.new(0, 70, 0, 25)
+        copyBtn.Size = UDim2.new(0, 60, 0, 22)
         copyBtn.Position = UDim2.new(0, 0, 0, 0)
         copyBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
         copyBtn.TextColor3 = Color3.new(1, 1, 1)
         copyBtn.Font = Enum.Font.Gotham
-        copyBtn.TextSize = 11
+        copyBtn.TextSize = 10
         copyBtn.Parent = buttonFrame
 
         copyBtn.MouseButton1Click:Connect(function()
@@ -371,12 +372,12 @@ local function updateDisplay(actionsToShow)
         -- 复制完整ID按钮
         local copyFullBtn = Instance.new("TextButton")
         copyFullBtn.Text = "📋 完整ID"
-        copyFullBtn.Size = UDim2.new(0, 70, 0, 25)
-        copyFullBtn.Position = UDim2.new(0, 75, 0, 0)
+        copyFullBtn.Size = UDim2.new(0, 60, 0, 22)
+        copyFullBtn.Position = UDim2.new(0, 65, 0, 0)
         copyFullBtn.BackgroundColor3 = Color3.fromRGB(80, 80, 100)
         copyFullBtn.TextColor3 = Color3.new(1, 1, 1)
         copyFullBtn.Font = Enum.Font.Gotham
-        copyFullBtn.TextSize = 11
+        copyFullBtn.TextSize = 10
         copyFullBtn.Parent = buttonFrame
 
         copyFullBtn.MouseButton1Click:Connect(function()
@@ -391,12 +392,12 @@ local function updateDisplay(actionsToShow)
         -- 使用按钮（尝试播放）
         local useBtn = Instance.new("TextButton")
         useBtn.Text = "▶️ 使用"
-        useBtn.Size = UDim2.new(1, 0, 0, 25)
-        useBtn.Position = UDim2.new(0, 0, 0, 30)
+        useBtn.Size = UDim2.new(1, 0, 0, 22)
+        useBtn.Position = UDim2.new(0, 0, 0, 25)
         useBtn.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
         useBtn.TextColor3 = Color3.new(1, 1, 1)
         useBtn.Font = Enum.Font.Gotham
-        useBtn.TextSize = 11
+        useBtn.TextSize = 10
         useBtn.Parent = buttonFrame
 
         useBtn.MouseButton1Click:Connect(function()
@@ -500,6 +501,6 @@ task.spawn(function()
     allActions = findAllActions()
     updateDisplay()
     statusLabel.Text = string.format("找到 %d 个动作，可以复制ID或点击'▶️ 使用'播放", #allActions)
-    print("🎬 动作库浏览器已加载（右侧贴边版，不挡人物）")
+    print("🎬 动作库浏览器已加载（右侧贴边缩小版，不挡人物）")
     print("📋 功能齐全：收缩展开/一键关动作/搜索/复制ID/播放动作")
 end)
