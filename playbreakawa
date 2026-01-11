@@ -1,8 +1,18 @@
--- ================================
--- 紧凑版高级验证系统 v3.4 - *
--- 作者：渔妙鱼 | B站：作者B站？
--- 功能：移除白名单，任何玩家可启动，黑名单显示屏蔽界面
--- ================================
+local TARGET_PLACE_ID = 15078849939 -- 替换为你的目标服务器ID
+
+-- 核心判断：如果不在目标服务器，就提示并停止脚本
+if game.PlaceId ~= TARGET_PLACE_ID then
+    game:GetService("StarterGui"):SetCore("SendNotification", {
+        Title = "脚本无法使用",
+        Text = "你现在不处于playbreak服务器中，无法使用此脚本。",
+        Icon = "rbxassetid://18143239786",
+        Duration = 5 -- 提示显示5秒
+    })
+    return -- 关键！这会立即停止整个脚本的后续执行
+end
+
+
+
 
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
