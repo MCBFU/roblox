@@ -1,3 +1,19 @@
+local TARGET_PLACE_ID = 15078849939 -- 替换为你的目标服务器ID
+
+-- 核心判断：如果不在目标服务器，就提示并停止脚本
+if game.PlaceId ~= TARGET_PLACE_ID then
+    game:GetService("StarterGui"):SetCore("SendNotification", {
+        Title = "脚本无法使用",
+        Text = "你现在不处于playbreak服务器中，无法使用此脚本。",
+        Icon = "rbxassetid://18143239786",
+        Duration = 5 -- 提示显示5秒
+    })
+    return -- 关键！这会立即停止整个脚本的后续执行
+end
+
+-- 如果游戏在目标服务器，下面是你原本的脚本功能...
+print("已在正确服务器，脚本启动！")
+-- 你的杀戮光环、仙人模式等所有功能代码写在这里...
 -- 注意：请勿添加右下角提示！用户已经明确要求除了初始欢迎提示外，不要添加任何其他提示。
 
 -- 强制优先加载playbreak（必写在最顶部）
