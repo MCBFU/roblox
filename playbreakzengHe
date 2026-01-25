@@ -38,7 +38,7 @@ end
 WindUI:Popup({
     Title = "公告",
     Icon = "info",
-    Content = "欢迎使用playbreak脚本的合集",
+    Content = "欢迎使用playbreak脚本的合集\nwind ui界面更新",
     Buttons = {
         {
             Title = "关闭",
@@ -49,7 +49,7 @@ WindUI:Popup({
 })
 -- WindUI基础配置
 WindUI.TransparencyValue = 0.3
-WindUI:SetTheme("Dark")
+WindUI:SetTheme("black")
 
 -- 创建主窗口
 local Window = WindUI:CreateWindow({
