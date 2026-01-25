@@ -55,7 +55,7 @@ local Window = WindUI:CreateWindow({
 })
 
 -- 1. 主页Tab
-local HomeTab = Window:Tab({ Title = "主页", Icon = "home" })
+local HomeTab = Window:Tab({ Title = "主页", Icon = "info" })
 HomeTab:Section({ Title = "脚本简介", Icon = "info" })
 HomeTab:Button({ Title = "playbreak脚本中心", Callback = function() end })
 HomeTab:Button({ Title = "此脚本为缝合功能集合", Callback = function() end })
@@ -74,7 +74,7 @@ HomeTab:Section({ Title = "系统状态", Icon = "server" })
 HomeTab:Button({ Title = "版本: v4.3.0", Callback = function() end })
 
 -- 2. 动作Tab
-local ActionTab = Window:Tab({ Title = "动作", Icon = "dancing" })
+local ActionTab = Window:Tab({ Title = "动作", Icon = "music" })
 ActionTab:Section({ Title = "动作功能集合", Icon = "music" })
 ActionTab:Button({
     Title = "R15动作脚本（汉化）",
@@ -188,7 +188,7 @@ CameraTab:Button({ Title = "启用强制第三人称", Callback = function() pca
 CameraTab:Button({ Title = "禁用第三人称", Callback = function() pcall(disableThirdPerson) end })
 
 -- 5. 其他Tab
-local OtherTab = Window:Tab({ Title = "其他", Icon = "more-horizontal" })
+local OtherTab = Window:Tab({ Title = "其他", Icon = "user" })
 OtherTab:Section({ Title = "辅助功能", Icon = "wrench" })
 OtherTab:Button({
     Title = "最强脚本",
@@ -241,7 +241,7 @@ OtherTab:Button({
 
 -- 6. 设置Tab
 local SettingsTab = Window:Tab({ Title = "设置", Icon = "settings" })
-SettingsTab:Section({ Title = "界面控制", Icon = "sliders" })
+SettingsTab:Section({ Title = "界面控制", Icon = "wrench" })
 SettingsTab:Button({
     Title = "关闭界面",
     Icon = "x-circle",
@@ -261,7 +261,7 @@ SettingsTab:Button({
         pcall(function() loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBfun/roblox/refs/heads/main/playbreak"))() end)
     end
 })
-SettingsTab:Section({ Title = "批量操作", Icon = "cubes" })
+SettingsTab:Section({ Title = "批量操作", Icon = "wrench" })
 SettingsTab:Button({
     Title = "加载所有功能",
     Icon = "download",
