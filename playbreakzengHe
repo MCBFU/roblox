@@ -1,129 +1,143 @@
-local TARGET_PLACE_ID = 15078849939 -- 替换为你的目标服务器ID
+-- playbreak脚本中心 v4.3.0 | 作者：渔炒鱼
+-- 包含动作、刷物、视角切换等功能，仅支持指定游戏ID
 
--- 核心判断：如果不在目标服务器，就提示并停止脚本
+-- 服务器校验（仅在playbreak中运行）
+local TARGET_PLACE_ID = 15078849939
 if game.PlaceId ~= TARGET_PLACE_ID then
     game:GetService("StarterGui"):SetCore("SendNotification", {
         Title = "脚本无法使用",
-        Text = "你现在不处于playbreak服务器中，无法使用此脚本。",
+        Text = "你不在playbreak服务器中",
         Icon = "rbxassetid://18143239786",
-        Duration = 5 -- 提示显示5秒
+        Duration = 5
     })
-    return -- 关键！这会立即停止整个脚本的后续执行
+    return
 end
 
-
-
-
--- 极简音频播放
+-- 脚本启动音效
 local sound = Instance.new("Sound")
 sound.SoundId = "rbxassetid://9042971851"
 sound.Volume = 1.0
 sound.Parent = workspace
 sound:Play()
--- 使用稳定可靠的UI库
-local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
--- 创建窗口 - 修复配置报错，正常启动
-local Window = Rayfield:CreateWindow({
-    Name = "playbreak脚本中心",
-    LoadingTitle = "playbreak脚本中心",
-    LoadingSubtitle = "BY-渔炒鱼",
-    ConfigurationSaving = {
-        Enabled = false,
-        FolderName = nil,
-        FileName = "playbreak_config"
-    },
-    Discord = {
-        Enabled = false,
-        Invite = "noinvitelink",
-        RememberJoins = true
-    },
-    KeySystem = false,
-    KeySettings = {
-        Title = "playbreak",
-        Subtitle = "Key System",
-        Note = "No key required",
-        FileName = "playbreakKey",
-        SaveKey = false,
-        GrabKeyFromSite = false,
-        Key = {"playbreak"}
-    }
+-- Hook检测（确保脚本安全）
+local HttpService = cloneref(game:GetService("HttpService"))
+local isfunctionhooked = clonefunction(isfunctionhooked)
+if isfunctionhooked(game.HttpGet) or isfunctionhooked(getnamecallmethod) or isfunctionhooked(request) then
+    return
+end
+
+-- 加载WindUI界面框架
+local success, WindUI = pcall(function()
+    return loadstring(game:HttpGet("https://raw.githubusercontent.com/Footagesus/WindUI/refs/heads/main/dist/main.lua"))()
+end)
+if not success then
+    warn("WindUI加载失败，脚本无法运行")
+    return
+end
+
+-- WindUI基础配置
+WindUI.TransparencyValue = 0.3
+WindUI:SetTheme("Dark")
+
+-- 创建主窗口
+local Window = WindUI:CreateWindow({
+    Title = "playbreak脚本中心",
+    Icon = "crown",
+    Author = "渔炒鱼",
+    Folder = "playbreak脚本",
+    Size = UDim2.fromOffset(550, 650),
+    Theme = "Light",
+    User = { Enabled = true, Anonymous = false },
+    SideBarWidth = 180,
+    ScrollBarEnabled = true,
+    ShowSectionToggle = false
 })
 
--- 等待窗口初始化
-wait(0.2)
+-- 1. 主页Tab
+local HomeTab = Window:Tab({ Title = "主页", Icon = "home" })
+HomeTab:Section({ Title = "脚本简介", Icon = "info" })
+HomeTab:Button({ Title = "playbreak脚本中心", Callback = function() end })
+HomeTab:Button({ Title = "此脚本为缝合功能集合", Callback = function() end })
+HomeTab:Button({ Title = "使用后果自行承担", Callback = function() end })
 
--- 创建主标签页
-local MainTab = Window:CreateTab("主页", 98446998103932)
-local MainSection = MainTab:CreateSection("脚本简介")
-MainTab:CreateLabel("playbreak脚本中心")
-MainTab:CreateLabel("此脚本为缝合 少数功能为源代码 多数功能为自创")
-MainTab:CreateLabel("使用后果自行承担")
+HomeTab:Section({ Title = "开发者信息", Icon = "user" })
+HomeTab:Button({ Title = "开发者：渔炒鱼", Callback = function() end })
+HomeTab:Button({ Title = "致谢：XQ-HANHUA", Callback = function() end })
+HomeTab:Image({
+    Image = "rbxassetid://111333374680640",
+    Size = UDim2.fromOffset(250, 250),
+    CornerRadius = 8
+})
 
-local StatusSection = MainTab:CreateSection("系统状态")
-MainTab:CreateLabel("版本: v2.0.0")
+HomeTab:Section({ Title = "系统状态", Icon = "server" })
+HomeTab:Button({ Title = "版本: v4.3.0", Callback = function() end })
 
--- 创建炸麦脚步标签页
-local SoundTab = Window:CreateTab("炸麦脚步", 98446998103932)
-local SoundSection = SoundTab:CreateSection("脚步声音放大")
-
--- 打开第二个选项后即可解锁炸麦脚步，字面意思，脚步声音特别大
--- 此功能为缝合
-SoundTab:CreateButton({
-    Name = "启动炸麦脚步",
+-- 2. 动作Tab
+local ActionTab = Window:Tab({ Title = "动作", Icon = "dancing" })
+ActionTab:Section({ Title = "动作功能集合", Icon = "music" })
+ActionTab:Button({
+    Title = "R15动作脚本（汉化）",
     Callback = function()
-        pcall(function()
-            loadstring(game:HttpGet([[https://raw.githubusercontent.com/0Ben1/fe/main/obf_rf6iQURzu1fqrytcnLBAvW34C9N55kS9g9G3CKz086rC47M6632sEd4ZZYB0AYgV.lua.txt]]))()
-        end)
-    end,
+        WindUI:Notify({ Title = "加载中", Content = "正在加载R15动作脚本...", Duration = 3 })
+        task.wait(0.5)
+        pcall(function() loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBfun/roblox/refs/heads/main/r15ChineseLanguage"))() end)
+    end
 })
-
-local SoundInfoSection = SoundTab:CreateSection("功能说明")
-SoundTab:CreateLabel("脚步声音特别大")
-SoundTab:CreateLabel("点击按钮即可启动")
-SoundTab:CreateLabel("此功能为缝合脚本")
-
--- 创建刷物标签页
-local VoteTab = Window:CreateTab("刷物", 98446998103932)
-local VoteSection = VoteTab:CreateSection("刷票+刷经验")
-
-VoteTab:CreateButton({
-    Name = "启用刷票功能",
+ActionTab:Button({
+    Title = "playbreak动作包",
     Callback = function()
-        pcall(function()
-            loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBfun/roblox/refs/heads/main/ShuaPiao"))()
-        end)
-    end,
+        WindUI:Notify({ Title = "加载中", Content = "正在加载动作包...", Duration = 3 })
+        task.wait(0.5)
+        pcall(function() loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBFU/roblox/refs/heads/main/playbreakAction"))() end)
+    end
 })
-
-VoteTab:CreateButton({
-    Name = "启用刷经验功能",
+ActionTab:Button({
+    Title = "基础动作脚本",
     Callback = function()
-        pcall(function()
-            loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBfun/roblox/refs/heads/main/Qaq"))()
-        end)
-    end,
+        WindUI:Notify({ Title = "加载中", Content = "正在加载基础动作...", Duration = 3 })
+        task.wait(0.5)
+        pcall(function() loadstring(game:HttpGet("https://raw.githubusercontent.com/Boxten-Keyes/music/refs/heads/main/music%23%5Bscripts%5D/music%23%5Bmiscellaneous%5D/music%23%5Bfe%20r15%20animation%20player%5D.lua", true))() end)
+    end
 })
 
-local VoteInfoSection = VoteTab:CreateSection("功能说明")
-VoteTab:CreateLabel("刷票功能：仅兼容此游戏")
-VoteTab:CreateLabel("刷经验功能：仅兼容此游戏")
-VoteTab:CreateLabel("请确保在正确的游戏请确保在正确的游戏中使用")
+-- 3. 刷物Tab
+local BrushItemTab = Window:Tab({ Title = "刷物", Icon = "gift" })
+BrushItemTab:Section({ Title = "刷物功能", Icon = "shopping-bag" })
+BrushItemTab:Button({
+    Title = "启用刷票功能",
+    Callback = function()
+        WindUI:Notify({ Title = "加载中", Content = "正在加载刷票...", Duration = 3 })
+        task.wait(0.5)
+        pcall(function() loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBfun/roblox/refs/heads/main/ShuaPiao"))() end)
+    end
+})
+BrushItemTab:Button({
+    Title = "启用刷经验功能",
+    Callback = function()
+        WindUI:Notify({ Title = "加载中", Content = "正在加载刷经验...", Duration = 3 })
+        task.wait(0.5)
+        pcall(function() loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBfun/roblox/refs/heads/main/Qaq"))() end)
+    end
+})
 
--- 创建视角功能标签页 | 修复核心报错，保证正常启动
-local CameraTab = Window:CreateTab("视角功能", 98446998103932)
-local CameraSection = CameraTab:CreateSection("第三人称设置")
+-- 4. 视角Tab（第三人称控制）
+local CameraTab = Window:Tab({ Title = "视角", Icon = "eye" })
+CameraTab:Section({ Title = "第三人称设置", Icon = "camera" })
+local ThirdPersonManager = { Enabled = false, Connections = {}, OriginalSettings = {} }
 
-local ThirdPersonManager = {
-    Enabled = false,
-    Connections = {},
-    OriginalSettings = {}
-}
-
-local function saveOriginalSettings()
-    local Players = game:GetService("Players")
-    local player = Players.LocalPlayer
+-- 等待玩家/相机加载
+local function waitForPlayerAndCamera()
+    local player = game.Players.LocalPlayer
+    while not player or not player.Character do task.wait(0.1) end
     local camera = workspace.CurrentCamera
+    while not camera do task.wait(0.1) end
+    return player, camera
+end
+
+-- 保存原始相机设置
+local function saveOriginalSettings()
+    local player, camera = waitForPlayerAndCamera()
     ThirdPersonManager.OriginalSettings = {
         CameraMinZoomDistance = player.CameraMinZoomDistance,
         CameraMaxZoomDistance = player.CameraMaxZoomDistance,
@@ -132,66 +146,30 @@ local function saveOriginalSettings()
     }
 end
 
+-- 启用第三人称
 local function enableThirdPerson()
     if ThirdPersonManager.Enabled then return end
+    local player, camera = waitForPlayerAndCamera()
     saveOriginalSettings()
-    local Players = game:GetService("Players")
-    local player = Players.LocalPlayer
-    local camera = workspace.CurrentCamera
-    player.CameraMinZoomDistance = 5
-    player.CameraMaxZoomDistance = 50
+    player.CameraMinZoomDistance = 8
+    player.CameraMaxZoomDistance = 20
     player.CameraMode = Enum.CameraMode.Classic
     camera.CameraType = Enum.CameraType.Follow
-    local heartbeatConnection = game:GetService("RunService").Heartbeat:Connect(function()
-        if camera.CameraType ~= Enum.CameraType.Follow then
-            camera.CameraType = Enum.CameraType.Follow
-        end
+    local renderConnection = game:GetService("RunService").RenderStepped:Connect(function()
+        if camera.CameraType ~= Enum.CameraType.Follow then camera.CameraType = Enum.CameraType.Follow end
+        if player.Character and player.Character.HumanoidRootPart then camera.Focus = player.Character.HumanoidRootPart.CFrame end
     end)
-    table.insert(ThirdPersonManager.Connections, heartbeatConnection)
-    ThirdPersonManager.Enabled = true
-end
-
-local function enableEnhancedThirdPerson()
-    if ThirdPersonManager.Enabled then disableThirdPerson() end
-    saveOriginalSettings()
-    local Players = game:GetService("Players")
-    local UserInputService = game:GetService("UserInputService")
-    local RunService = game:GetService("RunService")
-    local player = Players.LocalPlayer
-    local camera = workspace.CurrentCamera
-    local cameraDistance = 10
-    local minDistance = 4
-    local maxDistance = 20
-    camera.CameraType = Enum.CameraType.Scriptable
-    local zoomConnection = UserInputService.InputChanged:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseWheel then
-            cameraDistance = math.clamp(cameraDistance - input.Position.Z * 0.5, minDistance, maxDistance)
-        end
-    end)
-    local renderConnection = RunService.RenderStepped:Connect(function()
-        if not player.Character then return end
-        local humanoidRootPart = player.Character:FindFirstChild("HumanoidRootPart")
-        local head = player.Character:FindFirstChild("Head")
-        if humanoidRootPart and head then
-            local offset = Vector3.new(0, 3, cameraDistance)
-            local cameraPosition = humanoidRootPart.Position + (humanoidRootPart.CFrame:VectorToWorldSpace(offset))
-            camera.CFrame = CFrame.new(cameraPosition, head.Position)
-        end
-    end)
-    table.insert(ThirdPersonManager.Connections, zoomConnection)
     table.insert(ThirdPersonManager.Connections, renderConnection)
     ThirdPersonManager.Enabled = true
+    WindUI:Notify({ Title = "视角切换", Content = "已启用第三人称", Duration = 2 })
 end
 
+-- 禁用第三人称
 local function disableThirdPerson()
     if not ThirdPersonManager.Enabled then return end
-    for _, connection in ipairs(ThirdPersonManager.Connections) do
-        if connection then connection:Disconnect() end
-    end
+    for _, connection in ipairs(ThirdPersonManager.Connections) do if connection then connection:Disconnect() end end
     ThirdPersonManager.Connections = {}
-    local Players = game:GetService("Players")
-    local player = Players.LocalPlayer
-    local camera = workspace.CurrentCamera
+    local player, camera = waitForPlayerAndCamera()
     if ThirdPersonManager.OriginalSettings then
         player.CameraMinZoomDistance = ThirdPersonManager.OriginalSettings.CameraMinZoomDistance or 0.5
         player.CameraMaxZoomDistance = ThirdPersonManager.OriginalSettings.CameraMaxZoomDistance or 400
@@ -199,209 +177,117 @@ local function disableThirdPerson()
         camera.CameraType = ThirdPersonManager.OriginalSettings.CameraType or Enum.CameraType.Custom
     end
     ThirdPersonManager.Enabled = false
+    WindUI:Notify({ Title = "视角切换", Content = "已禁用第三人称", Duration = 2 })
 end
 
-CameraTab:CreateButton({
-    Name = "第三人称开关",
-    Callback = function()
-        if not ThirdPersonManager.Enabled then
-            enableThirdPerson()
-        else
-            disableThirdPerson()
-        end
-    end,
+CameraTab:Button({
+    Title = "第三人称 切换开关",
+    Callback = function() if not ThirdPersonManager.Enabled then enableThirdPerson() else disableThirdPerson() end end
 })
+CameraTab:Button({ Title = "启用强制第三人称", Callback = function() pcall(enableThirdPerson) end })
+CameraTab:Button({ Title = "禁用第三人称", Callback = function() pcall(disableThirdPerson) end })
 
-CameraTab:CreateButton({ Name = "启用强制第三人称", Callback = function() pcall(enableThirdPerson) end, })
-CameraTab:CreateButton({ Name = "启用奇怪的第三人称", Callback = function() pcall(enableEnhancedThirdPerson) end, })
-CameraTab:CreateButton({ Name = "禁用第三人称", Callback = function() pcall(disableThirdPerson) end, })
-
-local CameraInfoSection = CameraTab:CreateSection("功能说明")
-CameraTab:CreateLabel("第三人称开关：切换基础视角")
-CameraTab:CreateLabel("强制第三人称：锁定跟随模式")
-CameraTab:CreateLabel("奇怪第三人称：自定义视角系统")
-CameraTab:CreateLabel("使用鼠标滚轮调整距离")
-
--- 材质包标签页 | 删掉无用函数+残留，无链接泄露
-local MaterialTab = Window:CreateTab("材质包", 98446998103932)
-local MaterialSection = MaterialTab:CreateSection("playbreak材质包")
-local MaterialManager = { Enabled = false, Status = "未加载" }
-
-local function loadMaterialPack()
-    if MaterialManager.Enabled then
-        Rayfield:Notify({ Title = "材质包", Content = "材质包已在运行中", Duration = 3, Image = 98446998103932 })
-        return
+-- 5. 其他Tab
+local OtherTab = Window:Tab({ Title = "其他", Icon = "more-horizontal" })
+OtherTab:Section({ Title = "辅助功能", Icon = "wrench" })
+OtherTab:Button({
+    Title = "最强脚本",
+    Callback = function()
+        WindUI:Notify({ Title = "加载中", Content = "正在加载主脚本...", Duration = 3 })
+        task.wait(0.5)
+        pcall(function() loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBFU/roblox/refs/heads/main/playbreakawa", true))() end)
     end
-    Rayfield:Notify({ Title = "材质包", Content = "正在加载playbreak材质包...", Duration = 3, Image = 98446998103932 })
-    local success, result = pcall(function()
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBFU/roblox/refs/heads/main/playbreak.ogg"))()
-    end)
-    if success then
-        MaterialManager.Enabled = true
-        MaterialManager.Status = "已加载"
-        Rayfield:Notify({ Title = "材质包", Content = "playbreak材质包已成功加载！", Duration = 5, Image = 98446998103932 })
-    else
-        MaterialManager.Status = "加载失败"
-        Rayfield:Notify({ Title = "材质包", Content = "材质包加载失败", Duration = 5, Image = 98446998103932 })
+})
+OtherTab:Button({
+    Title = "运行连跳脚本",
+    Callback = function()
+        WindUI:Notify({ Title = "加载中", Content = "正在加载连跳...", Duration = 3 })
+        task.wait(0.5)
+        pcall(function() loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBfun/roblox/refs/heads/main/LianTiao"))() end)
     end
-end
-
-MaterialTab:CreateButton({ Name = "加载playbreak材质包", Callback = loadMaterialPack, })
-local MaterialInfoSection = MaterialTab:CreateSection("材质包功能说明")
-MaterialTab:CreateLabel("playbreak专属材质包")
-MaterialTab:CreateLabel("包含高清纹理和特效")
-MaterialTab:CreateLabel("提升游戏视觉体验")
-MaterialTab:CreateLabel("可能会影响性能")
-
-MaterialTab:CreateButton({
-    Name = "预览材质效果",
-    Callback = function()
-        Rayfield:Notify({ Title = "材质预览", Content = "正在显示材质包效果预览", Duration = 3, Image = 98446998103932 })
-    end,
 })
-MaterialTab:CreateButton({ Name = "重新加载材质包", Callback = function() pcall(loadMaterialPack) end, })
-
--- 汉化功能标签页 | 隐藏报错详情，无链接泄露
-local LocalizationTab = Window:CreateTab("汉化功能", 98446998103932)
-local LocalizationSection = LocalizationTab:CreateSection("KENNY自动汉化系统")
-local LocalizationManager = { Enabled = false, CurrentLanguage = "简体中文", Status = "待启用" }
-
-local function enableKennyChineseLocalization()
-    if LocalizationManager.Enabled then
-        Rayfield:Notify({ Title = "汉化系统", Content = "汉化功能已在运行中", Duration = 3, Image = 98446998103932 })
-        return
+OtherTab:Button({
+    Title = "老版本ui",
+    Callback = function()
+        WindUI:Notify({ Title = "加载中", Content = "正在加载整合脚本...", Duration = 3 })
+        task.wait(0.5)
+        pcall(function() loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBFU/roblox/refs/heads/main/playbreakzeng", true))() end)
     end
-    Rayfield:Notify({ Title = "汉化系统", Content = "正在加载KENNY自动汉化...", Duration = 3, Image = 98446998103932 })
-    local success = pcall(function()
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/ke9460394-dot/ugik/refs/heads/main/KENNY自动汉化.txt"))()
-    end)
-    if success then
-        LocalizationManager.Enabled = true
-        LocalizationManager.Status = "已启用"
-        Rayfield:Notify({ Title = "汉化系统", Content = "KENNY自动汉化已成功加载！", Duration = 5, Image = 98446998103932 })
-    else
-        LocalizationManager.Status = "加载失败"
-        Rayfield:Notify({ Title = "汉化系统", Content = "汉化功能加载失败", Duration = 5, Image = 98446998103932 })
+})
+OtherTab:Button({
+    Title = "启动炸麦脚步",
+    Callback = function()
+        WindUI:Notify({ Title = "加载中", Content = "正在加载炸麦脚步...", Duration = 3 })
+        task.wait(0.5)
+        pcall(function() loadstring(game:HttpGet([[https://raw.githubusercontent.com/0Ben1/fe/main/obf_rf6iQURzu1fqrytcnLBAvW34C9N55kS9g9G3CKz086rC47M6632sEd4ZZYB0AYgV.lua.txt]]))() end)
     end
-end
-
-LocalizationTab:CreateButton({ Name = "启用KENNY自动汉化", Callback = enableKennyChineseLocalization, })
-
-local LocalizationInfoSection = LocalizationTab:CreateSection("汉化功能说明")
-LocalizationTab:CreateLabel("此脚本为缝合")
-LocalizationTab:CreateLabel("- 可能会掉帧")
-LocalizationTab:CreateLabel("- 并非原创")
-LocalizationTab:CreateLabel("- 未经授权")
-LocalizationTab:CreateLabel("- 侵权立马删")
-
-LocalizationTab:CreateButton({
-    Name = "测试汉化效果",
-    Callback = function()
-        Rayfield:Notify({ Title = "汉化测试", Content = "这是一个汉化功能测试消息", Duration = 3, Image = 98446998103932 })
-    end,
 })
-LocalizationTab:CreateButton({ Name = "重新加载汉化", Callback = enableKennyChineseLocalization, })
-
--- 连跳功能标签页
-local JumpTab = Window:CreateTab("连跳功能", 98446998103932)
-local JumpSection = JumpTab:CreateSection("自动连跳系统")
-JumpTab:CreateButton({
-    Name = "运行连跳脚本",
+OtherTab:Button({
+    Title = "加载playbreak材质包",
     Callback = function()
-        pcall(function()
-            loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBfun/roblox/refs/heads/main/LianTiao"))()
-        end)
-    end,
-})
-local JumpInfoSection = JumpTab:CreateSection("功能说明")
-JumpTab:CreateLabel("自动连续跳跃功能")
-JumpTab:CreateLabel("无需手动按键操作")
-JumpTab:CreateLabel("降低速度衰减")
-
--- 动作合集标签页 | 删掉状态显示，无泄露
-local ActionTab = Window:CreateTab("动作合集", 98446998103932)
-local ActionSection = ActionTab:CreateSection("动作功能集合")
-local ActionPackManager = { Enabled = false }
-
-local function loadPlaybreakActionPack()
-    if ActionPackManager.Enabled then
-        Rayfield:Notify({ Title = "动作包", Content = "playbreak动作包已在运行中", Duration = 3, Image = 98446998103932 })
-        return
+        WindUI:Notify({ Title = "加载中", Content = "正在加载材质包...", Duration = 3 })
+        task.wait(0.5)
+        pcall(function() loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBFU/roblox/refs/heads/main/playbreak.ogg"))() end)
     end
-    Rayfield:Notify({ Title = "动作包", Content = "正在加载playbreak动作包...", Duration = 3, Image = 98446998103932 })
-    local success = pcall(function()
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBFU/roblox/refs/heads/main/playbreakAction"))()
-    end)
-    if success then
-        ActionPackManager.Enabled = true
-        Rayfield:Notify({ Title = "动作包", Content = "playbreak动作包已成功加载！", Duration = 5, Image = 98446998103932 })
-    else
-        Rayfield:Notify({ Title = "动作包", Content = "动作包加载失败", Duration = 5, Image = 98446998103932 })
+})
+OtherTab:Button({
+    Title = "启用KENNY自动汉化",
+    Callback = function()
+        WindUI:Notify({ Title = "加载中", Content = "正在加载自动汉化...", Duration = 3 })
+        task.wait(0.5)
+        pcall(function() loadstring(game:HttpGet("https://raw.githubusercontent.com/ke9460394-dot/ugik/refs/heads/main/KENNY自动汉化.txt"))() end)
     end
-end
-
-ActionTab:CreateButton({ Name = "playbreak动作包", Callback = loadPlaybreakActionPack, })
-ActionTab:CreateButton({
-    Name = "R15动作脚本（汉化）",
-    Callback = function()
-        pcall(function()
-            loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBfun/roblox/refs/heads/main/r15ChineseLanguage"))()
-        end)
-    end,
-})
-local ActionInfoSection = ActionTab:CreateSection("功能说明")
-ActionTab:CreateLabel("playbreak动作包：专属动作集合")
-ActionTab:CreateLabel("R15动作脚本：汉化多种功能")
-ActionTab:CreateLabel("支持多种预设动作")
-ActionTab:CreateLabel("可能会与其他脚本冲突")
-ActionTab:CreateButton({
-    Name = "测试动作效果",
-    Callback = function()
-        Rayfield:Notify({ Title = "动作测试", Content = "正在测试动作功能", Duration = 3, Image = 98446998103932 })
-    end,
 })
 
--- 设置标签页 | 修复重新加载报错，无输出
-local SettingsTab = Window:CreateTab("设置", 98446998103932)
-local SettingsSection = SettingsTab:CreateSection("界面设置")
-SettingsTab:CreateButton({ Name = "关闭界面", Callback = function() Rayfield:Destroy() end, })
-SettingsTab:CreateButton({
-    Name = "重新加载脚本",
+-- 6. 设置Tab
+local SettingsTab = Window:Tab({ Title = "设置", Icon = "settings" })
+SettingsTab:Section({ Title = "界面控制", Icon = "sliders" })
+SettingsTab:Button({
+    Title = "关闭界面",
+    Icon = "x-circle",
     Callback = function()
-        Rayfield:Destroy()
-        wait(1)
-        pcall(function()
-            loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBfun/roblox/refs/heads/main/playbreak"))()
-        end)
-    end,
+        for _, connection in ipairs(ThirdPersonManager.Connections) do if connection then connection:Disconnect() end end
+        Window:Destroy()
+        if sound then sound:Destroy() end
+    end
 })
-
-local BatchSection = SettingsTab:CreateSection("批量操作")
-SettingsTab:CreateButton({
-    Name = "加载所有功能",
+SettingsTab:Button({
+    Title = "重新加载脚本",
+    Icon = "refresh-cw",
     Callback = function()
-        Rayfield:Notify({ Title = "批量加载", Content = "开始加载所有功能模块...", Duration = 3, Image = 98446998103932 })
+        Window:Destroy()
+        if sound then sound:Destroy() end
+        task.wait(1)
+        pcall(function() loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBfun/roblox/refs/heads/main/playbreak"))() end)
+    end
+})
+SettingsTab:Section({ Title = "批量操作", Icon = "cubes" })
+SettingsTab:Button({
+    Title = "加载所有功能",
+    Icon = "download",
+    Callback = function()
+        WindUI:Notify({ Title = "批量加载", Content = "开始加载所有功能...", Duration = 3 })
         pcall(function() loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBfun/roblox/refs/heads/main/ShuaPiao"))() end)
         pcall(function() loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBfun/roblox/refs/heads/main/Qaq"))() end)
         pcall(function() loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBfun/roblox/refs/heads/main/LianTiao"))() end)
-        wait(0.5)
-        pcall(loadMaterialPack)
-        wait(0.5)
-        pcall(loadPlaybreakActionPack)
+        task.wait(0.5)
+        pcall(function() loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBFU/roblox/refs/heads/main/playbreak.ogg"))() end)
+        task.wait(0.5)
+        pcall(function() loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBFU/roblox/refs/heads/main/playbreakAction"))() end)
         pcall(function() loadstring(game:HttpGet("https://raw.githubusercontent.com/MCBfun/roblox/refs/heads/main/r15ChineseLanguage"))() end)
-        wait(0.5)
-        pcall(enableKennyChineseLocalization)
-        Rayfield:Notify({ Title = "批量加载", Content = "所有功能模块已加载完成！", Duration = 5, Image = 98446998103932 })
-    end,
+        task.wait(0.5)
+        pcall(function() loadstring(game:HttpGet("https://raw.githubusercontent.com/ke9460394-dot/ugik/refs/heads/main/KENNY自动汉化.txt"))() end)
+        WindUI:Notify({ Title = "批量加载", Content = "所有功能已加载完成！", Duration = 5 })
+    end
 })
 
-local AboutSection = SettingsTab:CreateSection("关于")
-SettingsTab:CreateLabel("开发者：渔炒鱼")
-SettingsTab:CreateLabel("版本：4.3.0")
-SettingsTab:CreateLabel("新增功能：炸麦脚步")
-SettingsTab:CreateLabel("此脚本完全免费")
+-- 欢迎提示
+task.wait(0.1)
+WindUI:Notify({
+    Title = "playbreak脚本中心",
+    Content = "欢迎使用v4.3.0",
+    Duration = 5
+})
 
--- 欢迎提示，无多余输出
-wait(0.1)
-Rayfield:Notify({ Title = "playbreak脚本中心", Content = "欢迎使用playbreak v4.3.0", Duration = 5, Image = 98446998103932 })
-
+-- 默认选中主页
+Window:SelectTab(HomeTab)
