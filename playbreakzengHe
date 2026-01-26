@@ -77,7 +77,7 @@ HomeTab:Button({ Title = "开发者：渔炒鱼", Callback = function() end })
 HomeTab:Button({ Title = "致谢：XQ-HANHUA", Callback = function() end })
 
 -- 修复：正确的Image使用方法
-HomeTab:Section({ Title = "脚本预览", Icon = "image" })
+
 HomeTab:Section({ Title = "系统状态", Icon = "server" })
 HomeTab:Button({ Title = "版本: v4.3.0", Callback = function() end })
 
