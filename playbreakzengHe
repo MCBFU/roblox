@@ -101,7 +101,7 @@ ActionTab:Button({
     end
 })
 ActionTab:Button({
-    Title = "基础动作脚本",
+    Title = "R15动作脚本",
     Callback = function()
         WindUI:Notify({ Title = "加载中", Content = "正在加载基础动作...", Duration = 3 })
         task.wait(0.5)
