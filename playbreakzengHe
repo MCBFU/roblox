@@ -75,12 +75,9 @@ HomeTab:Button({ Title = "使用后果自行承担", Callback = function() end }
 HomeTab:Section({ Title = "开发者信息", Icon = "user" })
 HomeTab:Button({ Title = "开发者：渔炒鱼", Callback = function() end })
 HomeTab:Button({ Title = "致谢：XQ-HANHUA", Callback = function() end })
-HomeTab:Image({
-    Image = "rbxassetid://111333374680640",
-    Size = UDim2.fromOffset(250, 250),
-    CornerRadius = 8
-})
 
+-- 修复：正确的Image使用方法
+HomeTab:Section({ Title = "脚本预览", Icon = "image" })
 HomeTab:Section({ Title = "系统状态", Icon = "server" })
 HomeTab:Button({ Title = "版本: v4.3.0", Callback = function() end })
 
@@ -134,7 +131,6 @@ BrushItemTab:Button({
 
 -- 4. 视角Tab（第三人称控制）
 local CameraTab = Window:Tab({ Title = "视角", Icon = "eye" })
-CameraTab:Section({ Title = "第三人称设置", Icon = "camera" })
 local ThirdPersonManager = { Enabled = false, Connections = {}, OriginalSettings = {} }
 
 -- 等待玩家/相机加载
@@ -191,12 +187,56 @@ local function disableThirdPerson()
     WindUI:Notify({ Title = "视角切换", Content = "已禁用第三人称", Duration = 2 })
 end
 
+-- 恢复视力功能（新增）
+local function restoreVision()
+    local UserSettings = UserSettings()
+    local UserGameSettings = UserSettings():GetService("UserGameSettings")
+    
+    -- 保存原始设置
+    local originalSettings = {
+        GraphicsQualityLevel = UserGameSettings.GraphicsQualityLevel,
+        SavedQualityLevel = UserGameSettings.SavedQualityLevel,
+        MasterVolume = settings().Rendering.MasterVolume or 1
+    }
+    
+    -- 设置为最高画质
+    UserGameSettings.GraphicsQualityLevel = Enum.SavedQualitySetting.QualityLevel10
+    UserGameSettings.SavedQualityLevel = Enum.SavedQualitySetting.QualityLevel10
+    
+    -- 更新渲染设置
+    settings().Rendering.QualityLevel = Enum.QualityLevel.Level10
+    settings().Rendering.MasterVolume = 1
+    
+    -- 强制重新应用图形设置
+    pcall(function()
+        UserGameSettings:SetGraphicsQuality(Enum.SavedQualitySetting.QualityLevel10)
+    end)
+    
+    WindUI:Notify({ 
+        Title = "恢复视力", 
+        Content = "已设置最高图像清晰度\n（不循环，仅设置一次）", 
+        Duration = 3 
+    })
+    
+    return originalSettings
+end
+
+CameraTab:Section({ Title = "第三人称控制", Icon = "video" })
 CameraTab:Button({
     Title = "第三人称 切换开关",
     Callback = function() if not ThirdPersonManager.Enabled then enableThirdPerson() else disableThirdPerson() end end
 })
 CameraTab:Button({ Title = "启用强制第三人称", Callback = function() pcall(enableThirdPerson) end })
 CameraTab:Button({ Title = "禁用第三人称", Callback = function() pcall(disableThirdPerson) end })
+
+CameraTab:Section({ Title = "图像修复", Icon = "eye" })
+CameraTab:Button({
+    Title = "恢复视力",
+    Description = "将图像清晰度设为最高（仅一次）",
+    Callback = function()
+        restoreVision()
+    end
+})
 
 -- 5. 其他Tab
 local OtherTab = Window:Tab({ Title = "其他", Icon = "user" })
