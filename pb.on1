@@ -1,3 +1,5 @@
+--有话好好说，别动我代码行吗？😰
+
 game:GetService("StarterGui"):SetCore("SendNotification", {
     Title = "公告",
     Text = "封号后果自行承担",
