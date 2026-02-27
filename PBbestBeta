@@ -1,3 +1,4 @@
+--好吧恭喜
 
 -- 强制优先加载playbreak（必写在最顶部）
 local success, Library = pcall(function()
