@@ -1,1 +1,96 @@
-return(function(...)local X={"lUnyqx4=","OoF2Oq5SOilgOOGwtD==";"ZFnuPFQHAwZ5qp0=","KpjbMxZ3Mm==";"PBj08P==","ts8iXbYGHzSm","ZB3bqgqHMyIuPFQHAwP=","dF15Am==";"qF1cqP==";"MURHAyP=","KB1cqP==","tsi5S8iMYl+RAyq3AyZeMy4mOHiUOfbFOilO","tsl0ob8iXbYGHD==";"LvjyTa==","dpOaTpIX";"PxnkdwjciLHQdw3eAm==";"nF1HdgqeM4ISip74";"LvjHABZ38D==","Ww7Q8pn5Zw1uTP==";"lLI+","Kz+fp3T0dUQriFcSdP==","OSB6OfYIOTYa9E8l9tB5sYD=";"Ww7Q8pn5Ma==","9E829ql+tD==","WxZQAwcO","iL+QiLRk","Kwj2Tp7PAw1OqLt=","KpjcAL4=";"PBjeA1qQAUn3";"Oi9rOSYPNN5+OTp79E829ql+tD==","nB1hdpW=","ts8iQs8iXbYGHG0bfm==";"ZFnuWFn5dB32qP==";"Lvjhqp0=","lpOFqpOuAxRO"}for T,s in ipairs({{1;35};{1;33};{34,35}})do while s[1]<s[2]do X[s[1]],X[s[2]],s[1],s[2]=X[s[2]],X[s[1]],s[1]+1,s[2]-1 end end local function T(T)return X[T-63694]end do local T=table.concat local s=math.floor local H=table.insert local z=string.char local Q={f=11;C=63;B=38,Y=34;x=55;O=57,q=25,z=3;o=42;A=27,r=12;i=26,n=21;K=19,M=28;h=44;H=41;["/"]=31,J=15,I=13,["2"]=35,v=53;s=14,D=0;S=40,F=54;L=23,g=4,e=47,y=39,u=52,["8"]=30,["4"]=36,V=60,p=22,["0"]=56;b=46,T=24;Q=33,E=10,a=48,["+"]=1;t=8;l=18;k=51;["5"]=50,["3"]=37,R=9;["9"]=58;N=59,["1"]=5;G=2;["7"]=49,d=29,c=45;Z=17;m=32,P=16,w=6,U=7;j=61;["6"]=62;W=20;X=43}local R=string.sub local v=string.len local Z=type local D=X for X=1,#D,1 do local y=D[X]if Z(y)=="string"then local Z=v(y)local K={}local M=1 local P=0 local o=0 while M<=Z do local X=R(y,M,M)local T=Q[X]if T then P=P+T*64^(3-o)o=o+1 if o==4 then o=0 local X=s(P/65536)local T=s((P%65536)/256)local Q=P%256 H(K,z(X,T,Q))P=0 end elseif X=="="then H(K,z(s(P/65536)))if M>=Z or R(y,M+1,M+1)~="="then H(K,z(s((P%65536)/256)))end break end M=M+1 end D[X]=T(K)end end end return(function(X,H,z,Q,R,v,Z,w,y,M,o,P,p,s,D,K)M,K,y,P,s,o,w,p,D=0,function()M=1+M y[M]=1 return M end,{},function(X)for T=1,#X,1 do y[X[T]]=y[X[T]]+1 end if z then local s=z(true)local H=R(s)H[T(63710)],H[T(63706)],H[T(63726)]=X,o,function()return-1390627 end return s else return Q({},{[T(63706)]=o,[T(63710)]=X,[T(63726)]=function()return-1390627 end})end end,function(s,z,Q,R)local G,x,j,g,k,C,d,A,V,f,m,c,D,J,p,u,K,h,l,M,P,Z,U,o,y,w,i,Y,L,e while s do if s<8955811 then if s<6144464 then if s<3529101 then if s<1689329 then if s<1208106 then s=8517299 else G=T(63700)s=8517299 U=X[G]c=T(63704)V=m..c G=U(V)end else V,j=U(G,V)s=V and 5767944 or 880150 end else if s<5695934 then s=T(63699)s=J[s]l=T(63727)s=s(J,l)l=s s=l and 6701540 or 1340388 else c=V s=T(63712)h=T(63721)s=j[s]s=s(j,h)s=s and 10876013 or 11216675 end end else if s<7264044 then if s<7112558 then V=T(63729)U=T(63702)j=T(63724)s=X[U]c=m..j G=V..c U=s(G)j=T(63695)U=T(63718)s=X[U]j=l[j]c={j(l)}j={s(H(c))}U=j[1]G=j[2]s=3128594 V=j[3]else x=T(63702)P=nil s=X[T(63713)]K=nil Z={}J=T(63705)d=X[x]f=T(63722)y=nil M=nil m=w..J w=nil A=f..m o=nil x=d(A)p=nil end else if s<7793301 then U=T(63700)l=X[U]V=T(63714)G=V..m U=l(G)s=9621210 else l=nil s=9621210 end end end else if s<10921732 then if s<9851221 then if s<9540935 then s=T(63699)f=x s=o[s]s=s(o,m)J=s s=J and 3793712 or 7326268 else s=15669987 m=nil J=nil f=nil end else if s<10386795 then s=11216675 else Y=T(63723)h=j[Y]Y=false s=h==Y s=s and 15750614 or 9892210 end end else if s<14454529 then if s<11292555 then s=3128594 j=nil c=nil else w=T(63720)D=z y=T(63715)Z=T(63701)s=X[Z]Z=T(63725)Z=s[Z]Z=Z(s,y)y=Z Z=T(63719)s=y[Z]Z=T(63711)K=s s=T(63709)s=K[s]p=T(63728)s=s(K,Z)Z=T(63708)M=s d=T(63717)s=T(63709)s=M[s]s=s(M,Z)P=s s=T(63709)s=P[s]Z=T(63696)s=s(P,Z)Z=T(63697)o=s s={Z,p,w;d}p=s Z=T(63718)s=0 w=s s=X[Z]A={s(p)}Z=A[1]s=15669987 d=A[2]x=A[3]A=Z end else if s<15748995 then x,m=A(d,x)s=x and 8957312 or 7229889 else h=true s=T(63723)Y=T(63702)j[s]=h h=1 e=T(63698)k=T(63716)i=T(63703)s=w+h h=X[Y]w=s s=9892210 g=j[i]u=e..g C=m..u L=k..C Y=h(L)end end end end end s=#R return H(Z)end,function(X)local T,s=1,X[1]while s do y[s],T=y[s]-1,T+1 if y[s]==0 then y[s],D[s]=nil,nil end s=X[T]end end,function(X,T)local H=P(T)local z=function(...)return s(X,{...},T,H)end return z end,function(X)y[X]=y[X]-1 if 0==y[X]then y[X],D[X]=nil,nil end end,{}return(w(11294145,{}))(H(Z))end)(getfenv and getfenv()or _ENV,unpack or table[T(63707)],newproxy,setmetatable,getmetatable,select,{...})end)(...)
+local Players = game:GetService("Players")
+local StarterGui = game:GetService("StarterGui")
+local localPlayer = Players.LocalPlayer
+
+StarterGui:SetCore("SendNotification", {
+    Title = "Made by XQ",
+    Text = "感谢使用 XQ 作品",
+    Icon = "rbxassetid://120172811078080",
+    Duration = 5
+})
+
+StarterGui:SetCore("SendNotification", {
+    Title = "皮肤解锁",
+    Text = "正在解锁怪物皮肤...",
+    Icon = "rbxassetid://120172811078080",
+    Duration = 6
+})
+
+local playerData = localPlayer:WaitForChild("PlayerData")
+local customization = playerData:WaitForChild("Customization")
+local monster = customization:WaitForChild("Monster")
+local characters = {"Boxy", "Huggy", "Mommy", "Stalky"}
+
+local totalMonsterUnlocked = 0
+
+for _, charName in ipairs(characters) do
+    local character = monster:FindFirstChild(charName)
+    if character then
+        local inventory = character:FindFirstChild("Inventory")
+        if inventory then
+            for _, skin in ipairs(inventory:GetChildren()) do
+                if skin:IsA("BoolValue") and skin.Value == false then
+                    skin.Value = true
+                    totalMonsterUnlocked = totalMonsterUnlocked + 1
+                end
+            end
+        end
+    end
+end
+
+task.wait(0.5)
+StarterGui:SetCore("SendNotification", {
+    Title = "怪物皮肤解锁完成",
+    Text = "共解锁 "..totalMonsterUnlocked.." 个皮肤",
+    Icon = "rbxassetid://120172811078080",
+    Duration = 4
+})
+
+task.wait(0.5)
+StarterGui:SetCore("SendNotification", {
+    Title = "皮肤解锁",
+    Text = "正在解锁幸存者皮肤...",
+    Icon = "rbxassetid://120172811078080",
+    Duration = 6
+})
+
+local survivor = customization:FindFirstChild("Survivor")
+if survivor then
+    local inventory = survivor:FindFirstChild("Inventory")
+    if inventory then
+        local totalSurvivorUnlocked = 0
+        local parts = {"Hats", "Grabpacks", "Hands", "Shirts", "Shoes", "Pants"}
+
+        for _, partName in ipairs(parts) do
+            local partFolder = inventory:FindFirstChild(partName)
+            if partFolder then
+                for _, skin in ipairs(partFolder:GetChildren()) do
+                    if skin:IsA("BoolValue") and skin.Value == false then
+                        skin.Value = true
+                        totalSurvivorUnlocked = totalSurvivorUnlocked + 1
+                    end
+                end
+            end
+        end
+
+        task.wait(0.5)
+        StarterGui:SetCore("SendNotification", {
+            Title = "幸存者皮肤解锁完成",
+            Text = "共解锁 "..totalSurvivorUnlocked.." 个皮肤",
+            Icon = "rbxassetid://120172811078080",
+            Duration = 4
+        })
+        
+        task.wait(0.5)
+        StarterGui:SetCore("SendNotification", {
+            Title = "全部解锁完成",
+            Text = "怪物: "..totalMonsterUnlocked.." | 幸存者: "..totalSurvivorUnlocked,
+            Icon = "rbxassetid://120172811078080",
+            Duration = 6
+        })
+    else
+        warn("未找到幸存者的 Inventory 文件夹")
+    end
+else
+    warn("未找到 Survivor 文件夹")
+end
