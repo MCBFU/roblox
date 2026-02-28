@@ -1,6 +1,35 @@
---好吧恭喜
+-- 不是,你怎么看到的？Σ( ° △ °|||)︴
+-- 就当什么都没看见,返回 好吗
 
--- 强制优先加载playbreak（必写在最顶部）
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 local success, Library = pcall(function()
     return loadstring(game:HttpGet("https://gitee.com/cmbhbh/ycgui/raw/master/YCmain.lua"))()
 end)
