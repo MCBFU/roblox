@@ -1,96 +1,12 @@
-local Players = game:GetService("Players")
-local StarterGui = game:GetService("StarterGui")
-local localPlayer = Players.LocalPlayer
+local v0=game:GetService("Players");local v1=game:GetService("StarterGui");local v2=v0.LocalPlayer;v1:SetCore("SendNotification",{Title="Made by XQ",Text="感谢使用 XQ 作品",Icon="rbxassetid://120172811078080",Duration=5});v1:SetCore("SendNotification",{Title="皮肤解锁",Text="正在解锁怪物皮肤...",Icon="rbxassetid://120172811078080",Duration=6});local v3=v2:WaitForChild("PlayerData");local v4=v3:WaitForChild("Customization");local v5=v4:WaitForChild("Monster");local v6={"Boxy","Huggy","Mommy","Stalky"};local v7=0;for v9,v10 in ipairs(v6) do local v11=0 -0 ;local v12;while true do if (v11==0) then v12=v5:FindFirstChild(v10);if v12 then local v15=0 + 0 ;local v16;while true do if (v15==(0 -0)) then v16=v12:FindFirstChild("Inventory");if v16 then for v21,v22 in ipairs(v16:GetChildren()) do if (v22:IsA("BoolValue") and (v22.Value==false)) then local v24=0;while true do if (v24==(0 + 0)) then v22.Value=true;v7=v7 + (792 -(368 + 423)) ;break;end end end end end break;end end end break;end end end task.wait(0.5 -0 );v1:SetCore("SendNotification",{Title="怪物皮肤解锁完成",Text="共解锁 "   .. v7   .. " 个皮肤" ,Icon="rbxassetid://120172811078080",Duration=4});task.wait(18.5 -(10 + 8) );v1:SetCore("SendNotification",{Title="皮肤解锁",Text="正在解锁幸存者皮肤...",Icon="rbxassetid://120172811078080",Duration=22 -16 });local v8=v4:FindFirstChild("Survivor");if v8 then local v13=0;local v14;while true do if (v13==(442 -(416 + 26))) then v14=v8:FindFirstChild("Inventory");if v14 then local v17=0 -0 ;local v18;local v19;local v20;while true do if (v17==0) then v18=0 + 0 ;v19=nil;v17=1;end if (v17==(1 -0)) then v20=nil;while true do if (v18==3) then v1:SetCore("SendNotification",{Title="全部解锁完成",Text="怪物: "   .. v7   .. " | 幸存者: "   .. v19 ,Icon="rbxassetid://120172811078080",Duration=444 -(145 + 293) });break;end if (v18==(432 -(44 + 386))) then v1:SetCore("SendNotification",{Title="幸存者皮肤解锁完成",Text="共解锁 "   .. v19   .. " 个皮肤" ,Icon="rbxassetid://120172811078080",Duration=1490 -(998 + 488) });task.wait(0.5 + 0 );v18=3 + 0 ;end if (v18==0) then local v23=772 -(201 + 571) ;while true do if (v23==(1139 -(116 + 1022))) then v18=1;break;end if (v23==(0 -0)) then v19=0;v20={"Hats","Grabpacks","Hands","Shirts","Shoes","Pants"};v23=1;end end end if (v18==(860 -(814 + 45))) then for v25,v26 in ipairs(v20) do local v27=0 -0 ;local v28;while true do if (v27==(0 + 0)) then v28=v14:FindFirstChild(v26);if v28 then for v30,v31 in ipairs(v28:GetChildren()) do if (v31:IsA("BoolValue") and (v31.Value==false)) then local v32=0 + 0 ;while true do if ((885 -(261 + 624))==v32) then v31.Value=true;v19=v19 + (1 -0) ;break;end end end end end break;end end end task.wait(1080.5 -(1020 + 60) );v18=2;end end break;end end else warn("未找到幸存者的 Inventory 文件夹");end break;end end else warn("未找到 Survivor 文件夹");end
+-- ⚠️ WARNING: integrity protected!
+--[[
+ .____                  ________ ___.    _____                           __                
+ |    |    __ _______   \_____  \\_ |___/ ____\_ __  ______ ____ _____ _/  |_  ___________ 
+ |    |   |  |  \__  \   /   |   \| __ \   __\  |  \/  ___// ___\\__  \\   __\/  _ \_  __ \
+ |    |___|  |  // __ \_/    |    \ \_\ \  | |  |  /\___ \\  \___ / __ \|  | (  <_> )  | \/
+ |_______ \____/(____  /\_______  /___  /__| |____//____  >\___  >____  /__|  \____/|__|   
+         \/          \/         \/    \/                \/     \/     \/                   
+          \_Welcome to LuaObfuscator.com   (Alpha 0.10.9) ~  Much Love, Ferib 
 
-StarterGui:SetCore("SendNotification", {
-    Title = "Made by XQ",
-    Text = "感谢使用 XQ 作品",
-    Icon = "rbxassetid://120172811078080",
-    Duration = 5
-})
-
-StarterGui:SetCore("SendNotification", {
-    Title = "皮肤解锁",
-    Text = "正在解锁怪物皮肤...",
-    Icon = "rbxassetid://120172811078080",
-    Duration = 6
-})
-
-local playerData = localPlayer:WaitForChild("PlayerData")
-local customization = playerData:WaitForChild("Customization")
-local monster = customization:WaitForChild("Monster")
-local characters = {"Boxy", "Huggy", "Mommy", "Stalky"}
-
-local totalMonsterUnlocked = 0
-
-for _, charName in ipairs(characters) do
-    local character = monster:FindFirstChild(charName)
-    if character then
-        local inventory = character:FindFirstChild("Inventory")
-        if inventory then
-            for _, skin in ipairs(inventory:GetChildren()) do
-                if skin:IsA("BoolValue") and skin.Value == false then
-                    skin.Value = true
-                    totalMonsterUnlocked = totalMonsterUnlocked + 1
-                end
-            end
-        end
-    end
-end
-
-task.wait(0.5)
-StarterGui:SetCore("SendNotification", {
-    Title = "怪物皮肤解锁完成",
-    Text = "共解锁 "..totalMonsterUnlocked.." 个皮肤",
-    Icon = "rbxassetid://120172811078080",
-    Duration = 4
-})
-
-task.wait(0.5)
-StarterGui:SetCore("SendNotification", {
-    Title = "皮肤解锁",
-    Text = "正在解锁幸存者皮肤...",
-    Icon = "rbxassetid://120172811078080",
-    Duration = 6
-})
-
-local survivor = customization:FindFirstChild("Survivor")
-if survivor then
-    local inventory = survivor:FindFirstChild("Inventory")
-    if inventory then
-        local totalSurvivorUnlocked = 0
-        local parts = {"Hats", "Grabpacks", "Hands", "Shirts", "Shoes", "Pants"}
-
-        for _, partName in ipairs(parts) do
-            local partFolder = inventory:FindFirstChild(partName)
-            if partFolder then
-                for _, skin in ipairs(partFolder:GetChildren()) do
-                    if skin:IsA("BoolValue") and skin.Value == false then
-                        skin.Value = true
-                        totalSurvivorUnlocked = totalSurvivorUnlocked + 1
-                    end
-                end
-            end
-        end
-
-        task.wait(0.5)
-        StarterGui:SetCore("SendNotification", {
-            Title = "幸存者皮肤解锁完成",
-            Text = "共解锁 "..totalSurvivorUnlocked.." 个皮肤",
-            Icon = "rbxassetid://120172811078080",
-            Duration = 4
-        })
-        
-        task.wait(0.5)
-        StarterGui:SetCore("SendNotification", {
-            Title = "全部解锁完成",
-            Text = "怪物: "..totalMonsterUnlocked.." | 幸存者: "..totalSurvivorUnlocked,
-            Icon = "rbxassetid://120172811078080",
-            Duration = 6
-        })
-    else
-        warn("未找到幸存者的 Inventory 文件夹")
-    end
-else
-    warn("未找到 Survivor 文件夹")
-end
+]]--
