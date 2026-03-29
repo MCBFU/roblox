@@ -1,0 +1,38 @@
+local player = game.Players.LocalPlayer
+local character = player.Character
+if not character then return end
+
+local rootPart = character:FindFirstChild("HumanoidRootPart")
+if not rootPart then return end
+
+local items = {"Hotdog", "Meatballs", "Burger", "Banana", "Apple", "Chips", "2 Litre Dr. Bob", "Dr. Bob Soda", "Ice Cream", "Lemon Slice", "Lemon", "Medkit", "Water", "Pizza"}
+
+local closest = nil
+local closestDist = math.huge
+local pos = rootPart.Position
+
+for _, obj in ipairs(workspace:GetDescendants()) do
+    if obj:IsA("BasePart") then
+        local name = obj.Name
+        for i = 1, #items do
+            if name == items[i] then
+                local dist = (obj.Position - pos).Magnitude
+                if dist < closestDist then
+                    closestDist = dist
+                    closest = obj
+                end
+                break
+            end
+        end
+    end
+end
+
+if closest then
+    local newPos = closest.Position + Vector3.new(0, 3, 0)
+    rootPart.CFrame = CFrame.new(newPos)
+    game:GetService("StarterGui"):SetCore("SendNotification", {
+        Title = "传送",
+        Text = "已传送到 " .. closest.Name,
+        Duration = 2
+    })
+end
